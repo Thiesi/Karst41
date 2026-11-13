@@ -146,6 +146,14 @@ class Core:
         self.truce = Truce(self) if self.dialogue else None
         if self.truce:
             self.loop.subsystems.append(self.truce)
+        # S48c2: the opening's beats runner (#220 section 4).
+        from karst41.server.script import Opening
+        self.opening = Opening(self) if self.characters is not None else None
+        if self.opening:
+            self.characters.opening_start = self.opening.start
+            self.characters.opening_stop = self.opening.stop
+            self.characters.opening_live = self.opening.live
+            self.loop.subsystems.append(self.opening)
 
     def _disconnect_character(self, session: Session) -> None:
         if self.dialogue:
@@ -315,6 +323,8 @@ class Core:
             session.replay_log()
         routes = self.routes_for(session)
         action = key_action(self.keymap, session, frame)
+        if self.opening is not None and action:
+            self.opening.key_used(session, action)
         selected = self.resolve_interaction(session, frame, routes) if interact(frame) or action in ('interact', 'jack') else None
         if selected is not None:
             selected.route.handler(session, frame, event.data['tick'], interaction=selected.choice)

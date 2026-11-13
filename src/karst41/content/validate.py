@@ -273,6 +273,7 @@ class _Validator:
         self.check_events()
         self.check_services()
         self.check_dialogue()
+        self.check_scripts()
         self.check_seasons()
         self.check_art()
         self.check_route_variants()
@@ -1928,6 +1929,124 @@ class _Validator:
                     self._check_effect(owner, f"allocation {alloc.id} effect {i}", e)
 
     # --- dialogue and seasons -----------------------------------------------
+
+    def check_scripts(self) -> None:
+        """S48c2: the opening's script (#220 section 4; terminal UI 11, P12)."""
+        from karst41.door.log import wrap as word_wrap
+        from karst41.layout import compute as screen_layout
+        small = screen_layout(80, 24)
+        log_width = small.log.width - 2          # P12: the guttered log, two rows at 80x24.
+        keymaps = list(self.t.keymaps.keymaps) if self.t.keymaps else []
+        archetypes = {slug for slug in self.t.starts}
+        for sid, script in self.each("scripts"):
+            assert isinstance(script, s.Script)
+            owner = ("scripts", sid)
+            if not self.ref("zones", script.zone, owner, "zone"):
+                continue
+            zone = self.t.zones[script.zone]
+            width, height = zone.width, zone.height
+            ids = [ln.id for beat in script.beats for ln in beat.lines]
+            if len(set(ids)) != len(ids):
+                self.report(*owner, "line ids are not unique")
+            if len({b.id for b in script.beats}) != len(script.beats):
+                self.report(*owner, "beat ids are not unique")
+            for speaker, name in script.speakers.items():
+                self.ref("dialogue", speaker, owner, "speaker")
+
+            def trigger(tr: s.ScriptTrigger, where: str) -> None:
+                if tr.name not in s.SCRIPT_TRIGGERS:
+                    self.report(*owner, f"{where}: unknown trigger {tr.name!r}")
+                    return
+                if tr.name == "region":
+                    if tr.region is None:
+                        self.report(*owner, f"{where}: a region trigger needs a region")
+                    else:
+                        x, y, w, h = tr.region
+                        if w <= 0 or h <= 0 or x < 0 or y < 0 or x + w > width or y + h > height:
+                            self.report(*owner, f"{where}: region {tr.region} is outside {script.zone}")
+                if tr.name in ("steps", "seconds") and tr.count <= 0:
+                    self.report(*owner, f"{where}: {tr.name} needs a positive count")
+                if tr.name == "template_read" and tr.value and tr.value not in archetypes:
+                    self.report(*owner, f"{where}: unknown template {tr.value!r}")
+                if tr.name == "talk_opened" and tr.value:
+                    self.ref("dialogue", tr.value, owner, f"{where}: talker")
+                if tr.name == "zone_entered" and tr.value:
+                    self.ref("zones", tr.value, owner, f"{where}: zone")
+
+            for beat in script.beats:
+                for tr in beat.next:
+                    trigger(tr, f"beat {beat.id}")
+                for hint in beat.hints:
+                    self.check_script_hint(owner, hint.text, keymaps, f"beat {beat.id}")
+                    for fact in (hint.after, hint.until):
+                        if fact and fact not in s.LESSON_FACTS:
+                            self.report(*owner, f"beat {beat.id}: hint fact {fact!r} is not a lesson fact")
+                for ln in beat.lines:
+                    where = f"line {ln.id}"
+                    for tr in ln.when:
+                        trigger(tr, where)
+                    if ln.after and ln.after not in ids:
+                        self.report(*owner, f"{where}: after {ln.after!r} names no line")
+                    for fact in (*ln.requires, *ln.unless):
+                        if fact not in s.LESSON_FACTS:
+                            self.report(*owner, f"{where}: {fact!r} is not a lesson fact")
+                    if ln.kind == "speech":
+                        if not ln.speaker:
+                            self.report(*owner, f"{where}: speech needs a speaker")
+                            continue
+                        self.ref("dialogue", ln.speaker, owner, f"{where}: speaker")
+                        name = script.speakers.get(ln.speaker) or (
+                            self.t.dialogue[ln.speaker].name if ln.speaker in self.t.dialogue else ln.speaker)
+                        rows = word_wrap(f"{name}: {ln.text}", log_width, continuation=0)
+                        if len(rows) > 2:
+                            self.report(*owner, f"{where}: {len(rows)} log rows at 80x24 with its speaker; two at most")
+                    elif ln.speaker:
+                        self.report(*owner, f"{where}: a {ln.kind} line has no speaker")
+                    elif len(word_wrap(ln.text, log_width, continuation=0)) > 2:
+                        self.report(*owner, f"{where}: more than two log rows at 80x24")
+            # The record's detail: the template paragraph and its last line, 4 rows at 66.
+            for detail in script.details:
+                if detail.archetype not in archetypes:
+                    self.report(*owner, f"detail: unknown template {detail.archetype!r}")
+                    continue
+                for fact in detail.requires:
+                    if fact not in s.LESSON_FACTS:
+                        self.report(*owner, f"detail {detail.archetype}: {fact!r} is not a lesson fact")
+                asset = self.t.text.get("wake-archetype-" + detail.archetype)
+                if asset is not None:
+                    body = asset.body.strip() + " " + detail.text
+                    if len(word_wrap(body, 66, continuation=0)) > 4:
+                        self.report(*owner, f"detail {detail.archetype}: more than 4 rows at 66 with its last line")
+            # Errands: the short form, the longest E label on the path and `? help` fit 78.
+            for errand in script.errands:
+                if not self.ref("zones", errand.zone, owner, "errand zone"):
+                    continue
+                self.check_script_hint(owner, errand.text, keymaps, f"errand {errand.zone}", limit=s.HINT_ROW_MAX)
+                labels = [f"E go to {self.t.zones[ex.target_zone].meta.name}" for ex in self.t.zones[errand.zone].meta.exits
+                          if ex.target_zone in self.t.zones]
+                longest = max((text_width(label) for label in labels), default=0)
+                if text_width(errand.short) + 2 + longest + 2 + text_width("? help") > s.HINT_ROW_MAX:
+                    self.report(*owner, f"errand {errand.zone}: short form, longest E label and ? help exceed {s.HINT_ROW_MAX}")
+            for hint in script.hints:
+                self.check_script_hint(owner, hint.text, keymaps, f"hint {hint.id}")
+                if hint.zone:
+                    self.ref("zones", hint.zone, owner, f"hint {hint.id}: zone")
+            if script.late_card and len(word_wrap(script.late_card, log_width, continuation=0)) > 2:
+                self.report(*owner, "late card: more than two log rows at 80x24")
+
+    def check_script_hint(self, owner: tuple[str, str], text: str, keymaps: list[s.Keymap], where: str,
+                          limit: int | None = None) -> None:
+        """Every keymap's rendering must fit: lesson hints 70 cells (presentation lead)."""
+        from karst41.hints import resolve_keys
+        limit = s.LESSON_HINT_MAX if limit is None else limit
+        for keymap in keymaps or [None]:
+            try:
+                shown = resolve_keys(text, keymap)
+            except KeyError as exc:
+                self.report(*owner, f"{where}: unknown key {exc.args[0]!r}")
+                return
+            if text_width(shown) > limit:
+                self.report(*owner, f"{where}: {text_width(shown)} cells with the {getattr(keymap, 'id', 'default')} keymap; {limit} at most")
 
     def check_dialogue(self) -> None:
         for did, node in self.each("dialogue"):

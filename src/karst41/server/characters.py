@@ -56,6 +56,10 @@ class Characters:
         self.unread_ids: set[str] = set()
         # c2 subscribes to lesson facts (lines, objectives).
         self.lesson_hook: Callable[[Player, str, Any], None] = lambda player, key, value: None
+        # S48c2: the opening runner (Core installs it); start, stop, live.
+        self.opening_start: Callable[[Session, dict[str, Any]], None] = lambda session, state: None
+        self.opening_stop: Callable[[Session], dict[str, Any] | None] = lambda session: None
+        self.opening_live: Callable[[str], bool] = lambda pid: False
         # A recruiter card is taken once per identity (technical lead, S48c1):
         # identity["wake_card"] holds it. Identities from before S48 had the
         # card menu in their Wake, so one with a stored character counts as
@@ -219,9 +223,16 @@ class Characters:
         self.unread_ids.add(pid)
         self.wakes[session.id] = wake
         self._place(session, player)
+        if not wake.opening:
+            from karst41.server.script import fresh
+            wake.opening = fresh()
+        self.opening_start(session, wake.opening)
 
     def jacked_out(self, session: Session) -> None:
         """Back in the body with the record lifted, the record opens (#220 beat 9)."""
+        player = self.players.get(session.player_id)
+        if player is not None:
+            self.lesson(player, "jacked_out", True)
         wake = self.wakes.get(session.id)
         if wake is not None and wake.lessons.get("lifted") and self.unread(session.player_id):
             self.open_record(session, "terminal")
@@ -229,7 +240,7 @@ class Characters:
     def end_drone_lesson(self, pid: str) -> None:
         """Remove the training drone and pistol; the lesson stays as it was."""
         if hasattr(self, "combat"):
-            self.combat.disarm(pid)
+            self.combat.disarm(pid, quiet=True)  # A disconnect shows no line (#220 beat 6).
         for actor in tuple(self.world.actors.values()):
             if actor.owner == pid and actor.behaviour.get("training"):
                 self.world.leave(actor)
@@ -244,7 +255,8 @@ class Characters:
             player.progress["wake_combat"] = value  # In memory for an unread body.
         session = next((s for s in self.sessions.active.values() if s.player_id == player.id and not s.closed), None)
         wake = self.wakes.get(session.id) if session else None
-        if self.unread(player.id) and wake is not None:
+        from karst41.content.schema import LESSON_FACTS
+        if self.unread(player.id) and wake is not None and (key in ("drone", "lifted") or key in LESSON_FACTS):
             wake.lessons[key] = value
             self.identities[player.bbs_user_id]["wake"] = wake.saved()
             self.queue("identity", player.bbs_user_id)
@@ -263,6 +275,7 @@ class Characters:
             return False
         names = [slug for slug, _ in rules.ARCHETYPES]
         wake.stage, wake.source, wake.error, wake.dirty = "record", source, "", True
+        self.lesson(self.players[session.player_id], "record_opened", source)
         wake.cursor = names.index(wake.archetype) if wake.archetype in names else 0
         return True
 
@@ -335,6 +348,9 @@ class Characters:
         player.update_personhood(self.identity(session.user_id), self.clock.now_utc())
         self.queue("save", session.user_id, player, immediate=True)
         self.attached(session, player)
+        opening = player.progress.get("opening")
+        if opening and not opening.get("done"):
+            self.opening_start(session, opening)
 
     def promote(self, session: Session, player: Player) -> None:
         """The record is read: the unread body becomes the character in place."""
@@ -428,6 +444,11 @@ class Characters:
             return
         player = self.players.get(session.player_id)
         avatar = avatar_override or self.sim.avatars.get(session.user_id)
+        opening = self.opening_stop(session)
+        if opening is not None and player is not None and not self.unread(player.id):
+            if opening.get("read") and avatar is not None and avatar.actor.zone != Player.zone:
+                opening["done"], opening["queue"] = True, []  # Technical lead, fix 2: only the errand goes on.
+            player.progress["opening"] = opening
         if wake:
             if player is not None and self.unread(player.id) and avatar is not None:
                 wake.tile = list(avatar.actor.position)
@@ -537,6 +558,8 @@ class Characters:
         start = self.content.starts[player.archetype]
         items = grant_starter_kit(player, start, self.content.items, serial)
         player.progress = {"points": 0, "known_programs": list(start.programs), "known_hymns": list(start.hymns), "memory": {}}
+        if wake.opening:
+            player.progress["opening"] = wake.opening  # The runner goes on with the character (S48c2).
         # Held facts from the hall (S48c1), applied at creation.
         if wake.met:
             player.progress["met_talkers"] = sorted(set(wake.met))
@@ -591,6 +614,9 @@ class Characters:
                 else:
                     self.players[player.id] = player
                     self.attach(session, player)
+                    if player.progress.get("opening"):
+                        self.opening_start(session, player.progress["opening"])
+                self.lesson(player, "kit_issued", True)
             else:
                 self.players[player.id] = player
                 self.unread_ids.discard(player.id)
@@ -707,6 +733,10 @@ class Characters:
                     wake.dirty = True
                     return True
                 wake.archetype, wake.stage, wake.error = rules.ARCHETYPES[wake.cursor][0], "name", ""
+                body = self.players.get(session.player_id)
+                if body is not None:
+                    self.lesson(body, "template_read", wake.archetype)
+                    self.lesson(body, "name_prompt", True)
         elif wake.stage == "name":
             if name == "prompt_cancel":
                 wake.stage = "record"
@@ -720,6 +750,9 @@ class Characters:
                     wake.error = "That name is already in use. Choose another."
                 else:
                     wake.name, wake.error = candidate, ""
+                    body = self.players.get(session.player_id)
+                    if body is not None:
+                        self.lesson(body, "name_entered", candidate)
                     self.create(session)
         wake.dirty = True
         self.identities[session.user_id]["wake"] = wake.saved()

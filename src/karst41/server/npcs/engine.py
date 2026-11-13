@@ -523,7 +523,9 @@ class Npcs:
                 health=template.health,health_max=template.health,behaviour={"training":True,"template":template.id,"warned":tick})
             self.world.enter(drone,actor.zone,tile)
             self.combat.warnings.pop((player.id,drone.id),None)
-            self.combat.log(actor,"Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.",True)
+            if not self.game.opening_live(player.id):  # Technical lead, fix 1.
+                self.combat.log(actor,"Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.",True)
+            self.game.lesson(player, "drone_woke", True)
         self.combat.arm(player)  # In hand while the drone is up (game design 17).
         template = self.content.npcs[drone.behaviour["template"]]
         if tick>=int(drone.behaviour["warned"])+ticks(WARNING_SECONDS) and tick>=drone.cooldowns.get("weapon",0):

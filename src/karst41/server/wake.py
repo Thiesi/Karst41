@@ -60,7 +60,8 @@ def cards(content: ContentTree, cursor: int, width: int, height: int) -> dict[st
 
 # S48 (#220): the stages that show a menu over the hall; `hall` is play.
 MENU_STAGES = ("record", "name", "saving")
-SAVED = ("stage", "archetype", "name", "cursor", "screen", "page", "serial", "card", "lessons", "met", "tile", "source")
+SAVED = ("stage", "archetype", "name", "cursor", "screen", "page", "serial", "card", "lessons", "met", "tile", "source",
+         "opening")
 
 
 def menu(title: str, rows: list[dict[str, Any]], cursor: int, detail: str, hint: str = "Enter selects",
@@ -91,6 +92,8 @@ class Wake:
     met: list[str] = field(default_factory=list)
     tile: list[int] | None = None
     source: str = ""
+    opening: dict[str, Any] = field(default_factory=dict)
+    """The opening runner's state (S48c2), until the character is created."""
 
     @classmethod
     def restore(cls, value: dict[str, Any]) -> "Wake":

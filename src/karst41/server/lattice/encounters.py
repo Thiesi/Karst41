@@ -648,6 +648,8 @@ class Encounters:
                 ice.hit(amount, player.id, tick)
                 self.activate(ice, presence, "attack")
                 self.log(presence, f"{program.name} hits {ice.template.name}: {display_number(amount)}. Integrity {display_number(ice.integrity)}.", kind="combat")
+                if not ice.alive:
+                    self.game.lesson(player, "ice_down", ice.id)
         elif kind == "open_gate" and params.get("private_vestibule"):
             deferred_learning = True
             self.lat.interlock.open_vestibule(presence,
@@ -950,6 +952,7 @@ class Encounters:
         presence = self.lat.presences.get(event.target)
         if event.kind == "warning" and presence:
             self.log(presence, f"{ice.template.name}: {ice.template.role}, {event.amount:g}s warning. {ice.template.counter_label}.", True)
+            self.game.lesson(self.game.players[presence.player_id], "ice_warned", ice.id)
         elif event.kind == "hit" and presence:
             if not self.receive(presence, event, name=ice.template.name):
                 self.delayed.append(event)

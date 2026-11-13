@@ -204,6 +204,9 @@ class Dialogue:
 
     def open(self, session: Session, contact: Contact, tick: int) -> None:
         talker = self.content.dialogue[contact.talker]
+        player = self.game.players.get(session.player_id)
+        if player is not None:
+            self.game.lesson(player, "talk_opened", talker.id)
         facts = self.facts(session, talker)
         line = evaluate(talker, facts, self.world.zones[contact.zone].rng).text
         if talker.id in facts.met:

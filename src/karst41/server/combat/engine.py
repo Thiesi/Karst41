@@ -324,8 +324,11 @@ class Combat:
             self.training_arms[player.id] = make_item("training:" + player.id, self.content.items[self.TRAINING_PISTOL],
                                                       player.id, self.clock.now_utc().isoformat())
 
-    def disarm(self, pid: str) -> None:
-        self.training_arms.pop(pid, None)
+    def disarm(self, pid: str, quiet: bool = False) -> None:
+        if self.training_arms.pop(pid, None) is not None and not quiet:
+            player = self.game.players.get(pid)
+            if player is not None:
+                self.game.lesson(player, "disarmed", True)  # 6.8, the cable reels it back.
 
     def weapon(self, player: Player) -> tuple[Any, WeaponBlock] | None:
         training = self.training_arms.get(player.id)
@@ -384,6 +387,8 @@ class Combat:
         def resolved(success: bool) -> None:
             if not success: self.log(actor,"The shot did not settle. Try again.",True); return
             if actor.stance in ("down","dead","sleeper") or actor.zone is None: return
+            if actor.zone == "vatside-wake-hall":
+                self.game.lesson(player, "fired", True)
             actor.cooldowns["weapon"] = rules.cooldown_deadline(self.clock.now_tick(), seconds,
                                                                actor.cooldowns.get("weapon", 0))
             actor.stance = "normal"
@@ -501,6 +506,8 @@ class Combat:
         if not self.legal(source,target) or target.stance in ("down","dead"): return
         self.reveal(source, target)
         training = source.behaviour.get("training")
+        if training and target.id in self.game.players:
+            self.game.lesson(self.game.players[target.id], "first_hit", True)
         self._apply_damage(source, target, amount, shock, source.id, source.name, bool(training), damage_type)
 
     def reveal(self, source: Actor, target: Actor) -> None:
@@ -543,11 +550,14 @@ class Combat:
             if target.behaviour.get("training"):
                 self.world.leave(target)
                 player = self.game.players.get(target.owner)
-                if player:
-                    self.disarm(player.id)
                 if player and source is not None:
-                    self.game.lesson(player, "drone", "done")
-                    self.log(source,"The training drone falls silent. The tutorial terminal is ahead.")
+                    live = self.game.opening_live(player.id)
+                    self.game.lesson(player, "drone", "done")  # 6.6 before 6.8 (#220 beat 6 order).
+                    if not live:  # Technical lead, fix 1: the engine speaks when no script owns it.
+                        self.log(source,"The training drone falls silent. The tutorial terminal is ahead.")
+                if player:
+                    self.disarm(player.id)  # Removal before remember (canon #238).
+                if player and source is not None:
                     self.remember(player,source)
             elif target.id in self.game.players:
                 target.stance = "down"

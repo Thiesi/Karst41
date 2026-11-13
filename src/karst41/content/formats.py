@@ -397,6 +397,7 @@ RECORD_DIRS: dict[str, type] = {
     "sectors": s.Sector,
     "cores": s.Core,
     "dialogue": s.DialogueNode,
+    "scripts": s.Script,
     "seasons": s.SeasonDefinition,
     "bundles": s.Bundle,
 }
