@@ -150,3 +150,24 @@ def test_beat_eights_hints_show_in_the_lattice_view(game: HeadlessServer) -> Non
     game.step(4)
     view = game.core.characters.sim.external_views[client.session.id]
     assert view[0] == "lattice" and view[1]["lesson"] == {"text": "Tab picks the Tripwire.  J leaves"}
+
+
+def test_an_unread_body_talks_to_vantongeren_and_hears_it_again(game: HeadlessServer) -> None:
+    client = game.connect()
+    game.step(1)
+    manager = game.core.characters
+    place(game, client, HALL, (14, 7))
+    act(game, client, Frame("key", {"k": "e", "t": 0}))
+    view = manager.sim.external_views[client.session.id]
+    assert view[0] == "menu" and view[1]["kind"] == "talker"
+    assert view[1]["detail"].startswith("Open your eyes slowly.")
+    assert [a["label"] for a in view[1]["actions"]] == ["Hear it again"]   # Nothing that writes.
+    assert manager.wakes[client.session.id].met == ["vantongeren"]
+    assert not [e for e in manager.outbox if e["action"] in ("save", "create")]
+    assert not game.core.commerce.outbox
+    act(game, client, Frame("key", {"k": "h", "t": 0}))
+    page = manager.sim.external_views[client.session.id]
+    assert page[0] == "text" and page[1]["title"].endswith("1/3 (1/1)") and page[1]["flow"]
+    assert page[1]["lines"][0].startswith("Open your eyes slowly.")
+    act(game, client, Frame("key", {"k": "escape", "t": 0}))
+    assert manager.sim.external_views[client.session.id][1]["kind"] == "talker"

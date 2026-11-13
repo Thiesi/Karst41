@@ -366,7 +366,13 @@ runner contract with the creative lead's fixes.
 - **Speaker names** in the log are the mocks' short forms ("Vantongeren",
   "Okafor") through the script's `speakers` map; the creative lead can
   change them there.
-- **Ctrl-P read-back:** the in-hall trigger ("the first time a spoken line
-  is cut or pushed out of view") is a door-side fact the server cannot
-  see; c2 ships the stated fallback (once on Clinic Row after the shift
-  hint).
+- **Ctrl-P read-back:** c2 ships the stated fallback (once on Clinic Row
+  after the shift hint). The in-hall trigger ("the first time a spoken
+  line is cut or pushed out of view") is a door-side signal; the
+  technical lead deferred it to S48c3 (panel and paint, already door-side
+  work). A deferral, not a dropped beat.
+- **Template reward lines** (creative lead): after 9.10, Hardline's vest,
+  Cantor's First Ear (with Steady) and Operator's Mule, named from the
+  item; Ghost's rig is in the body and gets none.
+- **Dialogue before the record:** talking needs `Commerce.present` (in
+  the body, free to act); everything that writes still needs `ready`.

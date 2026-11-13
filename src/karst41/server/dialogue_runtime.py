@@ -156,7 +156,7 @@ class Dialogue:
                 actor = self.sim.avatars[session.user_id].actor
                 return Contact(did, cid, actor.zone, actor.position, True)
             return None
-        if not self.commerce.ready(session):
+        if not self.commerce.present(session):  # An unread body may talk (S48c2); its writes are held.
             return None
         actor = self.sim.avatars[session.user_id].actor
         zone = self.world.zones[actor.zone]
@@ -248,6 +248,9 @@ class Dialogue:
             raise ValueError('Let the current transfer settle before talking.')
 
     def publish(self, session: Session) -> None:
+        if session.id in self.reading:
+            self.read_page(session)  # A `read` offer's page stays up until it is put down.
+            return
         screen = self.menus[session.id]
         talker = self.content.dialogue[screen.contact.talker]
         offers = self.offers(session, talker)

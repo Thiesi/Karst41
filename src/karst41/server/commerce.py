@@ -63,10 +63,16 @@ class Commerce:
         self.sync_caches()
 
     def ready(self, session: Session) -> bool:
+        return self.present(session) and not self.unread(session.player_id)
+
+    def present(self, session: Session) -> bool:
+        """In the body and free to act, whether or not the record is read (S48c2).
+
+        Talking needs only this; anything that writes needs `ready`.
+        """
         av = self.sim.avatars.get(session.user_id)
         return bool(session.role == "caller" and not session.closed and av and session.player_id == av.actor.id
                     and session.player_id in self.game.players
-                    and not self.unread(session.player_id)
                     and session.id not in self.game.screens and not av.travel and av.actor.zone
                     and av.actor.stance not in ("down", "dead", "sleeper", "jacked"))
 
