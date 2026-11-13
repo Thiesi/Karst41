@@ -361,6 +361,18 @@
       "id": "the-record",
       "lines": [
         {
+          "id": "o.1",
+          "text": "Record first. Then I know what size.",
+          "name": "Wake Outfitter",
+          "record": true,
+          "when": [
+            {
+              "name": "record_opened",
+              "value": "outfitter"
+            }
+          ]
+        },
+        {
           "id": "9.1",
           "text": "Read me the template line. I have to hear you say it.",
           "speaker": "okafor",

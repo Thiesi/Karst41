@@ -54,6 +54,7 @@ class Dialogue:
         self.content, self.world, self.commerce = self.game.content, core.world, core.commerce
         self.sim = self.game.sim
         self.menus: dict[str, TalkerMenu] = {}
+        self.reading: dict[str, tuple[str, int, int]] = {}  # S48c2: a `read` offer's pages.
         if core.npcs:
             core.npcs.talking = lambda sid, aid: (sid in self.menus
                 and not self.menus[sid].contact.lattice
@@ -91,6 +92,13 @@ class Dialogue:
             return True
         return bool(zone and any(tile in actor.visible for layer in zone.layers.values()
                                  for tile in layer.layout.warning_tiles))
+
+    def offers(self, session: Session, talker: DialogueNode) -> list[Offer]:
+        offers = eligible_offers(talker, self.facts(session, talker))
+        if self.game.unread(session.player_id):
+            # S48c2: before the record, nothing that writes; Hear it again stays.
+            offers = [offer for offer in offers if offer.kind == 'read']
+        return offers
 
     def facts(self, session: Session, talker: DialogueNode) -> Facts:
         player = self.game.players[session.player_id]
@@ -163,6 +171,7 @@ class Dialogue:
         return found[0] if found else None
 
     def close(self, session: Session) -> None:
+        self.reading.pop(session.id, None)
         self.menus.pop(session.id, None)
         self.sim.external_views.pop(session.id, None)
         avatar = self.sim.avatars.get(session.user_id)
@@ -213,6 +222,14 @@ class Dialogue:
             self.show(session, contact, line, tick)
             return
         player = self.game.players[session.player_id]
+        wake = self.game.wakes.get(session.id)
+        if self.game.unread(player.id) and wake is not None:
+            # S48c1 plan: an unread body's meetings are held in the wake record.
+            if talker.id not in wake.met:
+                wake.met.append(talker.id)
+            player.progress['met_talkers'] = sorted(set(wake.met))
+            self.show(session, contact, line, tick)
+            return
         progress = deepcopy(player.progress)
         progress['met_talkers'] = sorted((facts.met & self.content.dialogue.keys()) | {talker.id})
         def committed(success: bool) -> None:
@@ -233,7 +250,7 @@ class Dialogue:
     def publish(self, session: Session) -> None:
         screen = self.menus[session.id]
         talker = self.content.dialogue[screen.contact.talker]
-        offers = eligible_offers(talker, self.facts(session, talker))
+        offers = self.offers(session, talker)
         actor = self.world.zones[screen.contact.zone].actors.get(screen.contact.target)
         label = talker.name
         if actor is not None:
@@ -265,7 +282,40 @@ class Dialogue:
         rows = panels.rows(session, panel)
         panel.cursor = next((index for index, row in enumerate(rows) if row['id'] == wanted), 0)
 
+    def read_page(self, session: Session) -> None:
+        from karst41.server.wake import briefing
+        ref, screen, page = self.reading[session.id]
+        book = briefing(self.content, screen, session.caps["width"], session.caps["height"], ref)
+        page = min(page, len(book) - 1)
+        total = sum(1 for n in range(1, 10) if f"{ref}-{n}" in self.content.text)
+        talker = self.content.dialogue[self.menus[session.id].contact.talker]
+        self.sim.external_views[session.id] = 'text', {
+            "title": f"{talker.name.upper()} - {screen}/{total} ({page + 1}/{len(book)})",
+            "lines": book[page], "flow": True, "page": 1, "pages": 1,
+            "hint": "Any key continues  Esc/B returns", "clear_prompt": True}
+
+    def turn_page(self, session: Session, key: str) -> None:
+        ref, screen, page = self.reading[session.id]
+        if key in ('escape', 'b'):
+            self.reading.pop(session.id)
+            self.publish(session)
+            return
+        from karst41.server.wake import briefing
+        page += 1
+        if page >= len(briefing(self.content, screen, session.caps["width"], session.caps["height"], ref)):
+            screen, page = screen + 1, 0
+        if f"{ref}-{screen}" not in self.content.text:
+            self.reading.pop(session.id)
+            self.publish(session)
+            return
+        self.reading[session.id] = ref, screen, page
+        self.read_page(session)
+
     def dispatch(self, session: Session, offer: Offer) -> None:
+        if offer.kind == 'read':
+            self.reading[session.id] = offer.ref, 1, 0
+            self.read_page(session)
+            return
         if self.menus[session.id].contact.lattice:
             raise ValueError('Return to the physical counter to use this service.')
         if offer.kind == 'contract':
@@ -368,6 +418,10 @@ class Dialogue:
         key = frame.data.get('k', '').lower() if frame.type == 'key' else ''
         screen = self.menus.get(session.id)
         try:
+            if screen and session.id in self.reading:
+                if key or name == 'menu_close':
+                    self.turn_page(session, 'escape' if name == 'menu_close' else key)
+                return True
             if screen:
                 if name == 'menu_close' or key in ('escape', 'b'):
                     self.close(session)
@@ -377,7 +431,7 @@ class Dialogue:
                     if name == 'menu_select' and frame.data.get('expected_revision') != session.view_revision:
                         return True
                     talker = self.content.dialogue[screen.contact.talker]
-                    offer = next((offer for offer in eligible_offers(talker, self.facts(session, talker))
+                    offer = next((offer for offer in self.offers(session, talker)
                                   if offer.hotkey.lower() == action), None)
                     if offer:
                         self.dispatch(session, offer)

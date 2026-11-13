@@ -218,7 +218,8 @@ class Encounters:
         presence.target = ""
         if risk and black and spec.owner_kind not in ("private", "relay"):
             presence.risk_consent.add(iid)
-        self.log(presence, "You enter "+spec.name+". B returns along the entry; J starts escape.")
+        if not spec.training:  # The training core enters with 8.1 and 8.2 alone (creative lead).
+            self.log(presence, "You enter "+spec.name+". B returns along the entry; J starts escape.")
         if black:
             self.log(presence, "BLACK ICE / NPC BODY RISK remains active for this run.", True)
         self.trace(presence, 0, entered=True)

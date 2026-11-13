@@ -545,8 +545,54 @@
       "vendor": "sablier-clinic"
     },
     {
+      "id": "npc-cast-okafor",
+      "name": "Nurse Bea Okafor",
+      "faction": "sablier",
+      "grade": 1,
+      "attributes": {
+        "frame": 20,
+        "nerve": 20,
+        "cortex": 10,
+        "resonance": 5,
+        "vitals": 20
+      },
+      "behaviours": [
+        {
+          "kind": "talker",
+          "params": {
+            "anchor": true
+          }
+        }
+      ],
+      "xp": 0,
+      "dialogue": "okafor"
+    },
+    {
+      "id": "npc-cast-vantongeren",
+      "name": "Dr. Ilse Vantongeren",
+      "faction": "sablier",
+      "grade": 1,
+      "attributes": {
+        "frame": 20,
+        "nerve": 20,
+        "cortex": 10,
+        "resonance": 5,
+        "vitals": 20
+      },
+      "behaviours": [
+        {
+          "kind": "talker",
+          "params": {
+            "anchor": true
+          }
+        }
+      ],
+      "xp": 0,
+      "dialogue": "vantongeren"
+    },
+    {
       "id": "npc-vendor-vatside-wake-hall-wake-outfitter",
-      "name": "Sablier Wake Outfitter",
+      "name": "Wake Outfitter",
       "faction": null,
       "grade": 1,
       "attributes": {

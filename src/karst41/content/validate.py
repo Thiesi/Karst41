@@ -1991,16 +1991,17 @@ class _Validator:
                         if fact not in s.LESSON_FACTS:
                             self.report(*owner, f"{where}: {fact!r} is not a lesson fact")
                     if ln.kind == "speech":
-                        if not ln.speaker:
-                            self.report(*owner, f"{where}: speech needs a speaker")
+                        if not ln.speaker and not ln.name:
+                            self.report(*owner, f"{where}: speech needs a speaker or a name")
                             continue
-                        self.ref("dialogue", ln.speaker, owner, f"{where}: speaker")
-                        name = script.speakers.get(ln.speaker) or (
+                        if ln.speaker:
+                            self.ref("dialogue", ln.speaker, owner, f"{where}: speaker")
+                        name = ln.name or script.speakers.get(ln.speaker) or (
                             self.t.dialogue[ln.speaker].name if ln.speaker in self.t.dialogue else ln.speaker)
                         rows = word_wrap(f"{name}: {ln.text}", log_width, continuation=0)
                         if len(rows) > 2:
                             self.report(*owner, f"{where}: {len(rows)} log rows at 80x24 with its speaker; two at most")
-                    elif ln.speaker:
+                    elif ln.speaker or ln.name:
                         self.report(*owner, f"{where}: a {ln.kind} line has no speaker")
                     elif len(word_wrap(ln.text, log_width, continuation=0)) > 2:
                         self.report(*owner, f"{where}: more than two log rows at 80x24")
@@ -2092,6 +2093,12 @@ class _Validator:
                 hotkeys.add(offer.hotkey.lower())
                 if offer.kind == 'ask' or offer.asks:
                     self.check_ask(node, offer, owner)
+                    for cond in offer.when:
+                        self.condition(cond, owner, f"offer {offer.label!r}")
+                    continue
+                if offer.kind == 'read':
+                    if f"{offer.ref}-1" not in self.t.text:
+                        self.report(*owner, f"offer {offer.label!r}: no text asset {offer.ref}-1")
                     for cond in offer.when:
                         self.condition(cond, owner, f"offer {offer.label!r}")
                     continue

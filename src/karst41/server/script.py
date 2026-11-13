@@ -171,7 +171,7 @@ class Opening:
     def say(self, session: Session, state: dict[str, Any], ln: s.ScriptLine) -> None:
         at = self.core.clock.now_utc().isoformat()
         if ln.kind == "speech":
-            name = self.script.speakers.get(ln.speaker) or self.game.content.dialogue[ln.speaker].name
+            name = ln.name or self.script.speakers.get(ln.speaker) or self.game.content.dialogue[ln.speaker].name
             session.emit(f"{name}: {ln.text}", kind="speech", channel="zone", role="chan_zone", at=at,
                          speaker=name, speaker_role="service")
             session.voice_tick = self.core.clock.now_tick()  # P8 stays quiet behind it.

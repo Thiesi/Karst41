@@ -676,6 +676,11 @@ class Characters:
                 return Interaction(Focus(obj.spec.id, str(obj.spec.params.get("name", "Wake Outfitter")), "ask"),
                                    ("record", "outfitter"), obj.spec.tile, kind="wake")
         if unread:
+            # E on Okafor opens the record too (#220 beat 7, S48c staging).
+            for other in zone.actors.values():
+                if other.behaviour.get("template") == "npc-cast-okafor" and near(other.position):
+                    return Interaction(Focus(other.id, other.name, "talk to"), ("record", "okafor"),
+                                       other.position, other.id, kind="wake")
             for exit in zone.template.meta.exits:
                 if near(exit.tile) and not exit.hidden:
                     return Interaction(Focus(exit.id, self.world.zones[exit.target_zone].template.meta.name, "go to"),

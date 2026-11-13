@@ -86,6 +86,9 @@ def test_game_13_4_authored_references_resolve_even_while_bundle_is_dormant(cast
             if offer.kind == 'ask':  # Entities 1.11 (S44): the talker's own answer line.
                 assert offer.ref in {line.id for line in talker.lines[:-1]}, (talker.id, offer)
                 continue
+            if offer.kind == 'read':  # S48c2: text assets <ref>-1, -2, ...
+                assert f"{offer.ref}-1" in cast.text, (talker.id, offer)
+                continue
             assert offer.ref in (cast.services | cast.vendors if offer.kind == 'service'
                                  else getattr(cast, offers[offer.kind])), (talker.id, offer)
 

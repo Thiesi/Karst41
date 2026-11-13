@@ -32,38 +32,6 @@
       "required": true
     },
     {
-      "id": "record-sab-s1-4-batch",
-      "text": "The Site Zero stamp is clear. I recognise the template as my original. You'll find recognition still needs checking.",
-      "when": [
-        "has_evidence s19-sab-s1-4-batch"
-      ],
-      "required": true
-    },
-    {
-      "id": "record-sab-s1-3-dreaming",
-      "text": "Okafor says she asks Quell about the dreams. Your record says she returns quietly. You'll find a nurse is still entitled to a private conversation.",
-      "when": [
-        "has_evidence s19-sab-s1-3-dreaming"
-      ],
-      "required": true
-    },
-    {
-      "id": "record-sab-s1-2-provenance",
-      "text": "The lineage index stops where an origin should be. I'll call it a missing record. You'll find that is not the same as a diagnosis.",
-      "when": [
-        "has_evidence s19-sab-s1-2-provenance"
-      ],
-      "required": true
-    },
-    {
-      "id": "record-sab-s1-1-retrieval",
-      "text": "Four arrivals. Willing, by your record. The clinic promises care and records their tags. You'll find those are two different entries.",
-      "when": [
-        "has_evidence s19-sab-s1-1-retrieval"
-      ],
-      "required": true
-    },
-    {
       "id": "wake",
       "text": "Your lease still runs. You'll find the days on your record. They count without you.",
       "when": [
@@ -88,13 +56,6 @@
   ],
   "offers": [
     {
-      "kind": "contract",
-      "ref": "sab-s1-1-retrieval",
-      "label": "Work board",
-      "hotkey": "c",
-      "when": []
-    },
-    {
       "kind": "recruit",
       "ref": "sablier",
       "label": "Sablier terms",
@@ -102,6 +63,13 @@
       "when": [
         "not_member_of sablier"
       ]
+    },
+    {
+      "kind": "read",
+      "ref": "wake-briefing",
+      "label": "Hear it again",
+      "hotkey": "h",
+      "when": []
     }
   ],
   "barks": [

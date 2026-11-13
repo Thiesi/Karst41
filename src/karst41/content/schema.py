@@ -1296,7 +1296,8 @@ BALANCES = ("CUST", "TEN", "EVEN")
 SERVICE_STATES = ("normal", "fault", "repairing", "allocated")
 ARCHETYPES = ("hardline", "ghost", "cantor", "operator")
 
-OfferKind = Literal["contract", "vendor", "service", "recruit", "travel", "ask"]
+OfferKind = Literal["contract", "vendor", "service", "recruit", "travel", "ask", "read"]
+"""`read` (S48c2): `ref` names text assets `<ref>-1`, `<ref>-2`, ...; they open as text pages."""
 
 
 @dataclass(frozen=True)
@@ -1395,6 +1396,8 @@ class ScriptLine:
     id: str
     text: str
     speaker: str = ""
+    name: str = ""
+    """The log name for a speaker who is not a talker (the Wake Outfitter)."""
     kind: ScriptLineKind = "speech"
     when: tuple[ScriptTrigger, ...] = ()
     after: str = ""

@@ -41,9 +41,10 @@ def pages(lines: list[str], count: int) -> list[list[str]]:
     return result
 
 
-def briefing(content: ContentTree, screen: int, width: int, height: int) -> list[list[str]]:
+def briefing(content: ContentTree, screen: int, width: int, height: int,
+             ref: str = "wake-briefing") -> list[list[str]]:
     layout = screen_layout(width, height)
-    return pages(wrapped(content.text[f"wake-briefing-{screen}"].body, layout.briefing.width), layout.briefing.rows)
+    return pages(wrapped(content.text[f"{ref}-{screen}"].body, layout.briefing.width), layout.briefing.rows)
 
 
 def cards(content: ContentTree, cursor: int, width: int, height: int) -> dict[str, Any]:
