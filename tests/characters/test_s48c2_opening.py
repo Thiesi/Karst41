@@ -58,7 +58,7 @@ def test_with_no_live_script_the_engine_still_speaks_for_the_drone(game: Headles
     client = game.connect()
     create(game, client, name="Noor", card="none")
     player = game.core.characters.players[client.session.player_id]
-    game.core.opening.finish(game.core.opening.states[client.session.id])
+    assert not game.core.opening.live(player.id)   # The direct path finished the opening.
     player.progress.pop("wake_combat", None)
     said(game, client)
     place(game, client, HALL, (22, 14))
@@ -91,8 +91,10 @@ def test_the_record_beat_speaks_inside_its_menu_and_9_7_comes_before_the_name(ga
     game.commit_characters()
     game.step(1)
     lines = texts(said(game, client))
-    assert "Issued: sidearm, 50 rounds, baton, two patches, two rations." in lines   # At once, not paced.
-    assert "200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row." in lines
+    kit = "Issued: sidearm, 50 rounds, baton, two patches, two rations."
+    vest = "Issued: a Kestrel Issue Vest. It's on you already."    # The item's own name (creative lead).
+    card = "200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row."
+    assert lines.index(kit) < lines.index(vest) < lines.index(card)  # All at once, in order.
 
 
 def test_speech_waits_while_the_card_table_is_open(game: HeadlessServer) -> None:
@@ -130,3 +132,21 @@ def test_6_2_is_always_said_even_when_the_drone_is_skipped(game: HeadlessServer)
     assert any(t.startswith("Vantongeren: If you die, you'll wake up here") for t in heard)
     assert heard.index("The cable reels the pistol back to the wall.") < next(
         i for i, t in enumerate(heard) if t.startswith("Vantongeren: If you die"))
+
+
+def test_beat_one_moves_on_after_twelve_seconds_even_from_tick_zero(game: HeadlessServer) -> None:
+    client = game.connect()           # Woken at tick 0: a beat's timer starts at 0.
+    state = game.core.opening.states[client.session.id]
+    assert state["beat_tick"] == 0 and state["beat"] == 0
+    game.step(121)
+    assert state["beat"] == 1          # The shape: 12 s with no three steps.
+
+
+def test_beat_eights_hints_show_in_the_lattice_view(game: HeadlessServer) -> None:
+    client = game.connect()
+    game.step(1)
+    place(game, client, HALL, (34, 15))
+    act(game, client, Frame("key", {"k": "j", "t": 0}))
+    game.step(4)
+    view = game.core.characters.sim.external_views[client.session.id]
+    assert view[0] == "lattice" and view[1]["lesson"] == {"text": "Tab picks the Tripwire.  J leaves"}

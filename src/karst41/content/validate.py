@@ -1966,7 +1966,7 @@ class _Validator:
                             self.report(*owner, f"{where}: region {tr.region} is outside {script.zone}")
                 if tr.name in ("steps", "seconds") and tr.count <= 0:
                     self.report(*owner, f"{where}: {tr.name} needs a positive count")
-                if tr.name == "template_read" and tr.value and tr.value not in archetypes:
+                if tr.name in ("template_read", "kit_issued") and tr.value and tr.value not in archetypes:
                     self.report(*owner, f"{where}: unknown template {tr.value!r}")
                 if tr.name == "talk_opened" and tr.value and tr.value not in self.t.dialogue:
                     # Existence only: a trigger activates nothing; it waits for its talker.
@@ -1986,6 +1986,13 @@ class _Validator:
                     where = f"line {ln.id}"
                     for tr in ln.when:
                         trigger(tr, where)
+                    shown = ln.text
+                    for kind, ref in re.findall(r"\{(item|hymn):([a-z_0-9]+)\}", ln.text):
+                        table = self.t.items if kind == "item" else self.t.hymns
+                        if ref not in table:
+                            self.report(*owner, f"{where}: unknown {kind} {ref!r}")
+                        else:
+                            shown = shown.replace("{" + kind + ":" + ref + "}", table[ref].name)
                     if ln.after and ln.after not in ids:
                         self.report(*owner, f"{where}: after {ln.after!r} names no line")
                     for fact in (*ln.requires, *ln.unless):
@@ -1999,12 +2006,12 @@ class _Validator:
                             self.ref("dialogue", ln.speaker, owner, f"{where}: speaker")
                         name = ln.name or script.speakers.get(ln.speaker) or (
                             self.t.dialogue[ln.speaker].name if ln.speaker in self.t.dialogue else ln.speaker)
-                        rows = word_wrap(f"{name}: {ln.text}", log_width, continuation=0)
+                        rows = word_wrap(f"{name}: {shown}", log_width, continuation=0)
                         if len(rows) > 2:
                             self.report(*owner, f"{where}: {len(rows)} log rows at 80x24 with its speaker; two at most")
                     elif ln.speaker or ln.name:
                         self.report(*owner, f"{where}: a {ln.kind} line has no speaker")
-                    elif len(word_wrap(ln.text, log_width, continuation=0)) > 2:
+                    elif len(word_wrap(shown, log_width, continuation=0)) > 2:
                         self.report(*owner, f"{where}: more than two log rows at 80x24")
             # The record's detail: the template paragraph and its last line, 4 rows at 66.
             for detail in script.details:

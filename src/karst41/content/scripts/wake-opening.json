@@ -523,6 +523,39 @@
           ]
         },
         {
+          "id": "9.10h",
+          "kind": "reward",
+          "text": "Issued: a {item:arm_kestrel_vest}. It's on you already.",
+          "when": [
+            {
+              "name": "kit_issued",
+              "value": "hardline"
+            }
+          ]
+        },
+        {
+          "id": "9.10c",
+          "kind": "reward",
+          "text": "Already fitted: a {item:imp_res_first_ear}. It knows one hymn, {hymn:hymn_steady}.",
+          "when": [
+            {
+              "name": "kit_issued",
+              "value": "cantor"
+            }
+          ]
+        },
+        {
+          "id": "9.10o",
+          "kind": "reward",
+          "text": "Issued: a {item:drn_kestrel_mule}. It carries the load. You give the orders.",
+          "when": [
+            {
+              "name": "kit_issued",
+              "value": "operator"
+            }
+          ]
+        },
+        {
           "id": "9.11",
           "text": "200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.",
           "kind": "reward",

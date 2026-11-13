@@ -616,7 +616,7 @@ class Characters:
                     self.attach(session, player)
                     if player.progress.get("opening"):
                         self.opening_start(session, player.progress["opening"])
-                self.lesson(player, "kit_issued", True)
+                self.lesson(player, "kit_issued", player.archetype)
             else:
                 self.players[player.id] = player
                 self.unread_ids.discard(player.id)

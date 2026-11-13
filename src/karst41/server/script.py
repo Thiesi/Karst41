@@ -28,6 +28,7 @@ read and the hall left (only the errand, a per-character flag, goes on).
 from __future__ import annotations
 
 from datetime import datetime
+import re
 from typing import Any
 
 from karst41.content import schema as s
@@ -36,6 +37,7 @@ from karst41.server.clock import TICK_HZ
 from karst41.server.loop import TickContext
 from karst41.server.sessions import Session
 
+NAMED = re.compile(r"\{(item|hymn):([a-z_0-9]+)\}")
 GAP_SECONDS = 4
 DANGER_HOLD_SECONDS = 10  # Shared with P8 (terminal UI 2.5).
 SCRIPT_ID = "wake-opening"
@@ -137,10 +139,16 @@ class Opening:
             if index > state["beat"]:
                 self.begin(session, state, index)
             self.queue_line(session, state, lid, front=True)
-        # The current beat ends.
-        beat = beats[state["beat"]] if state["beat"] < len(beats) else None
-        if beat and any(self.matches(t, name, value) for t in beat.next) and state["beat"] + 1 < len(beats):
-            self.begin(session, state, state["beat"] + 1)
+        # A beat ends. A pushed fact may end a later beat too: a caller who
+        # walks straight to the terminal skips beats 2-7 (every lesson can be
+        # skipped, game design 4). Polled triggers only ever end the current beat.
+        start = state["beat"]
+        if name in s.SCRIPT_POLLED:
+            ends = [start] if any(self.matches(t, name, value) for t in beats[start].next) else []
+        else:
+            ends = [i for i in range(start, len(beats)) if any(self.matches(t, name, value) for t in beats[i].next)]
+        if ends and ends[0] + 1 < len(beats) and state["beat"] == start:
+            self.begin(session, state, ends[0] + 1)
 
     def eligible(self, state: dict[str, Any], ln: s.ScriptLine) -> bool:
         facts = set(state["facts"])
@@ -170,17 +178,26 @@ class Opening:
 
     # --- speaking -------------------------------------------------------
 
+    def text(self, ln: s.ScriptLine) -> str:
+        """`{item:<id>}` and `{hymn:<id>}` take the content's own name (creative lead)."""
+        content = self.game.content
+        def name(match: re.Match[str]) -> str:
+            kind, ref = match.group(1), match.group(2)
+            table = content.items if kind == "item" else content.hymns
+            return table[ref].name
+        return NAMED.sub(name, ln.text)
+
     def say(self, session: Session, state: dict[str, Any], ln: s.ScriptLine) -> None:
         at = self.core.clock.now_utc().isoformat()
         if ln.kind == "speech":
             name = ln.name or self.script.speakers.get(ln.speaker) or self.game.content.dialogue[ln.speaker].name
-            session.emit(f"{name}: {ln.text}", kind="speech", channel="zone", role="chan_zone", at=at,
+            session.emit(f"{name}: {self.text(ln)}", kind="speech", channel="zone", role="chan_zone", at=at,
                          speaker=name, speaker_role="service")
             session.voice_tick = self.core.clock.now_tick()  # P8 stays quiet behind it.
         else:
             role = {"danger": "warning", "reward": "chan_sys", "combat": "chan_sys"}.get(ln.kind, "chan_sys")
             channel = "combat" if ln.kind in ("danger", "combat") else "system"
-            session.emit(ln.text, kind=ln.kind, channel=channel, role=role, at=at)
+            session.emit(self.text(ln), kind=ln.kind, channel=channel, role=role, at=at)
             if ln.kind == "danger":
                 session.danger_at = at
         state["spoken"].append(ln.id)
@@ -275,7 +292,8 @@ class Opening:
         if trigger.name == "steps":
             return state["steps"] >= trigger.count
         if trigger.name == "seconds":
-            return tick - (state["beat_tick"] or tick) >= trigger.count * TICK_HZ
+            began = state["beat_tick"] if state["beat_tick"] is not None else tick  # Tick 0 is a tick.
+            return tick - began >= trigger.count * TICK_HZ
         if trigger.name == "target_set":
             return bool(actor.target)
         if trigger.name == "zone_entered":
@@ -297,7 +315,12 @@ class Opening:
 
     def decorate(self, session: Session, body: dict[str, Any]) -> None:
         """The objective slot: a lesson hint, else the errand, else a one-time hint."""
-        if "viewport" not in body or not self.script:
+        if not self.script:
+            return
+        if "viewport" not in body:  # The Lattice view: lesson hints only (beat 8).
+            text = self.hint(session, self.game.players.get(session.player_id))
+            if text:
+                body["lesson"] = {"text": text}
             return
         player = self.game.players.get(session.player_id)
         text = self.hint(session, player)

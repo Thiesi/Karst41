@@ -159,6 +159,14 @@ class Core:
                 _previous(session, body)
                 self.opening.decorate(session, body)
             self.characters.sim.crew_view = opening_view
+            if self.lattice is not None:
+                lattice_view = self.lattice.encounters.view
+                def opening_network(session: Session, presence: Any, body: dict[str, Any], _previous=lattice_view):
+                    kind, document = _previous(session, presence, body)
+                    if kind == 'lattice':
+                        self.opening.decorate(session, document)
+                    return kind, document
+                self.lattice.encounters.view = opening_network
 
     def _disconnect_character(self, session: Session) -> None:
         if self.dialogue:

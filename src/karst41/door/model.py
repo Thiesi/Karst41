@@ -434,7 +434,7 @@ class Display:
                     escape = back + '  ' + escape
                 hint = chrome.focus_hint(self.toast[0], self.layout.hint.width, [],
                                          fit_all=True, primary=True, escape=escape)
-            elif zone_hint and shown.get('lesson'):
+            elif (zone_hint or shown_kind == 'lattice' and self.local is None and not primary) and shown.get('lesson'):
                 hint = chrome.lesson_hint(shown['lesson'], self.layout.hint.width, context)
             else:
                 hint = chrome.focus_hint(hint, self.layout.hint.width, context, objective,

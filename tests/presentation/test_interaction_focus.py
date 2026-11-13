@@ -59,7 +59,15 @@ def test_arch_5_5_2_predicted_equals_dispatched_and_pre_p3_behavior(repo_root: P
     assert result['sha256'] == baseline['sha256'], 'E/J behavior differs from the independently executed pre-P3 baseline'
     assert result['handlers'] == baseline['handlers']
     packet = json.loads((repo_root/'docs/ops/captures/issue104-hint-labels/focus-labels.json').read_text())
-    assert sorted(labels) == [tuple(pair) for pair in packet['matrix_pairs']]
+    # The original capture stays as evidence; later renames and new labels
+    # are re-pin records beside it (technical lead, S48c2).
+    expected = {tuple(pair) for pair in packet['matrix_pairs']}
+    record = repo_root/'docs/ops/captures/issue104-hint-labels/focus-labels-repins.json'
+    for repin in json.loads(record.read_text(encoding='utf-8'))['repins']:
+        assert repin['reason'], repin
+        expected -= {tuple(pair) for pair in repin['removed']}
+        expected |= {tuple(pair) for pair in repin['added']}
+    assert sorted(labels) == sorted(expected)
 
 
 def assert_label_source(core: Any, session: Any, focus: Any) -> None:
