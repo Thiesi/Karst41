@@ -1,8 +1,8 @@
 ┌─ Karst · Wide界 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │          ┌─ DECANT RECORD - No. 0001 - Template ──────────────────────────────────────────────────────────────────────┐          │
 │          │ Choice                                               You hold the heavy end. You can use heavy weapons     │          │
-│          │ Hardline                                             and armour. Your frame takes the load. Your implant   │          │
-│          │ Ghost                                                tolerance gains two points.                           │          │
+│          │ Hardline                                             and armour. Your frame takes the load. Your body      │          │
+│          │ Ghost                                                takes two more implants than most.                    │          │
 │          │ Cantor                                                                                                     │          │
 │          │ Operator                                                                                                   │          │
 │          │                                                                                                            │          │
@@ -38,8 +38,8 @@
 │          │ enter read this line  Esc/B put the record down                                                            │          │
 │          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
-│[zone] You wake on a gurney under a number. White light, warm plastic, a floor drain. Past the cards, a corridor. Past the        │
-│  corridor, a terminal.                                                                                                           │
+│[zone] You wake on a gurney under a number.                                                                                       │
+│[zone] Vantongeren: Open your eyes slowly. The light's cheap and it stays on.                                                     │
 │                                                                                                                                  │
 │                                                                                                                                  │
 │                                                                                                                                  │

@@ -118,11 +118,11 @@ def test_ui_3_focus_changes_only_existing_hint_cells(focus_game: tuple[HeadlessS
     changed = {y for y in range(size[1]) if before.grid[y] != after.grid[y]
         or any(before.renditions.get((x, y)) != after.renditions.get((x, y)) for x in range(size[0]))}
     assert changed == {hint.y}
-    assert 'E open Sablier Wake Outfitter' in after.screen_text().splitlines()[hint.y]
+    assert 'E open Wake Outfitter' in after.screen_text().splitlines()[hint.y]
     jack_key = 'Ctrl-O' if keymap == 'vi' else 'J'
-    assert jack_key+' jack in at Tutorial terminal' in after.screen_text().splitlines()[hint.y]
+    assert jack_key+' jack in at Hall terminal' in after.screen_text().splitlines()[hint.y]
     row = after.screen_text().splitlines()[hint.y][hint.x:hint.right].rstrip()
-    context = ['E open Sablier Wake Outfitter', jack_key+' jack in at Tutorial terminal']
+    context = ['E open Wake Outfitter', jack_key+' jack in at Hall terminal']
     optional = legacy['hint'].split('  ')
     assert row.split('  ')[:2] == context
     assert all(group in optional for group in row.split('  ')[2:]), (row, optional)
@@ -401,7 +401,7 @@ def test_ui_3_contract_hint_words(focus_game: tuple[HeadlessServer, Any], verb: 
     actor = game.core.characters.sim.avatars[caller.session.user_id].actor
     target = StageTarget('object', zone=actor.zone, object='wake-outfitter')
     choice = game.core.contracts.actions.target_interaction(actor, target, verb)
-    assert choice.focus.record() == {'id': 'wake-outfitter', 'label': 'Sablier Wake Outfitter', 'verb': object_verb}
+    assert choice.focus.record() == {'id': 'wake-outfitter', 'label': 'Wake Outfitter', 'verb': object_verb}
     target = StageTarget('tile', zone=actor.zone, tile=actor.position)
     choice = game.core.contracts.actions.target_interaction(actor, target, verb)
     assert choice.focus.label == 'here' and choice.focus.verb == tile_verb

@@ -52,6 +52,8 @@ class Opening:
         self.core, self.game = core, core.characters
         self.script: s.Script | None = self.game.content.scripts.get(SCRIPT_ID)
         self.states: dict[str, dict[str, Any]] = {}
+        self.showing: dict[str, tuple[str, int]] = {}
+        self.walked: dict[str, list[Any]] = {}
         self.lines: dict[str, tuple[int, s.ScriptLine]] = {}
         self.after: dict[str, list[str]] = {}
         if self.script:
@@ -290,6 +292,62 @@ class Opening:
             state["queue"].pop(at)
             self.say(session, state, ln)
             return
+
+    # --- the hint row (terminal UI 11; presentation lead's build) -----------
+
+    def decorate(self, session: Session, body: dict[str, Any]) -> None:
+        """The objective slot: a lesson hint, else the errand, else a one-time hint."""
+        if "viewport" not in body or not self.script:
+            return
+        player = self.game.players.get(session.player_id)
+        text = self.hint(session, player)
+        if text:
+            body["lesson"] = {"text": text}
+            return
+        if player is None:
+            return
+        avatar = self.game.sim.avatars.get(session.user_id)
+        zone = avatar.actor.zone if avatar else None
+        keymap = next((k for k in self.game.content.keymaps.keymaps if k.id == session.keymap_id), None) \
+            if self.game.content.keymaps else None
+        once = self.once_hint(session, player, zone, avatar) if player.progress.get("opening") is not None else ""
+        if once:
+            body["lesson"] = {"text": resolve_keys(once, keymap)}
+            return
+        if player.progress.get("errand"):
+            errand = next((e for e in self.script.errands if e.zone == zone), None)
+            if errand is not None:
+                body["lesson"] = {"text": resolve_keys(errand.text, keymap), "short": errand.short}
+
+    def once_hint(self, session: Session, player: Any, zone: str | None, avatar: Any) -> str:
+        """One-time rows, kept as per-character flags (creative lead): never runner state."""
+        seen = player.progress.setdefault("hints_seen", [])
+        tick = self.core.clock.now_tick()
+        showing = self.showing.get(session.id)
+        if showing:
+            hint_id, until = showing
+            if tick < until:
+                return next(h.text for h in self.script.hints if h.id == hint_id)
+            self.showing.pop(session.id, None)
+        for hint in self.script.hints:
+            if hint.id in seen:
+                continue
+            if hint.zone and hint.zone != zone:
+                return ""
+            if hint.steps:
+                walked = self.walked.setdefault(session.id, [None, 0])
+                pos = (zone, avatar.actor.position) if avatar else None
+                if walked[0] is not None and pos != walked[0]:
+                    walked[1] += 1
+                walked[0] = pos
+                if walked[1] < hint.steps:
+                    return ""
+            if hint.zone or any(h.id in seen for h in self.script.hints if h is not hint):
+                seen.append(hint.id)
+                self.showing[session.id] = hint.id, tick + max(1, hint.seconds or 8) * TICK_HZ
+                return hint.text
+            return ""
+        return ""
 
     # --- hints ----------------------------------------------------------
 

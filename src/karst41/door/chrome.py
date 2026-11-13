@@ -37,6 +37,34 @@ def _objective_hint(objective: dict[str, Any], width: int | None = None) -> str:
     return prefix + (' '+target if target else '') + suffix
 
 
+def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str]]) -> str:
+    """Terminal UI 11 (presentation lead's build for S48c2).
+
+    The lesson hint (or errand), then the E/J context, then `? help`, two
+    spaces apart; no other key group. Too wide: the errand's short form
+    first, then the context's short form, then no context, then no `? help`.
+    The lesson hint itself is never cut.
+    """
+    full_ctx = [(prefix + ' ' + clean_text(label)).rstrip() for prefix, label in context]
+    short_ctx = []
+    for prefix, label in context:
+        label = clean_text(label).strip()
+        first = label.split()[0] if label else ''
+        short_ctx.append((prefix + ' ' + (first + '...' if ' ' in label else label)).rstrip())
+    text, short = clean_text(str(lesson.get('text', ''))), clean_text(str(lesson.get('short', '')))
+    heads = [text] + ([short] if short and short != text else [])
+    for head in heads:
+        for groups in (full_ctx, short_ctx):
+            row = '  '.join([head, *groups, '? help'])
+            if display_width(row) <= width:
+                return row
+    head = heads[-1]
+    for row in ('  '.join([head, '? help']), head):
+        if display_width(row) <= width:
+            return row
+    return head
+
+
 def focus_hint(hint: str, width: int, context: list[tuple[str, str]],
                objective: dict[str, Any] | None = None, *,
                fit_all: bool = False, primary: bool = False,

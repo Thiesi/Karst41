@@ -1968,8 +1968,9 @@ class _Validator:
                     self.report(*owner, f"{where}: {tr.name} needs a positive count")
                 if tr.name == "template_read" and tr.value and tr.value not in archetypes:
                     self.report(*owner, f"{where}: unknown template {tr.value!r}")
-                if tr.name == "talk_opened" and tr.value:
-                    self.ref("dialogue", tr.value, owner, f"{where}: talker")
+                if tr.name == "talk_opened" and tr.value and tr.value not in self.t.dialogue:
+                    # Existence only: a trigger activates nothing; it waits for its talker.
+                    self.report(*owner, f"{where}: unknown talker {tr.value!r}")
                 if tr.name == "zone_entered" and tr.value:
                     self.ref("zones", tr.value, owner, f"{where}: zone")
 

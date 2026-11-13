@@ -643,7 +643,8 @@
     },
     {
       "id": "read-back",
-      "text": "{scrollback} reads back what you missed."
+      "text": "{scrollback} reads back what you missed.",
+      "zone": "vatside-clinics"
     }
   ],
   "late_card": "The cards are still on the table. Nobody threw yours out.",

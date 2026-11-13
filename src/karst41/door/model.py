@@ -434,6 +434,8 @@ class Display:
                     escape = back + '  ' + escape
                 hint = chrome.focus_hint(self.toast[0], self.layout.hint.width, [],
                                          fit_all=True, primary=True, escape=escape)
+            elif zone_hint and shown.get('lesson'):
+                hint = chrome.lesson_hint(shown['lesson'], self.layout.hint.width, context)
             else:
                 hint = chrome.focus_hint(hint, self.layout.hint.width, context, objective,
                                          fit_all=True, primary=primary, objective_in_panel=self.layout.wide)

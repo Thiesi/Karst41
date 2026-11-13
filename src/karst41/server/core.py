@@ -154,6 +154,11 @@ class Core:
             self.characters.opening_stop = self.opening.stop
             self.characters.opening_live = self.opening.live
             self.loop.subsystems.append(self.opening)
+            decorate = self.characters.sim.crew_view
+            def opening_view(session: Session, body: dict[str, Any], _previous=decorate) -> None:
+                _previous(session, body)
+                self.opening.decorate(session, body)
+            self.characters.sim.crew_view = opening_view
 
     def _disconnect_character(self, session: Session) -> None:
         if self.dialogue:

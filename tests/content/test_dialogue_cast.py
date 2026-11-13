@@ -19,6 +19,7 @@ MINOR = {'amsel', 'lindgren', 'ranke', 'maartens', 'stroud', 'okafor', 'vane',
          'ode', 'strand', 'loos', 'ivey', 'marsh', 'dolf', 'solenne',
          'lamplighter', 'sefa', 'wren', 'bram', 'ute', 'kroll', 'aalto'}
 RECRUITERS = {'vael', 'achterberg', 'quaye', 'iloh', 'vance', 'achebe-roux', 'kettle'}
+HALL = {'okafor', 'vantongeren'}  # S48c2: posted in the Wake Hall (bundle s48-wake-hall).
 
 
 @pytest.fixture(scope='module')
@@ -27,17 +28,19 @@ def cast() -> ContentTree:
 
 
 def test_game_13_4_complete_cast_loads_without_activating_placement(cast: ContentTree) -> None:
-    held_cast = FIXED | MINOR | RECRUITERS | {'machine-mind-encounter'}
-    assert set(cast.dialogue) == held_cast | {'row-street-regular', 'row-enforcer'}
+    held_cast = (FIXED | MINOR | RECRUITERS | {'machine-mind-encounter'}) - HALL
+    assert set(cast.dialogue) == held_cast | HALL | {'row-street-regular', 'row-enforcer'}
     assert validate(cast) == []
     assert set(cast.bundles['s27-cast'].members['dialogue']) == held_cast
     assert all(not cast.active('dialogue', did) for did in held_cast)
     assert cast.active('dialogue', 'row-street-regular')  # #147's explicit street binding.
     assert cast.active('dialogue', 'row-enforcer')  # S44: the Sable enforcers' set.
+    assert all(cast.active('dialogue', did) for did in HALL)
     assert not any(obj.params.get('dialogue') for zone in cast.zones.values() for obj in zone.meta.objects)
     assert not any(npc.dialogue in held_cast for npc in cast.npcs.values())
     assert {npc.id for npc in cast.npcs.values() if npc.dialogue} == {
-        'npc-sodium-regular', 'npc-plainclothes-warden', 'npc-sable-enforcer'}
+        'npc-sodium-regular', 'npc-plainclothes-warden', 'npc-sable-enforcer',
+        'npc-cast-okafor', 'npc-cast-vantongeren'}
     assert not any(cell.dialogue for sector in cast.sectors.values() for cell in sector.cells)
 
 

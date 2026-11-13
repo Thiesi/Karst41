@@ -17,8 +17,8 @@
 │ ·, ··    , ··    ,§··    , ··    , ··    , ··    , ·· │ SHK ░░░░░░░░░░ 0     │
 │ ·     ,··     ,··     ,··     ,··     ,··     ,··     │ 200 ch   lease 0/90  │
 ├───────────────────────────────────────────────────────┴──────────────────────┤
+│» You wake on a gurney under a number.                                        │
 │· Somebody laughs too loud in a doorway behind you.                           │
 │‼ A shot cracks off the wall beside you.                                      │
-│                                                                              │
 │J jack in  ? help  Tab target  F fire  X weapon  1-5 quick  V abilities       │
 └──────────────────────────────────────────────────────────────────────────────

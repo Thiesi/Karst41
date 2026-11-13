@@ -317,3 +317,56 @@ Lines and hints stay c2.
   drone does spawn for a finished character, the pistol and lesson work.
 - **Lift for a character (Q4):** unchanged, identity-scoped.
 - The pistol's item description is a placeholder for the creative lead.
+
+## Implementation notes (PR #TBD, S48c2)
+
+The opening's script and lines (#220 section 4), on the technical lead's
+runner contract with the creative lead's fixes.
+
+- **Runner** (`server/script.Opening`, content `scripts/wake-opening.json`):
+  one per caller, for the opening only. Speech is paced (4 s from any
+  source) and quiet while a target is set, an ICE is warned, a menu is
+  open, jacked in, or in P8's 10 s danger hold. `fight` lines (6.2, 6.5)
+  and `record` lines (9.1-9.7, the outfitter) are the two exceptions.
+  System, danger, combat and reward lines come at once. Anchors (1.1, 2.1,
+  3.1, 3.3, 6.2, 10.1) are never dropped in the hall; leaving the hall
+  drops every waiting line. Everything is caller-only and replays like
+  any log line. On resume, waiting non-anchors are dropped.
+- **P8:** the runner bypasses `admit()`; each script line sets
+  `session.voice_tick`, so barks and ambience stay quiet behind it and a
+  P8 line counts toward the 4 s gap. S48d's wall lines go through
+  `admit()` and are therefore quiet during the opening by construction.
+- **Cost:** polling (position, steps, seconds, target) runs only while the
+  current beat waits on a polled trigger; otherwise the runner is purely
+  pushed. Figures for 1 and 3 callers are in the PR
+  (`scripts/measure_s48c2_cost.py`).
+- **Lifetime:** ends when Vesper's talk page first opens, or on a detach
+  after the record once the hall is left. The errand and the one-time
+  rows (the Clinic Row shift hint, the Ctrl-P read-back) are per-character
+  flags, not runner state. A veteran decanting after a death never starts
+  one.
+- **Engine drone strings** stay for a drone with no live script (#239, or
+  a direct spawn) and are silent when the script owns the drone.
+- **Hint row** (terminal UI 11, presentation lead): the lesson hint, then
+  the E/J context, then `? help`. Too wide: the errand's short form, then
+  the context's short form, then no context, then no `? help`; the hint
+  itself is never cut. The validator holds every lesson hint to 70 cells
+  in every keymap.
+- **Staging:** Okafor at (35,18), two tiles off every door-adjacent tile;
+  Vantongeren behind her desk at (13,6). E on Okafor opens the record for
+  an unread body. Vantongeren's Season 1 lines and Work board are held
+  (`dialogue/vantongeren.json` at 81d754f: `record-sab-s1-1..4`, the
+  `sab-s1-1-retrieval` offer) for S26 to restore, like S48b's.
+- **Text (#220 4.12):** briefing screens 2 and 3 as canon #240 moves them;
+  the Hardline sentence; the hall's arrival line cut to its first
+  sentence (the rest stays as lore); "Hall terminal", "Wake Outfitter";
+  the training core enters with 8.1 and 8.2 only; the characters.py toast
+  stays removed. The equality test with 05-story-arcs passes once #240 is
+  on main.
+- **Speaker names** in the log are the mocks' short forms ("Vantongeren",
+  "Okafor") through the script's `speakers` map; the creative lead can
+  change them there.
+- **Ctrl-P read-back:** the in-hall trigger ("the first time a spoken line
+  is cut or pushed out of view") is a door-side fact the server cannot
+  see; c2 ships the stated fallback (once on Clinic Row after the shift
+  hint).
