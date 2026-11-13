@@ -22,12 +22,24 @@ def test_too_wide_drops_in_the_presentation_leads_order_and_never_cuts_the_hint(
     row = lesson_hint({"text": hint}, 78, long_ctx)
     assert row == hint + "  ? help"  # Even the context's short form does not fit: it goes.
     shorter = "x" * 40
-    assert lesson_hint({"text": shorter}, 78, long_ctx) == shorter + "  E go to Meridian...  ? help"
+    assert lesson_hint({"text": shorter}, 78, long_ctx) == shorter + "  E go to Promenade  ? help"
     assert display_width(row) <= 78
     widest = "y" * 70
     row = lesson_hint({"text": widest}, 78, long_ctx)
     assert row == widest + "  ? help"
     assert lesson_hint({"text": widest + "zz"}, 78, long_ctx) == widest + "zz"  # Help goes before the hint.
+
+
+def test_the_short_form_is_the_labels_last_whole_word() -> None:
+    hint = "Arrow keys walk. Follow the line on the floor."
+    row = lesson_hint({"text": hint}, 78, [("E talk to", "Dr. Ilse Vantongeren")])
+    assert row == hint + "  E talk to Vantongeren  ? help" and display_width(row) == 77
+    # A hint that leaves room for exactly the short form: the full label never fits.
+    for prefix, label, short in (("E talk to", "Nurse Bea Okafor", "Okafor"), ("E open", "Wake Outfitter", "Outfitter"),
+                                 ("E use", "Corridor door", "door"), ("E jack in at", "Hall terminal", "terminal")):
+        group = f"{prefix} {short}"
+        hint = "x" * (78 - len(group) - len("    ? help"))
+        assert lesson_hint({"text": hint}, 78, [(prefix, label)]) == f"{hint}  {group}  ? help"
 
 
 def test_an_errand_uses_its_short_form_before_the_context_shrinks() -> None:

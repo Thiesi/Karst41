@@ -50,8 +50,8 @@ def test_s48c2_lesson_hint_row_captures(info: DoorInfo, repo_root: Path, width: 
         assert HINT in hint_row, (name, hint_row)          # Never cut.
         assert "Ctrl-X" not in hint_row and "? help" in hint_row
         if name == "3_worst" and width == 80:
-            assert "E talk to Dr...." in hint_row          # The context's short form (drop step 1).
-        golden(f"s48c2_hint_{name}_{width}x{height}", terminal, tier, trim=True)
+            assert "E talk to Vantongeren  ? help" in hint_row   # The short form: the last whole word.
+        golden(f"s48c2_hint_{name}_{width}x{height}_{tier}", terminal, tier, trim=True)
         if name == "1_no_context":
             # Frame 4: the walk key is used once; the full key-help row comes back.
             act(game, client, Frame("key", {"k": "right", "t": 0}))
@@ -61,4 +61,4 @@ def test_s48c2_lesson_hint_row_captures(info: DoorInfo, repo_root: Path, width: 
             terminal.write(model.render(1)[0])  # The door draws only what changed.
             row = terminal.screen_text().splitlines()[model.layout.hint.y]
             assert HINT not in row and "? help" in row
-            golden(f"s48c2_hint_4_after_key_{width}x{height}", terminal, tier, trim=True)
+            golden(f"s48c2_hint_4_after_key_{width}x{height}_{tier}", terminal, tier, trim=True)

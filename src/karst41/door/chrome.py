@@ -46,11 +46,12 @@ def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str
     The lesson hint itself is never cut.
     """
     full_ctx = [(prefix + ' ' + clean_text(label)).rstrip() for prefix, label in context]
+    # Short form (presentation lead): the key and verb, then the label's last
+    # whole word, never an ellipsis: `E talk to Vantongeren`, `E use door`.
     short_ctx = []
     for prefix, label in context:
-        label = clean_text(label).strip()
-        first = label.split()[0] if label else ''
-        short_ctx.append((prefix + ' ' + (first + '...' if ' ' in label else label)).rstrip())
+        words = clean_text(label).split()
+        short_ctx.append((prefix + ' ' + (words[-1] if words else '')).rstrip())
     text, short = clean_text(str(lesson.get('text', ''))), clean_text(str(lesson.get('short', '')))
     heads = [text] + ([short] if short and short != text else [])
     for head in heads:
