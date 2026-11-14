@@ -199,7 +199,10 @@ timing numbers are reported but marked as non-evidence.
 >   push, comment, review, label or merge. Your output is the report
 >   message and a secret gist of the failure evidence.
 > - One job at a time, with `nice -n 10`. If a step can't run as written,
->   stop and report it. Don't work around it.
+>   or a command is refused by the permission list, stop and report it.
+>   Don't work around it, and never edit `.claude/settings.json`.
+> - Answer `STATUS <run-id>` at once with the job running and how long it
+>   has been running.
 > - Report every result faithfully. A failure is reported as a failure,
 >   with its evidence, even if it looks flaky.
 > - Never touch anything outside `~/karst41-runner`. Never put personal
