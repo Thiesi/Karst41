@@ -185,6 +185,13 @@ def test_ui_2_5_scripted_lines_never_merge_and_merged_sentences_join_with_a_spac
     assert '.;' not in merged[0].shown
     assert chrome.join_merged('Ammo (x2)', 'A patch') == 'Ammo (x2); A patch'
     assert chrome.join_merged('Really?', 'Yes') == 'Really? Yes'
+    assert chrome.join_merged('It keeps trying…', 'Ammo') == 'It keeps trying… Ammo'
+    assert chrome.join_merged('"Take it."', 'Ammo') == '"Take it." Ammo'
+    assert chrome.join_merged('A patch (spare.)', 'Ammo') == 'A patch (spare.) Ammo'
+    assert chrome.join_merged('“Take it.”', 'Ammo') == '“Take it.” Ammo'
+    assert chrome.join_merged('[one.]', 'Ammo') == '[one.] Ammo'
+    assert chrome.join_merged('A patch (spare)', 'Ammo') == 'A patch (spare); Ammo'
+    assert chrome.join_merged('"Ammo"', 'Rations') == '"Ammo"; Rations'
 
 
 def test_p5_context_is_pure_map_only_and_keys_keep_their_meaning(content):

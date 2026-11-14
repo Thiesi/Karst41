@@ -123,9 +123,13 @@ class LogEntry:
         return self.text + (f' (x{self.count})' if self.count > 1 else '')
 
 
+SENTENCE_END = re.compile(r'''[.!?…][)\]"'”’]*$''')
+"""A part ending in . ! ? or an ellipsis, then any closing quotes or brackets."""
+
+
 def join_merged(left: str, right: str) -> str:
     """Terminal UI 2.5 (#251): a space after a sentence, `; ` after a fragment."""
-    return left + (' ' if left.rstrip().endswith(('.', '!', '?')) else '; ') + right
+    return left + (' ' if SENTENCE_END.search(left.rstrip()) else '; ') + right
 
 
 def seconds(line: dict[str, Any]) -> float | None:
