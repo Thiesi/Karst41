@@ -126,7 +126,6 @@ system.
            "Read(~/karst41-runner/**)"
          ],
          "deny": [
-           "Write(~/karst41-runner/.claude/**)",
            "Edit(~/karst41-runner/.claude/**)",
            "Bash(rm -rf ~/karst41-runner)", "Bash(rm -rf ~/karst41-runner/repo*)"
          ]
@@ -141,6 +140,9 @@ system.
      a named `runs/<run-id>/` path after checking that it resolves inside
      `runs/`.
    - The deny rules keep the runner's own tools from rewriting this file.
+     Claude Code checks file-path rules only as `Edit(...)`, which covers
+     every file-writing tool, or as `Read(...)`. So there is no `Write(...)`
+     rule.
      Code run from a branch could still rewrite it through the shell, so
      the owner checks the file when starting a new runner session.
    - The runner may propose an addition. Only the owner changes the file.
