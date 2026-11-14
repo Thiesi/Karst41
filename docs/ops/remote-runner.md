@@ -58,10 +58,16 @@ system.
 5. **GitHub CLI inside WSL, preferably with a gist-only token.** The runner
    executes code from PR branches, and that code can read any file in the
    WSL home, including the `gh` login.
-   - On 2026-11-14 the owner accepted the full login for now. Code is limited
-     to same-repository branches (section 3), which is the same exposure as
-     the development host. The gist-only token below is still recommended,
-     and removes the risk entirely.
+   - **The exposure, stated plainly.** Code on any branch of
+     Thiesi/Karst41 runs here with no prompt. That code can read the `gh`
+     token and the runner's Claude Code login in the WSL home. With the
+     owner's full `gh` login, a malicious or broken branch could push,
+     comment or merge as the owner, and read his private repositories. Only
+     the owner's account pushes branches to Thiesi/Karst41: every session
+     works as him. So the gate is the sessions he runs, not forks.
+   - On 2026-11-14 the owner accepted the full login for now, on that basis.
+     The gist-only token below takes the `gh` token out of the exposure. The
+     Claude Code login stays exposed either way.
    - Create a **fine-grained personal access token** with no repository
      access and only the account permission **Gists: read and write**. Both
      repositories are public, so cloning needs no token.
@@ -81,62 +87,45 @@ system.
    Claude Code documentation and log in. Start it in `~/karst41-runner` and
    name the session `Karst 41: runner`. Turn on Remote Control, so that the
    technical lead and the engineer can reach it from the development host.
-8. **Permissions: allow the runner's commands, refuse everything else.**
+8. **Permissions: auto mode, with the settings file protected.**
    The owner logs on to that workstation about once a day, so a permission
-   prompt would stall a batch for hours. The runner therefore pre-approves
-   exactly the commands its job needs. Everything else is refused at once
-   instead of prompting, and the runner reports the refusal. Create
-   `~/karst41-runner/.claude/settings.json`:
-   ```json
-   {
-     "permissions": {
-       "defaultMode": "dontAsk",
-       "allow": [
-         "Bash(git *)",
-         "Bash(python *)",
-         "Bash(python3.12 *)",
-         "Bash(nice *)",
-         "Bash(gh gist create *)",
-         "Bash(zip *)",
-         "Bash(rm -rf runs/*)",
-         "Bash(powershell.exe *)",
-         "Bash(date *)",
-         "Bash(mkdir *)",
-         "Bash(lsb_release *)",
-         "Bash(cd *)",
-         "Bash(export *)",
-         "Read(~/karst41-runner/**)",
-         "Write(~/karst41-runner/**)",
-         "Edit(~/karst41-runner/**)"
-       ]
+   prompt would stall a batch for hours.
+   - Run the runner session in **auto mode**. It ran a full acceptance job
+     (smoke-1) with no prompt, and it refuses risky actions instead of
+     asking. A refusal is reported, and the run stops.
+   - Don't use a refuse-everything-not-listed mode. The workflows' `run:`
+     steps use command shapes no fixed list covers: venv interpreters
+     called by path, `rm -rf -- "$RUNNER_TEMP/..."`, and `script -q -e -c`.
+     So that mode stops real batches.
+   - Create `~/karst41-runner/.claude/settings.json`:
+     ```json
+     {
+       "permissions": {
+         "allow": [
+           "Bash(git *)", "Bash(python *)", "Bash(python3.12 *)",
+           "Bash(nice *)", "Bash(gh gist create *)", "Bash(zip *)",
+           "Bash(powershell.exe *)", "Bash(date *)", "Bash(mkdir *)",
+           "Read(~/karst41-runner/**)"
+         ],
+         "deny": [
+           "Write(~/karst41-runner/.claude/**)",
+           "Edit(~/karst41-runner/.claude/**)",
+           "Bash(rm -rf ~/karst41-runner)", "Bash(rm -rf ~/karst41-runner/repo*)"
+         ]
+       }
      }
-   }
-   ```
-   - The list comes from the smoke run on 2026-11-14 (smoke-1). `powershell.exe`
-     reads the host CPU for the report. `rm -rf runs/*` is relative to
-     `~/karst41-runner`.
-   - File reads use the Read tool, which the `Read(~/karst41-runner/**)`
-     rule keeps inside the workspace. Directory listings use `git` or a
-     short `python` call, limited by rule to paths under
-     `~/karst41-runner`. Neither is enforced by the list, since `git *` and
-     `python *` can't be scoped by path. So containment rests on the
-     runner's brief and on WSL's separation from Windows. The list exists
-     to keep the runner from prompting, not to be a sandbox. Keep no
-     secrets in the WSL home apart from the gh login.
-   - Auto mode, the mode the runner ran smoke-1 in, also works: it
-     raised no prompt in a full run. It refuses risky actions instead of
-     asking. Keep this file even then: allowed commands skip the check.
-   - Check the mode name against the installed Claude Code's permission
-     documentation. The mode wanted is the one that refuses anything not
-     pre-approved, never one that prompts or that skips permission checks.
-   - The runner may propose an addition to this list when a workflow needs
-     another command. Only the owner adds it. The runner never edits this
-     file itself.
-   - The runner never needs access outside `~/karst41-runner`, apart from
-     `apt` during setup, which the owner runs.
-   - Prompts that still occur can be answered from the Claude app or
-     claude.ai/code through Remote Control, without logging on to the
-     workstation.
+     ```
+   - The allow rules only spare the auto-mode check on routine commands.
+     They are not a sandbox: `git *`, `python *` and `nice *` can't be
+     scoped by path.
+   - There is no allow rule for `rm`. Cleanup goes through
+     `git worktree remove` and a short `python -I` call that deletes only
+     a named `runs/<run-id>/` path after checking that it resolves inside
+     `runs/`.
+   - The deny rules keep the runner's own tools from rewriting this file.
+     Code run from a branch could still rewrite it through the shell, so
+     the owner checks the file when starting a new runner session.
+   - The runner may propose an addition. Only the owner changes the file.
 9. **First message.** Paste the brief from section 6 as the runner's first
    message, then tell the technical lead that the runner is up.
 
@@ -168,7 +157,8 @@ system.
    - `actions/checkout` becomes local worktrees, NetBBS at
      `.test-tmp/netbbs`.
    - `upload-artifact` becomes keeping the files in `runs/<run-id>/`.
-   - Every `run:` step runs verbatim.
+   - Every `run:` step runs as written, in auto mode. If a step is refused,
+     the runner stops and reports which step and why.
 5. **One at a time.** There is one job at a time and one batch at a time,
    first come first served. A new request waits in the queue.
 6. **Full pytest** runs as the `test` job in `.github/workflows/ci.yml`
@@ -179,9 +169,11 @@ system.
    Any failure, including `test_real_module_uses_native_stdio_pipes`, is
    reported as a failure.
 7. **Report** in the format of section 5.
-8. **Clean up.** The runner deletes the worktree and the venv after the
-   report. It keeps `runs/<run-id>/` (captures and logs) for 7 days, then
-   deletes it.
+8. **Clean up.** After the report, the runner removes the worktree with
+   `git worktree remove` and deletes the venv. It keeps `runs/<run-id>/`
+   (captures and logs) for 7 days, then deletes it. Every deletion is a
+   named path, checked to resolve inside `runs/` before it is removed. The
+   runner never builds a deletion path from an unchecked variable.
 
 ### A stuck runner
 
@@ -254,8 +246,9 @@ leaves the file out and says so.
 >   push, comment, review, label or merge. Your output is the report
 >   message and a secret gist of the failure evidence.
 > - One job at a time, with `nice -n 10`. If a step can't run as written,
->   or a command is refused by the permission list, stop and report it.
->   Don't work around it, and never edit `.claude/settings.json`.
+>   or a command is refused (auto mode or a deny rule), stop and report it.
+>   Don't work around it, and never edit `.claude/settings.json`. Delete
+>   only named paths that you've checked resolve inside `runs/`.
 > - Answer `STATUS <run-id>` at once with the job running and how long it
 >   has been running.
 > - Report every result faithfully. A failure is reported as a failure,
