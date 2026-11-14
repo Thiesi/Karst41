@@ -2143,7 +2143,11 @@
     },
     "training-drone-80x24-16.txt": {
       "bytes": 3007,
-      "sha256": "e91ac6596f89927e5ad14a53f3fdd03bb20ed71ae8264de87051628f82cdbb46"
+      "sha256": "e91ac6596f89927e5ad14a53f3fdd03bb20ed71ae8264de87051628f82cdbb46",
+      "committed_lf": {
+        "bytes": 2984,
+        "sha256": "3e74303db22dd7bf50ef62e1bd95fb98aadc7cdd7ee45af0bace5067d1394bd1"
+      }
     },
     "training-drone-80x24-16.json": {
       "bytes": 5024,
@@ -2155,7 +2159,11 @@
     },
     "training-complete-80x24-16.txt": {
       "bytes": 2954,
-      "sha256": "a2775d243035a3a2d9e620a34696fb18d69cce96d56e09489bf8af2ad25f4a49"
+      "sha256": "a2775d243035a3a2d9e620a34696fb18d69cce96d56e09489bf8af2ad25f4a49",
+      "committed_lf": {
+        "bytes": 2931,
+        "sha256": "403a3f3365f19d494da1382afbfa7734d5cee1d065e5a3a10a73873b99a06c48"
+      }
     },
     "training-complete-80x24-16.json": {
       "bytes": 4618,
@@ -2167,7 +2175,11 @@
     },
     "wake-record-80x24-16.txt": {
       "bytes": 2700,
-      "sha256": "96edf462977bf098ddcc71cbd2f3a9efbfe73ca4a3504966a19e76ef6d21b14d"
+      "sha256": "96edf462977bf098ddcc71cbd2f3a9efbfe73ca4a3504966a19e76ef6d21b14d",
+      "committed_lf": {
+        "bytes": 2677,
+        "sha256": "2f0196e0e1beaf24ce5714d5fc39817aba86acf4c158b3a986360b6c84ea9f8b"
+      }
     },
     "wake-record-80x24-16.json": {
       "bytes": 4095,
@@ -2179,7 +2191,11 @@
     },
     "wake-hall-80x24-16.txt": {
       "bytes": 3026,
-      "sha256": "e0555db55c35d9ecb167058fc02e231bf43c851c51a783724993e48d1e4c182e"
+      "sha256": "e0555db55c35d9ecb167058fc02e231bf43c851c51a783724993e48d1e4c182e",
+      "committed_lf": {
+        "bytes": 3003,
+        "sha256": "a50336913b483fa94a2297224ca9868a5053a2d7822d96cd237be84d23ea9c51"
+      }
     },
     "wake-hall-80x24-16.json": {
       "bytes": 4822,
@@ -2191,7 +2207,11 @@
     },
     "meridian-plaza-80x24-16.txt": {
       "bytes": 3342,
-      "sha256": "29ce5b9ba35200abfcc96717ba0440141ccc505c855e6c12fd998fc72f07baf7"
+      "sha256": "29ce5b9ba35200abfcc96717ba0440141ccc505c855e6c12fd998fc72f07baf7",
+      "committed_lf": {
+        "bytes": 3319,
+        "sha256": "fba3a6d71edf87cdc1cd3c51e14406a323cbd3993f0197859e81cc72d0882c53"
+      }
     },
     "meridian-plaza-80x24-16.json": {
       "bytes": 4874,
@@ -2203,7 +2223,11 @@
     },
     "inventory-80x24-16.txt": {
       "bytes": 2811,
-      "sha256": "4891cc1c85da652d633ea8847d4a794a6c0074a3dd875946c626a83f3bc3af61"
+      "sha256": "4891cc1c85da652d633ea8847d4a794a6c0074a3dd875946c626a83f3bc3af61",
+      "committed_lf": {
+        "bytes": 2788,
+        "sha256": "c590b6d94aa988d079d390e930d87fe2b567e5dde3b79237603574a5a77baec9"
+      }
     },
     "inventory-80x24-16.json": {
       "bytes": 4223,
@@ -2215,7 +2239,11 @@
     },
     "contracts-80x24-16.txt": {
       "bytes": 2783,
-      "sha256": "2d8d4a5bf337ea126f150781fdd30317f818c60f6c8345cab0be33ecbe3a4eda"
+      "sha256": "2d8d4a5bf337ea126f150781fdd30317f818c60f6c8345cab0be33ecbe3a4eda",
+      "committed_lf": {
+        "bytes": 2760,
+        "sha256": "1f7ecae0e9742c278c8d5a95b4dc92acf37213142ff8b7887589840ecf90ae32"
+      }
     },
     "contracts-80x24-16.json": {
       "bytes": 4198,
@@ -2227,7 +2255,11 @@
     },
     "help-80x24-16.txt": {
       "bytes": 2503,
-      "sha256": "ec049ec82a3ca69cc7fba2c22bc11c58681b856d0329cbc862acc0cc223ed0b8"
+      "sha256": "ec049ec82a3ca69cc7fba2c22bc11c58681b856d0329cbc862acc0cc223ed0b8",
+      "committed_lf": {
+        "bytes": 2480,
+        "sha256": "6bb424d7aa070c4034f9d952db8a9e284da761807ac4f88c4867ff644152edb8"
+      }
     },
     "help-80x24-16.json": {
       "bytes": 3443,
@@ -2239,7 +2271,11 @@
     },
     "training-drone-80x24-256.txt": {
       "bytes": 3083,
-      "sha256": "72a3c1c22d1123bb85e9f1893c74f4ab56915077d994a66f7cf6c48fbd79f47e"
+      "sha256": "72a3c1c22d1123bb85e9f1893c74f4ab56915077d994a66f7cf6c48fbd79f47e",
+      "committed_lf": {
+        "bytes": 3060,
+        "sha256": "1298cb94326b3887dc060899b23da3cf44620e31ff7657499156b0e5cd88f3c1"
+      }
     },
     "training-drone-80x24-256.json": {
       "bytes": 6563,
@@ -2251,7 +2287,11 @@
     },
     "training-complete-80x24-256.txt": {
       "bytes": 3030,
-      "sha256": "b5b8e57e12395fef5bfbfecde466f4e1eb038dbba1427b158e7c3c8aec638a79"
+      "sha256": "b5b8e57e12395fef5bfbfecde466f4e1eb038dbba1427b158e7c3c8aec638a79",
+      "committed_lf": {
+        "bytes": 3007,
+        "sha256": "53dc40059a690264d7e472f841f344875d425e30e621d179139c8fecaa80cb1a"
+      }
     },
     "training-complete-80x24-256.json": {
       "bytes": 6205,
@@ -2263,7 +2303,11 @@
     },
     "wake-record-80x24-256.txt": {
       "bytes": 2700,
-      "sha256": "4b4d7a26ba7469aa0302a4f594200ba9bd0b3e71144fb05f6c8bd290da025d06"
+      "sha256": "4b4d7a26ba7469aa0302a4f594200ba9bd0b3e71144fb05f6c8bd290da025d06",
+      "committed_lf": {
+        "bytes": 2677,
+        "sha256": "73348f08c9ba2fe53a9e2dfa8969cbd930bddb65a884579786a0bfd2b0179c72"
+      }
     },
     "wake-record-80x24-256.json": {
       "bytes": 4333,
@@ -2275,7 +2319,11 @@
     },
     "wake-hall-80x24-256.txt": {
       "bytes": 2978,
-      "sha256": "d419ff36c80b82e0dd7c9b24f317f067c191df16ffa9f22b855047410f5fbbd5"
+      "sha256": "d419ff36c80b82e0dd7c9b24f317f067c191df16ffa9f22b855047410f5fbbd5",
+      "committed_lf": {
+        "bytes": 2955,
+        "sha256": "86fecb0c6d11a89adf2a8476e5c3f04181e67261f888d6afaaf92443c1f7787f"
+      }
     },
     "wake-hall-80x24-256.json": {
       "bytes": 6354,
@@ -2287,7 +2335,11 @@
     },
     "meridian-plaza-80x24-256.txt": {
       "bytes": 3353,
-      "sha256": "fd23b6f3c4907e3a10a74c49c13d6380c16610ccf9479557ed8900d0820bc595"
+      "sha256": "fd23b6f3c4907e3a10a74c49c13d6380c16610ccf9479557ed8900d0820bc595",
+      "committed_lf": {
+        "bytes": 3330,
+        "sha256": "cf0a4251499978e5f4a0553709c9c485542b22f9e03d3a81f305f86f606135aa"
+      }
     },
     "meridian-plaza-80x24-256.json": {
       "bytes": 7838,
@@ -2299,7 +2351,11 @@
     },
     "inventory-80x24-256.txt": {
       "bytes": 2811,
-      "sha256": "35a7bd47cb7176f404aa6021f13e3d349a1ade8454849b46ba5068a93a65c4cc"
+      "sha256": "35a7bd47cb7176f404aa6021f13e3d349a1ade8454849b46ba5068a93a65c4cc",
+      "committed_lf": {
+        "bytes": 2788,
+        "sha256": "3c72342cdfe1e220cecea128ce3ff08cc3eadb3fe6874f1a65b2af92b095ee42"
+      }
     },
     "inventory-80x24-256.json": {
       "bytes": 4599,
@@ -2311,7 +2367,11 @@
     },
     "contracts-80x24-256.txt": {
       "bytes": 2783,
-      "sha256": "63ce5e8a448d5949a4b04e0586ed97488f23e334a30a5528cd8ca9154d8b0209"
+      "sha256": "63ce5e8a448d5949a4b04e0586ed97488f23e334a30a5528cd8ca9154d8b0209",
+      "committed_lf": {
+        "bytes": 2760,
+        "sha256": "7128d52bb0a5b5e5432ae26a4580ff8d9ed99c3b896410899ba310a123573c4f"
+      }
     },
     "contracts-80x24-256.json": {
       "bytes": 4574,
@@ -2323,7 +2383,11 @@
     },
     "help-80x24-256.txt": {
       "bytes": 2503,
-      "sha256": "511722469082520025c187686fd929fc4f0cad60b3552ba33da60988f59e299a"
+      "sha256": "511722469082520025c187686fd929fc4f0cad60b3552ba33da60988f59e299a",
+      "committed_lf": {
+        "bytes": 2480,
+        "sha256": "3eb7ca49db8d628d6f2ee6b18d9fcec2b0bf05bd91919d44fd2557a289523939"
+      }
     },
     "help-80x24-256.json": {
       "bytes": 3711,
@@ -2335,7 +2399,11 @@
     },
     "training-drone-80x24-truecolor.txt": {
       "bytes": 3083,
-      "sha256": "a3131d7275cc953d88f902a4431caf8856d85de6d16460e28660b8f715010723"
+      "sha256": "a3131d7275cc953d88f902a4431caf8856d85de6d16460e28660b8f715010723",
+      "committed_lf": {
+        "bytes": 3060,
+        "sha256": "af3189f130829b846e9da6588a74a7b44705b9058f09eafc73e8cf07c20b720d"
+      }
     },
     "training-drone-80x24-truecolor.json": {
       "bytes": 6818,
@@ -2347,7 +2415,11 @@
     },
     "training-complete-80x24-truecolor.txt": {
       "bytes": 3030,
-      "sha256": "42db5283809bb2cf35408711f4a81659d9be9a43d52dbc662681d1a10e92c952"
+      "sha256": "42db5283809bb2cf35408711f4a81659d9be9a43d52dbc662681d1a10e92c952",
+      "committed_lf": {
+        "bytes": 3007,
+        "sha256": "c749eb4fbb491ce3444db1fec6a067a5d3a9fd88e77eb66051ab3ac44e30ac09"
+      }
     },
     "training-complete-80x24-truecolor.json": {
       "bytes": 6446,
@@ -2359,7 +2431,11 @@
     },
     "wake-record-80x24-truecolor.txt": {
       "bytes": 2700,
-      "sha256": "1bb7b46411f6b7d9d77b4a14ed06a02d2693b80bf51b13d23e675a59318caeda"
+      "sha256": "1bb7b46411f6b7d9d77b4a14ed06a02d2693b80bf51b13d23e675a59318caeda",
+      "committed_lf": {
+        "bytes": 2677,
+        "sha256": "5bf5c4c6b55ea5fdb8429e6a3df1060bac3c39383fa2aec124c61a42c9cc6f9c"
+      }
     },
     "wake-record-80x24-truecolor.json": {
       "bytes": 4394,
@@ -2371,7 +2447,11 @@
     },
     "wake-hall-80x24-truecolor.txt": {
       "bytes": 2978,
-      "sha256": "5b8d7d64f48dbc63f4b8ad8c802188199d7b15689a536e05444d031510624e28"
+      "sha256": "5b8d7d64f48dbc63f4b8ad8c802188199d7b15689a536e05444d031510624e28",
+      "committed_lf": {
+        "bytes": 2955,
+        "sha256": "e71bf21638a517b399602f0737ee06a5ea41706d3f63320dd047cf7314619903"
+      }
     },
     "wake-hall-80x24-truecolor.json": {
       "bytes": 6601,
@@ -2383,7 +2463,11 @@
     },
     "meridian-plaza-80x24-truecolor.txt": {
       "bytes": 3365,
-      "sha256": "6f53f798e6a02f38003728228e916c4d496fde4fb88cd50bb3076944724a33c4"
+      "sha256": "6f53f798e6a02f38003728228e916c4d496fde4fb88cd50bb3076944724a33c4",
+      "committed_lf": {
+        "bytes": 3342,
+        "sha256": "eb9a529fa335b15aace2e6da4b228250262cb0a974c4181f501b85423932e34b"
+      }
     },
     "meridian-plaza-80x24-truecolor.json": {
       "bytes": 8664,
@@ -2395,7 +2479,11 @@
     },
     "inventory-80x24-truecolor.txt": {
       "bytes": 2811,
-      "sha256": "622ef51e9e31fce3d4790003e63659956b9dc1e19b5f275b4d595c68b39dd329"
+      "sha256": "622ef51e9e31fce3d4790003e63659956b9dc1e19b5f275b4d595c68b39dd329",
+      "committed_lf": {
+        "bytes": 2788,
+        "sha256": "08d3bd8baf455bc531fc46feb0e84caf84719c030f09d35c5590e11c854778c1"
+      }
     },
     "inventory-80x24-truecolor.json": {
       "bytes": 4660,
@@ -2407,7 +2495,11 @@
     },
     "contracts-80x24-truecolor.txt": {
       "bytes": 2783,
-      "sha256": "4f60bfb3c2231040420b6dfe8390f587024e0ea74886cc53e137210f466395d3"
+      "sha256": "4f60bfb3c2231040420b6dfe8390f587024e0ea74886cc53e137210f466395d3",
+      "committed_lf": {
+        "bytes": 2760,
+        "sha256": "a75139c19bffc20d0d42622502f0f5effee0ad18fc80504a196a31fe7fd45c8a"
+      }
     },
     "contracts-80x24-truecolor.json": {
       "bytes": 4635,
@@ -2419,7 +2511,11 @@
     },
     "help-80x24-truecolor.txt": {
       "bytes": 2503,
-      "sha256": "3239e6da1f66fdc7a4254f06c95b43dc1e4d1512523343e527a2ab8cc301929d"
+      "sha256": "3239e6da1f66fdc7a4254f06c95b43dc1e4d1512523343e527a2ab8cc301929d",
+      "committed_lf": {
+        "bytes": 2480,
+        "sha256": "b58e672c5e7d2499d32e67f963f382252918d630eb2dc6040ff6d573c7fcccee"
+      }
     },
     "help-80x24-truecolor.json": {
       "bytes": 3774,
@@ -2431,7 +2527,11 @@
     },
     "training-drone-132x50-16.txt": {
       "bytes": 8303,
-      "sha256": "a8bd03a67af46df210191aa19b85f684b6c981ffcfdd56762a482d5f0af01d6a"
+      "sha256": "a8bd03a67af46df210191aa19b85f684b6c981ffcfdd56762a482d5f0af01d6a",
+      "committed_lf": {
+        "bytes": 8254,
+        "sha256": "d574c4d4c17f47b00a41bfed335cc90d8fd70a497fc46c98413eaff81c649591"
+      }
     },
     "training-drone-132x50-16.json": {
       "bytes": 11316,
@@ -2443,7 +2543,11 @@
     },
     "training-complete-132x50-16.txt": {
       "bytes": 8254,
-      "sha256": "e8e31ba8f5197cdb851cd560fa45e412a53dcd1a20bd6a8a78291882706e1865"
+      "sha256": "e8e31ba8f5197cdb851cd560fa45e412a53dcd1a20bd6a8a78291882706e1865",
+      "committed_lf": {
+        "bytes": 8205,
+        "sha256": "d257a0cd552e1b82a8a25cc2b98d3b44189e8df7378778c0780678fc5933da20"
+      }
     },
     "training-complete-132x50-16.json": {
       "bytes": 10971,
@@ -2455,7 +2559,11 @@
     },
     "wake-record-132x50-16.txt": {
       "bytes": 8097,
-      "sha256": "c368a5ea650252a7541dd05b638c5b969af7fe4deb7bd07c32cf81300b0d25b9"
+      "sha256": "c368a5ea650252a7541dd05b638c5b969af7fe4deb7bd07c32cf81300b0d25b9",
+      "committed_lf": {
+        "bytes": 8048,
+        "sha256": "6d2c8057b0135865716283ac6a6ab334bfa50f52206f8fc6180d3e0e6c46f2f8"
+      }
     },
     "wake-record-132x50-16.json": {
       "bytes": 10802,
@@ -2467,7 +2575,11 @@
     },
     "wake-hall-132x50-16.txt": {
       "bytes": 8311,
-      "sha256": "d4e051b6a589a264e4a36c26d747e8dee88d542afbb26441a9678a8b29437c5c"
+      "sha256": "d4e051b6a589a264e4a36c26d747e8dee88d542afbb26441a9678a8b29437c5c",
+      "committed_lf": {
+        "bytes": 8262,
+        "sha256": "1b338d4c2d809621b5d1880902b1b29ec13b831bd8513d4f113a4fa029c00745"
+      }
     },
     "wake-hall-132x50-16.json": {
       "bytes": 11124,
@@ -2479,7 +2591,11 @@
     },
     "meridian-plaza-132x50-16.txt": {
       "bytes": 9807,
-      "sha256": "4767fb57fd08349007190bd898dd847b1b359664e551734c02a7a8f6c0e5174a"
+      "sha256": "4767fb57fd08349007190bd898dd847b1b359664e551734c02a7a8f6c0e5174a",
+      "committed_lf": {
+        "bytes": 9758,
+        "sha256": "59fd15a9b909845f14e468884ccd2153795d00da380519ab76dcc2f13bf8d8af"
+      }
     },
     "meridian-plaza-132x50-16.json": {
       "bytes": 12744,
@@ -2491,7 +2607,11 @@
     },
     "inventory-132x50-16.txt": {
       "bytes": 8205,
-      "sha256": "b07a0071efbea1e1fb7566f3ccc53218519a15a5d4b5f1a9e9c2b148a1b0dbca"
+      "sha256": "b07a0071efbea1e1fb7566f3ccc53218519a15a5d4b5f1a9e9c2b148a1b0dbca",
+      "committed_lf": {
+        "bytes": 8156,
+        "sha256": "e9d184ccb1271e42c28e03f39e8d96f348504cba8f3c16043aeb7934267de137"
+      }
     },
     "inventory-132x50-16.json": {
       "bytes": 10893,
@@ -2503,7 +2623,11 @@
     },
     "contracts-132x50-16.txt": {
       "bytes": 8177,
-      "sha256": "f4623110a16154135601afbae69a2e2af911f1908081f5d16d393fe4aa0af3cc"
+      "sha256": "f4623110a16154135601afbae69a2e2af911f1908081f5d16d393fe4aa0af3cc",
+      "committed_lf": {
+        "bytes": 8128,
+        "sha256": "408802c969dd086fa725b373207f2373628b1711da559f376dd8a7e5a7c43e60"
+      }
     },
     "contracts-132x50-16.json": {
       "bytes": 10864,
@@ -2515,7 +2639,11 @@
     },
     "help-132x50-16.txt": {
       "bytes": 7653,
-      "sha256": "4147dfc5b0d0d8ee7c1211afcde68b67d0b1d81b32d9d1ec8ff937eb2013be80"
+      "sha256": "4147dfc5b0d0d8ee7c1211afcde68b67d0b1d81b32d9d1ec8ff937eb2013be80",
+      "committed_lf": {
+        "bytes": 7604,
+        "sha256": "0276834c0d8d44179e14a968d1cbab8000644c13d3d3d4a634c1ce7eb1e02412"
+      }
     },
     "help-132x50-16.json": {
       "bytes": 9296,
@@ -2527,7 +2655,11 @@
     },
     "training-drone-132x50-256.txt": {
       "bytes": 8296,
-      "sha256": "8b127d137d89c4399c76575cc808903ed7da1f6e306362ad281bce920a79d5c9"
+      "sha256": "8b127d137d89c4399c76575cc808903ed7da1f6e306362ad281bce920a79d5c9",
+      "committed_lf": {
+        "bytes": 8247,
+        "sha256": "37498da72d25f56adcb6da8e414d98f3deb4b14fccbf274c0e8812a4a115b28f"
+      }
     },
     "training-drone-132x50-256.json": {
       "bytes": 12956,
@@ -2539,7 +2671,11 @@
     },
     "training-complete-132x50-256.txt": {
       "bytes": 8247,
-      "sha256": "030f78224e28a7242f0e51e554ec904a7f9dc3941268d7f86c00e0415a7d3891"
+      "sha256": "030f78224e28a7242f0e51e554ec904a7f9dc3941268d7f86c00e0415a7d3891",
+      "committed_lf": {
+        "bytes": 8198,
+        "sha256": "030d6bca89d8a8522486400cf9455865ad18cc549c9c35ead0ea26234603c944"
+      }
     },
     "training-complete-132x50-256.json": {
       "bytes": 12786,
@@ -2551,7 +2687,11 @@
     },
     "wake-record-132x50-256.txt": {
       "bytes": 8097,
-      "sha256": "f5be3a468ee7d24c21df94462692a7d73edc1c004d4193a0401a9fdd6272dfcd"
+      "sha256": "f5be3a468ee7d24c21df94462692a7d73edc1c004d4193a0401a9fdd6272dfcd",
+      "committed_lf": {
+        "bytes": 8048,
+        "sha256": "abeebbbc7d0e8f4aea9acb7b814b98cc06830d5ae126f70d4dc7582ae4469729"
+      }
     },
     "wake-record-132x50-256.json": {
       "bytes": 11229,
@@ -2563,7 +2703,11 @@
     },
     "wake-hall-132x50-256.txt": {
       "bytes": 8218,
-      "sha256": "bae38a1d3c74803c2ca373c659f03f29f8f23aa3a7f0c5f1df6202520d2a1452"
+      "sha256": "bae38a1d3c74803c2ca373c659f03f29f8f23aa3a7f0c5f1df6202520d2a1452",
+      "committed_lf": {
+        "bytes": 8169,
+        "sha256": "448178ba83628a82281abf0e6b7d32c3a6feb94b148e232725ba8b479bcd5639"
+      }
     },
     "wake-hall-132x50-256.json": {
       "bytes": 13021,
@@ -2575,7 +2719,11 @@
     },
     "meridian-plaza-132x50-256.txt": {
       "bytes": 9887,
-      "sha256": "3323b85412423c8eca4125c26cbe0d1243298021b9e52aada2cb1ee0d55f6576"
+      "sha256": "3323b85412423c8eca4125c26cbe0d1243298021b9e52aada2cb1ee0d55f6576",
+      "committed_lf": {
+        "bytes": 9838,
+        "sha256": "e38a2ed4d5532d1b9bd88c1ce6b7ea66335e20a998d46ddb9a5e906007d6650e"
+      }
     },
     "meridian-plaza-132x50-256.json": {
       "bytes": 17521,
@@ -2587,7 +2735,11 @@
     },
     "inventory-132x50-256.txt": {
       "bytes": 8205,
-      "sha256": "30be2a6cfc45ec20211434651563bfc4813fe0693f4ae0be8eafbd4355f797dd"
+      "sha256": "30be2a6cfc45ec20211434651563bfc4813fe0693f4ae0be8eafbd4355f797dd",
+      "committed_lf": {
+        "bytes": 8156,
+        "sha256": "c41bd7647be14b08d813a3899d3f3c2a329316d24f4f16ddc4dcb2d981bbcab2"
+      }
     },
     "inventory-132x50-256.json": {
       "bytes": 11595,
@@ -2599,7 +2751,11 @@
     },
     "contracts-132x50-256.txt": {
       "bytes": 8177,
-      "sha256": "4c490692cd1de023d0b1e2a973fe88d624e1cf7333d2af23703581181376f801"
+      "sha256": "4c490692cd1de023d0b1e2a973fe88d624e1cf7333d2af23703581181376f801",
+      "committed_lf": {
+        "bytes": 8128,
+        "sha256": "bc2b60b74d5e947f26cec7fcc896e1ad9e047a7656dc31588fd2ee948b069c5c"
+      }
     },
     "contracts-132x50-256.json": {
       "bytes": 11566,
@@ -2611,7 +2767,11 @@
     },
     "help-132x50-256.txt": {
       "bytes": 7653,
-      "sha256": "6420231862f252d1170cda5cc732dfc421f2e17fcddf637d0c1d7b86c0f712fe"
+      "sha256": "6420231862f252d1170cda5cc732dfc421f2e17fcddf637d0c1d7b86c0f712fe",
+      "committed_lf": {
+        "bytes": 7604,
+        "sha256": "e78614dff12d6911bc9e0d028d0a4b5e9ed427fe0c46d2811cb6a445ec443e00"
+      }
     },
     "help-132x50-256.json": {
       "bytes": 9919,
@@ -2623,7 +2783,11 @@
     },
     "training-drone-132x50-truecolor.txt": {
       "bytes": 8296,
-      "sha256": "f136e76f0c9ccfad809c36d7fae1197a59ba35fa636afec344b3714eda46b0d3"
+      "sha256": "f136e76f0c9ccfad809c36d7fae1197a59ba35fa636afec344b3714eda46b0d3",
+      "committed_lf": {
+        "bytes": 8247,
+        "sha256": "186b4680acae275657b90003bd31b58cb99a2090ca0033d4a27c411e64f0be5e"
+      }
     },
     "training-drone-132x50-truecolor.json": {
       "bytes": 13227,
@@ -2635,7 +2799,11 @@
     },
     "training-complete-132x50-truecolor.txt": {
       "bytes": 8247,
-      "sha256": "12aaa36aa4046ab4a32ddef24c8a6e40733b88048365ac307ee2d979ad02c29b"
+      "sha256": "12aaa36aa4046ab4a32ddef24c8a6e40733b88048365ac307ee2d979ad02c29b",
+      "committed_lf": {
+        "bytes": 8198,
+        "sha256": "c69db6f4df846bacfe1df5a2e35d8b4e9361e6e1a480ab2b53af63d8dd3cf41d"
+      }
     },
     "training-complete-132x50-truecolor.json": {
       "bytes": 13060,
@@ -2647,7 +2815,11 @@
     },
     "wake-record-132x50-truecolor.txt": {
       "bytes": 8097,
-      "sha256": "6ff398493bc7fe36dd3316a38b87b4af5b65bd5acc9213f40b4903edab6259b3"
+      "sha256": "6ff398493bc7fe36dd3316a38b87b4af5b65bd5acc9213f40b4903edab6259b3",
+      "committed_lf": {
+        "bytes": 8048,
+        "sha256": "1a4c532d50936049fef68cc23e4c563a414a1d68365807c781983bcf28f741e1"
+      }
     },
     "wake-record-132x50-truecolor.json": {
       "bytes": 11279,
@@ -2659,7 +2831,11 @@
     },
     "wake-hall-132x50-truecolor.txt": {
       "bytes": 8218,
-      "sha256": "e6919b2e6e8b81cac688fe9457e540c3566e64a2c51efe952deeea9e4c02342d"
+      "sha256": "e6919b2e6e8b81cac688fe9457e540c3566e64a2c51efe952deeea9e4c02342d",
+      "committed_lf": {
+        "bytes": 8169,
+        "sha256": "9defd62e0a14da75b76bf5bd03d15f1e7b658c360f1858f9e66bf8cb5fda3c67"
+      }
     },
     "wake-hall-132x50-truecolor.json": {
       "bytes": 13298,
@@ -2671,7 +2847,11 @@
     },
     "meridian-plaza-132x50-truecolor.txt": {
       "bytes": 9882,
-      "sha256": "ce4a7b67195ff85e03cb635b505d30133964ddc05c7e550e6ac799a9173b4503"
+      "sha256": "ce4a7b67195ff85e03cb635b505d30133964ddc05c7e550e6ac799a9173b4503",
+      "committed_lf": {
+        "bytes": 9833,
+        "sha256": "4478d923e87666a196a8e013de2bbfd29dbb95c601bcffafe3b18b7d078f624a"
+      }
     },
     "meridian-plaza-132x50-truecolor.json": {
       "bytes": 18069,
@@ -2683,7 +2863,11 @@
     },
     "inventory-132x50-truecolor.txt": {
       "bytes": 8205,
-      "sha256": "11b5e84ef9968670766e84b72bb6d41c3ecb74d070cb8c1115b2883cf14fbb5e"
+      "sha256": "11b5e84ef9968670766e84b72bb6d41c3ecb74d070cb8c1115b2883cf14fbb5e",
+      "committed_lf": {
+        "bytes": 8156,
+        "sha256": "8d3e4c54fab5471892edff77c7d744eb5e706af321b1aa71cff78e9020b8a90f"
+      }
     },
     "inventory-132x50-truecolor.json": {
       "bytes": 11629,
@@ -2695,7 +2879,11 @@
     },
     "contracts-132x50-truecolor.txt": {
       "bytes": 8177,
-      "sha256": "d9ceed32634d7206f68a59f3c16d7a60fed330f7a994eb54665bd7f3e8e38bc1"
+      "sha256": "d9ceed32634d7206f68a59f3c16d7a60fed330f7a994eb54665bd7f3e8e38bc1",
+      "committed_lf": {
+        "bytes": 8128,
+        "sha256": "562b3bd3201bbdb35a0f502c2d8aba31756a8bc0a31c695d2242d4e15197923d"
+      }
     },
     "contracts-132x50-truecolor.json": {
       "bytes": 11600,
@@ -2707,11 +2895,16 @@
     },
     "help-132x50-truecolor.txt": {
       "bytes": 7653,
-      "sha256": "69a0b5b54af1a28357c6fd7697361e6e954b5191cc9cb7c9904126a72fb226e6"
+      "sha256": "69a0b5b54af1a28357c6fd7697361e6e954b5191cc9cb7c9904126a72fb226e6",
+      "committed_lf": {
+        "bytes": 7604,
+        "sha256": "2e2972ed8b76ea313d2cb87d74c1da4e030d3e1485854674fa9c9fe2e7660be2"
+      }
     },
     "help-132x50-truecolor.json": {
       "bytes": 9950,
       "sha256": "0cda2bc3934be77afd236b11c3d8f710bd76816b580b302c2c0728a22f4566f6"
     }
-  }
+  },
+  "committed_note": "manifest sha256/bytes are the files as the Windows run wrote them (CRLF in .txt); committed_lf is the committed LF .txt frame, added after the run; .ans/.json are run artifacts"
 }

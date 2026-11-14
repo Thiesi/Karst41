@@ -42,8 +42,14 @@ Only the `.txt` frames are committed, as in the earlier packets. The
 `.ans` and `.json` files that `result.json`'s manifest hashes are run
 artifacts. The manifest hashes the files as the Windows run wrote them,
 with CRLF in the `.txt` files. The committed `.txt` frames are normalised
-to LF like the earlier packets, so their hashes differ from the manifest
-by line endings only.
+to LF like the earlier packets. Each `.txt` manifest entry therefore also
+has `committed_lf` (bytes and sha256 of the committed file, added after the
+run), so a plain checkout can be verified directly. Converting a committed
+frame back to CRLF reproduces the run hash (checked for all 48).
+
+The character names (`P界80`, `Q界132` and so on) are deliberate: P5 names
+each character with a wide CJK glyph (U+754C, UTF-8 `e7 95 8c`) to prove
+wide-cell handling in the live name field, as in the earlier P5 packet.
 
 ## Stored inputs
 
