@@ -62,9 +62,13 @@ system.
      Thiesi/Karst41 runs here with no prompt. That code can read the `gh`
      token and the runner's Claude Code login in the WSL home. With the
      owner's full `gh` login, a malicious or broken branch could push,
-     comment or merge as the owner, and read his private repositories. Only
-     the owner's account pushes branches to Thiesi/Karst41: every session
-     works as him. So the gate is the sessions he runs, not forks.
+     comment or merge as the owner, and read his private repositories.
+     Two identities can push branches to Thiesi/Karst41: the owner's
+     account, which every session works as, and the Claude GitHub App
+     (`claude[bot]`) when someone writes `@claude` on an issue or PR. The
+     runner refuses commits made by any `[bot]` account (section 3), so
+     the gate is the sessions the owner runs. It is only as strong as that
+     list: a session that took in untrusted text can still push as him.
    - **Windows is reachable too.** By default, WSL2 mounts the Windows
      drives at `/mnt/c` and lets Linux run Windows programs (interop). So
      branch code can also read the owner's Windows user folder, OneDrive
@@ -82,10 +86,13 @@ system.
      enabled=false
      ```
      Then use the gist-only token below. Without interop, the runner can't
-     call `powershell.exe`, so the report's `host:` line uses
-     `/proc/loadavg`. That only sees load inside WSL, so the report says
-     so. Remove `Bash(powershell.exe *)` from the allow list too.
+     call `powershell.exe`, so it can't see Windows load and the report's
+     `host:` line says `unknown` (section 5). Remove
+     `Bash(powershell.exe *)` from the allow list too.
    - Whatever is chosen, the runner's Claude Code login stays exposed.
+   - The runner knows who sent a request only by session name. Only
+     sessions signed in to the owner's account can reach it over Remote
+     Control, so a name is a label, not authentication beyond that login.
    - Create a **fine-grained personal access token** with no repository
      access and only the account permission **Gists: read and write**. Both
      repositories are public, so cloning needs no token.
@@ -166,6 +173,12 @@ system.
      `Thiesi/Karst41` (`git fetch origin` then
      `git branch -r --contains <sha>`). It refuses any SHA that is only in a
      fork, a pull ref or nowhere.
+   - It then lists the commits the SHA adds to main
+     (`git log --format='%an %ae %cn %ce' origin/main..<sha>`) and refuses
+     the SHA if any author or committer is a `[bot]` account, such as
+     `claude[bot]`. It names the commit in the refusal.
+   - Before starting, it deletes expired `runs/` entries (section 3,
+     step 8), so the disk is pruned on every request.
 2. **Acknowledge.** The runner replies `ACK <run-id>`, with its queue
    position, before starting. A request that gets no ACK has not arrived.
    Messages over Remote Control are not confirmed any other way.
@@ -199,7 +212,8 @@ system.
 7. **Report** in the format of section 5.
 8. **Clean up.** After the report, the runner removes the worktree with
    `git worktree remove` and deletes the venv. It keeps `runs/<run-id>/`
-   (captures and logs) for 7 days, then deletes it. Every deletion is a
+   (captures and logs) for 7 days. Nothing runs on a timer: the runner
+   deletes expired entries at the start of each request. Every deletion is a
    named path, checked to resolve inside `runs/` before it is removed. The
    runner never builds a deletion path from an unchecked variable.
 
@@ -248,7 +262,7 @@ issue86 workflows. The one extra job is `pytest-full`.
 
 ```
 DONE <run-id> at <SHA>
-host: <idle | busy>               Windows CPU % before and after, via powershell.exe
+host: <idle | busy | unknown>     Windows CPU % before and after, via powershell.exe
 - <job> <matrix>  PASS|FAIL  <start, local time>  <duration>
     on FAIL: the last frames of the traceback, and the failing line
     timing jobs: the measured p99 values and their limits
@@ -258,7 +272,10 @@ evidence: <secret gist URL>       on any failure: failure-trace.txt,
 ```
 
 If the owner was using the machine during a timing job (`host: busy`), the
-timing numbers are reported but marked as non-evidence.
+timing numbers are reported but marked as non-evidence. If the runner can't
+read Windows CPU (interop off, or `powershell.exe` failed), it reports
+`host: unknown`, which counts as `busy`: timing numbers are never evidence
+then.
 
 When a request asks for captures, for example new or re-pinned frames for
 a packet, the runner also puts them in the gist, even on a pass: the
@@ -279,7 +296,8 @@ leaves the file out and says so.
 > - Accept requests only from the sessions "Karst 41: technical lead" and
 >   "Karst 41: engineer", or from the owner directly. Acknowledge every
 >   request with `ACK <run-id>` before starting.
-> - Refuse a SHA that isn't reachable from a branch of Thiesi/Karst41.
+> - Refuse a SHA that isn't reachable from a branch of Thiesi/Karst41, or
+>   that adds any commit by a `[bot]` account (section 3).
 > - Run only what the request names, at the SHA it names, exactly as the
 >   workflow at that SHA runs it. Never edit repository files, never commit,
 >   push, comment, review, label or merge. Your output is the report
