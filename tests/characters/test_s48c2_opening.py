@@ -171,3 +171,15 @@ def test_an_unread_body_talks_to_vantongeren_and_hears_it_again(game: HeadlessSe
     assert page[1]["lines"][0].startswith("Open your eyes slowly.")
     act(game, client, Frame("key", {"k": "escape", "t": 0}))
     assert manager.sim.external_views[client.session.id][1]["kind"] == "talker"
+
+
+def test_an_unread_body_is_present_to_talk_but_never_ready_to_write(game: HeadlessServer) -> None:
+    """S48c2 split Commerce.ready into present (talk) and ready (write). The
+    merge with main once resurrected the old unread refusal inside present."""
+    client = game.connect()
+    game.step(2)
+    commerce, session = game.core.commerce, client.session
+    assert game.core.characters.unread(session.player_id)
+    assert commerce.present(session) and not commerce.ready(session)
+    create(game, client, name="Noor", card="none")
+    assert commerce.present(client.session) and commerce.ready(client.session)
