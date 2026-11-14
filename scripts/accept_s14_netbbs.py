@@ -17,6 +17,7 @@ from typing import Any
 from collections.abc import Callable
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from accept_s13_netbbs import lat_walk
 from karst41.server.lattice.silt import generate
 from karst41 import content as content_package
@@ -74,9 +75,8 @@ async def training(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     encounters = lattice.encounters
     player = probe.game.players[connection.session.player_id]
     assert player.archetype == 'ghost' and player.chits_hand == 200 and player.xp == 0
-    await probe.walk(connection, (21, 14))
-    await connection.caller.write(b'b')
-    await wait(lambda: player.progress.get('wake_combat') == 'skipped')
+    # S48c1b: a character crosses the drone's ring and nothing happens.
+    await crossed_quietly(probe.service, connection.session.player_id, probe.walk(connection, (21, 14)))
     terminal = next(obj for obj in probe.service.world.zones[connection.avatar.zone].objects.values()
                     if obj.spec.params.get('training_core') == 'lat-wake-hall')
     # Adjacent floor belongs to the outfitter's spawn region. The actual
@@ -88,11 +88,10 @@ async def training(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     await connection.caller.write(b'j')
     await wait(lambda: player.id in lattice.presences)
     presence = lattice.presences[player.id]
-    await wait(lambda: 'INTEGRITY' in connection.caller.screen.screen_text())
-    await connection.caller.write(b'e')
-    await wait(lambda: connection.session.id in encounters.menus)
-    await menu(probe, connection, 'enter:lat-wake-hall')
+    # S48c1b (first ten minutes 8, item 6): J at the training terminal
+    # enters its core directly; there is no district grid to enter it from.
     await wait(lambda: presence.core == 'lat-wake-hall')
+    await wait(lambda: 'INTEGRITY' in connection.caller.screen.screen_text())
     core_started = time.monotonic()
     await wait(lambda: 'Tripwire' in connection.caller.screen.screen_text())
     defender = encounters.defenders(presence)[0]
@@ -122,9 +121,8 @@ async def training(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     await connection.caller.write(b'b')
     await wait(lambda: connection.session.id not in encounters.menus)
     await wait(lambda: 'WAKE HALL / CORE' in connection.caller.screen.screen_text().splitlines()[0])
+    # S48c1b: B in the training core leaves the Lattice (was: back to the grid, then J).
     await connection.caller.write(b'b')
-    await wait(lambda: presence.instance is None)
-    await connection.caller.write(b'j')
     await wait(lambda: player.id not in lattice.presences and body.stance == 'normal')
     await wait(lambda: 'Wake Hall' in connection.caller.screen.screen_text().splitlines()[0])
     saved = probe.service.storage.character_state()
@@ -181,9 +179,8 @@ async def silt(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     encounters = lattice.encounters
     player = probe.game.players[connection.session.player_id]
     assert player.archetype == 'cantor' and player.skills['listening'] < 20
-    await probe.walk(connection, (21, 14))
-    await connection.caller.write(b'b')
-    await wait(lambda: player.progress.get('wake_combat') == 'skipped')
+    # S48c1b: a character crosses the drone's ring and nothing happens.
+    await crossed_quietly(probe.service, connection.session.player_id, probe.walk(connection, (21, 14)))
     await probe.travel(connection, 'vatside-clinics')
     await probe.travel(connection, 'core-plaza')
     await probe.walk(connection, (30, 5))
@@ -335,10 +332,8 @@ def scenario_content(probe: NativeProbe, stage: str) -> None:
 
 
 async def hub(probe: NativeProbe, connection: Connection) -> None:
-    player = probe.game.players[connection.session.player_id]
-    await probe.walk(connection, (21,14))
-    await connection.caller.write(b'b')
-    await wait(lambda: player.progress.get('wake_combat') == 'skipped')
+    # S48c1b: a character crosses the drone's ring and nothing happens.
+    await crossed_quietly(probe.service, connection.session.player_id, probe.walk(connection, (21, 14)))
     await probe.travel(connection, 'vatside-clinics')
     await probe.travel(connection, 'core-plaza')
 
@@ -535,9 +530,8 @@ async def burn(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     b = await probe.open(width,height,'S14BurnB',1)
     for connection,tile in ((a,(25,25)),(b,(27,25))):
         player = probe.game.players[connection.session.player_id]
-        await probe.walk(connection,(21,14))
-        await connection.caller.write(b'b')
-        await wait(lambda: player.progress.get('wake_combat') == 'skipped')
+        # S48c1b: a character crosses the drone's ring and nothing happens.
+        await crossed_quietly(probe.service, connection.session.player_id, probe.walk(connection, (21, 14)))
         await probe.travel(connection,'vatside-clinics')
         await probe.walk(connection,tile)
         # Explicit S16 grade/learning fixtures; no funding or teleport.

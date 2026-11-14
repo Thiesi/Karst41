@@ -49,13 +49,15 @@ async def accept(root: Path, door_python: Path, show: bool,
                 # At 132x50 the combined wide name + ASCII handle fits the
                 # pinned name row in full, as requested in #106's handoff.
                 label = {'16': 'P', '256': 'Q', 'truecolor': 'R'}[tier]
-                caller = await probe.open(width, height, label, archetype=0,
-                                          sixteen=tier == '16', truecolor=tier == 'truecolor', capture_wake=True)
+                # S48c1b: the training drone wakes only for an unread body, so
+                # the caller fights it first and reads the record after; "done"
+                # is held and applied at creation (checked below).
+                caller = await probe.open(width, height, label, archetype=0, sixteen=tier == '16',
+                                          truecolor=tier == 'truecolor', unread=True)
                 assert caller.session.caps['tier'] == tier
-                name = probe.game.players[caller.session.player_id].name
-                assert '界' in name
+                assert probe.game.unread(caller.session.player_id)
                 display = caller.caller.screen
-                captures = [f'wake-record-{width}x{height}-{tier}']
+                captures = []
 
                 async def settled() -> None:
                     await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
@@ -67,7 +69,6 @@ async def accept(root: Path, door_python: Path, show: bool,
 
                 await settled()
                 assert display.cell(0, 0) == '╔'  # New safe frame proves launch switch reached the wheel.
-                save('wake-hall')
                 await probe.walk(caller, (21, 14))
                 await wait(lambda: any(a.owner == caller.avatar.actor.id and a.behaviour.get('training')
                                       for a in probe.service.world.actors.values()))
@@ -88,6 +89,14 @@ async def accept(root: Path, door_python: Path, show: bool,
                         await asyncio.sleep(.2)
                 await settled()
                 save('training-complete')
+                await probe.create(caller, width, height, label, 0, tier == '16', capture_wake=True)
+                captures.append(f'wake-record-{width}x{height}-{tier}')
+                player = probe.game.players[caller.session.player_id]
+                name = player.name
+                assert '界' in name and player.progress.get('wake_combat') == 'done'
+                await settled()
+                assert display.cell(0, 0) == '╔'
+                save('wake-hall')
                 await probe.travel(caller, 'vatside-clinics')
                 await probe.travel(caller, 'core-plaza')
                 # Walk beside the shipped patrol route, rather than capture

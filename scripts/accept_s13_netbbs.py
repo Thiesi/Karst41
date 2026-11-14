@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from karst41.admin.client import request
 
 
@@ -51,9 +52,8 @@ async def accept(root: Path, door_python: Path, show: bool,
             a = await probe.open(width, height, "LatticeA", 0, True)
             b = await probe.open(width, height, "LatticeB", 1)
             for caller in (a, b):
-                await probe.walk(caller, (21, 14))
-                await caller.caller.write(b"b")
-                await wait(lambda: probe.game.players[caller.session.player_id].progress.get("wake_combat") == "skipped")
+                # S48c1b: a character crosses the drone's ring and nothing happens.
+                await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
                 await probe.travel(caller, "vatside-clinics")
                 await probe.travel(caller, "core-plaza")
             await probe.walk(a, (30, 5))
