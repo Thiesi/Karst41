@@ -149,7 +149,7 @@ def test_beat_eights_hints_show_in_the_lattice_view(game: HeadlessServer) -> Non
     act(game, client, Frame("key", {"k": "j", "t": 0}))
     game.step(4)
     view = game.core.characters.sim.external_views[client.session.id]
-    assert view[0] == "lattice" and view[1]["lesson"] == {"text": "Tab picks the Tripwire.  J leaves"}
+    assert view[0] == "lattice" and view[1]["lesson"] == {"text": "Tab picks the Tripwire.  B leaves"}
 
 
 def test_an_unread_body_talks_to_vantongeren_and_hears_it_again(game: HeadlessServer) -> None:

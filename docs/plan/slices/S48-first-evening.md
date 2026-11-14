@@ -481,7 +481,7 @@ runner contract with the creative lead's fixes.
 - **Text (#220 4.12):** briefing screens 2 and 3 as canon #240 moves them;
   the Hardline sentence; the hall's arrival line cut to its first
   sentence (the rest stays as lore); "Hall terminal", "Wake Outfitter";
-  the training core enters with 8.1 and 8.2 only; the characters.py toast
+  the training core enters with 8.1, 8.2 and "B takes you back up to it." (creative lead); the characters.py toast
   stays removed. The equality test with 05-story-arcs passes once #240 is
   on main.
 - **Speaker names** in the log are the mocks' short forms ("Vantongeren",

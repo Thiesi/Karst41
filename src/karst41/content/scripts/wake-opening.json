@@ -338,21 +338,20 @@
       ],
       "hints": [
         {
-          "text": "{target_next} picks the Tripwire.  {jack} leaves",
+          "text": "{target_next} picks the Tripwire.  B leaves",
           "key": "target_next"
         },
         {
-          "text": "{program_1} casts Pick. Let it land.  {jack} leaves",
+          "text": "{program_1} casts Pick. Let it land.  B leaves",
           "until": "ice_down"
         },
         {
-          "text": "{interact} opens the room.  {jack} leaves",
+          "text": "{interact} opens the room.  B leaves",
           "key": "interact",
           "after": "ice_down"
         },
         {
-          "text": "{jack} brings you back.",
-          "key": "jack",
+          "text": "B takes you back up.",
           "after": "lifted"
         }
       ]

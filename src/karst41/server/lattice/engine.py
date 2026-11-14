@@ -289,7 +289,7 @@ class Lattice:
         state = self.saved(player)
         training = bool(terminal and terminal.spec.params.get("training_core"))
         if training:
-            # S48c2 (#220 beat 8): 8.1 and 8.2 only. The ritual's link line and
+            # S48c2 (#220 beat 8): 8.1, 8.2 and the B line only. The ritual's link line and
             # the district line belong to the first real jack-in.
             ritual = self.content.text.get("lattice-training-jackin")
             for line in (ritual.body.splitlines() if ritual else ()):

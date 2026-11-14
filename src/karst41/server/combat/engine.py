@@ -558,7 +558,7 @@ class Combat:
                     live = self.game.opening_live(player.id)
                     self.game.lesson(player, "drone", "done")  # 6.6 before 6.8 (#220 beat 6 order).
                     if not live:  # Technical lead, fix 1: the engine speaks when no script owns it.
-                        self.log(source,"The training drone falls silent. The tutorial terminal is ahead.")
+                        self.log(source,"The drone stops. It had been trying since Tuesday.")
                 if player:
                     self.disarm(player.id)  # Removal before remember (canon #238).
                 if player and source is not None:

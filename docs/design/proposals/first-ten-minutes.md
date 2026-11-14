@@ -619,21 +619,22 @@ No key name is spoken by a person. The hint row says `J`.
   [decided, item 6], so the player never sees the district grid or the
   BLACK ICE row in the first five minutes. The grid first appears on
   the player's first real jack-in.
-- **Can do.** `Tab`, `1`, `E`, `J`.
-- **Hints,** one at a time:
-  - `Tab picks the Tripwire.  J leaves  ? help`
-  - `1 casts Pick. Let it land.  J leaves  ? help`
-  - Tripwire down: `E opens the room.  J leaves  ? help`
+- **Can do.** `Tab`, `1`, `E`, `B`. B leaves this core (S48c1b).
+- **Hints,** one at a time (presentation lead, S48c2):
+  - `Tab picks the Tripwire.  B leaves  ? help`
+  - `1 casts Pick. Let it land.  B leaves  ? help`
+  - Tripwire down: `E opens the room.  B leaves  ? help`
   - in the room menu the action bar is the hint [built]; the only row
     is `Your decant record  text  ready`
-  - record lifted: `J brings you back.  ? help`
+  - record lifted: `B takes you back up.  ? help`
 - **Next.** Beat 9 when you are back in your body.
 
 | # | When | Kind | Line |
 |---|---|---|---|
 | 8.1 | on jack-in | system | The city goes quiet. Cells resolve under your feet. **(kept)** |
 | 8.2 | | system | Your body stays upstairs. Okafor has it. **(changed)** |
-| 8.3 | the Tripwire warns | danger | Training Tripwire: alarm, 2s warning. Pick; J leaves the lesson. **(kept)** |
+| | right after 8.2 | system | B takes you back up to it. **(creative lead, S48c2)** |
+| 8.3 | the Tripwire warns | danger | Training Tripwire: alarm, 2s warning. Pick; B leaves the lesson. **(creative lead, S48c2)** |
 | 8.4 | Tripwire down | combat | Pick hits Training Tripwire: 10. Integrity 0. **(kept)** |
 | 8.5 | lift starts | system | Lifting Your decant record: 3s, 0 trace on start. **(kept)** |
 | 8.6 | lift done | system | Transfer committed: Your decant record. **(kept)** |
@@ -643,7 +644,8 @@ Today 8.2 is "Your body stays upstairs. Its shelter still matters.",
 followed by "Arrows follow links. J brings you back from a public
 cell." Neither is true of this one-room lesson, so the training
 terminal uses 8.2 and drops the second line. Every other terminal keeps
-both.
+both. Since B leaves this core (S48c1b), a system line right after 8.2
+says so (creative lead).
 
 One fault to fix on the way [built]: a Pick cast that the Tripwire
 interrupts logs `‼ Your program cast is interrupted.` and nothing says
@@ -661,19 +663,19 @@ cast lands.
 ║                                                       │2 Umbrella            ║
 ║                                                       │3 Empty               ║
 ║                                                       │ROOM                  ║
-║                                                       │Training terminal     ║
+║                                                       │Hall terminal         ║
 ║                                                       │                      ║
 ║                                                       │                      ║
-║ ROOM / Training terminal                              │                      ║
+║ ROOM / Hall terminal                                  │                      ║
 ║ > Training Tripwire 10/10 [warning 1.4s]              │                      ║
 ║ alarm / entry / 5 integrity, 0 body damage            │                      ║
-║ Pick; J leaves the lesson                             │                      ║
+║ Pick; B leaves the lesson                             │                      ║
 ║                                                       │                      ║
 ╟───────────────────────────────────────────────────────┴──────────────────────╢
 ║+ The city goes quiet. Cells resolve under your feet.                         ║
-║‼ Training Tripwire: alarm, 2s warning. Pick; J leaves the lesson.            ║
+║‼ Training Tripwire: alarm, 2s warning. Pick; B leaves the lesson.            ║
 ║                                                                              ║
-║1 casts Pick. Let it land.  J leaves  ? help                                  ║
+║1 casts Pick. Let it land.  B leaves  ? help                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════
 ```
 
@@ -1196,7 +1198,7 @@ above and a legend of the shapes in view. The conditions:
 | `»` | a way out | HERE: `» Clinic Row` [built]; `CLINIC ROW →` on the floor; the line ends at it |
 | `τ` | drone | NEARBY: `τ Training drone !`; TARGET after `Tab`; line 6.1 |
 | `§` | terminal | HERE: `§ Hall terminal` [built, renamed]; Okafor's 7.2 |
-| `(01)` | a Lattice cell | the ROOM block beside it: `Training terminal` [built] |
+| `(01)` | a Lattice cell | the ROOM block beside it: `Hall terminal` [built] |
 | `!` and `~` after a name | hostile, neutral | the drone is the first `!`; everyone else in the hall is `~` |
 | the frame | how safe you are | the header word; it changes four times on the walk to the Row |
 
@@ -1270,7 +1272,7 @@ Nothing new is drawn. What changes:
 | The training pistol | `server/npcs/engine.py:405-423` (`training`), `server/combat/engine.py:514-520` and `:925-928`, the travel path out of the hall, the character save and load paths | Issued and equipped when the drone wakes; removed when the drone is down or skipped, on leaving the hall, and on disconnect. It never reaches a save. Three things make that true: on both the win path and the skip path the removal runs **before** `remember`; every character save leaves the training pistol out, so a save that fires mid-lesson can't store it; and a character loaded with one has it dropped, which covers a crash between the wake and the removal. |
 | Lesson strings out of the engines | `server/npcs/engine.py:423`, `server/combat/engine.py:519` | The two drone lines move to the script. |
 | Cards at the table | `server/faction_engine.py:265-285` and `:428` | `E` on the table opens the card menu for a character who has not taken a card, on the first visit or any later one; the card counts when it is taken [decided, item 4]. For a character who has one, the table is the recruitment contact, as today. |
-| Training terminal entry | `server/lattice/engine.py:290-302` | A terminal with `training_core` enters that core's entry room, with lines 8.1 and 8.2 [decided, item 6]. |
+| Training terminal entry | `server/lattice/engine.py:290-302` | A terminal with `training_core` enters that core's entry room, with lines 8.1 and 8.2 and the B line after them [decided, item 6]. |
 | The record's conditional lines | `server/wake.py` (`body`, which already builds the menu detail per caller), the stored wake record | The detail's last line and the second sentences of 9.3 and 9.4 depend on four facts held as lesson progress: was hit, fired, jacked in, the drone woke. The detail is chosen when the menu body is built; nothing changes in the door. |
 | The record on jack-out | `server/lattice/engine.py` `leave`, `server/wake.py` | Leaving the training core with the record lifted opens the record menu. |
 | Hint row | `hints.py`, `door/present/chrome.py`, `server/views/zone_view.py` | A lesson hint or errand line in the objective slot; the errand's short form before `E`/`J` is dropped; no other key help beside a lesson hint; key names from the caller's keymap. |
