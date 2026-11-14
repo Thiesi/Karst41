@@ -12,17 +12,64 @@ import os
 from pathlib import Path
 import subprocess
 
+from typing import Any
+
+import accept_s10_netbbs
 from accept_s10_netbbs import Connection, NativeProbe, wait
 from karst41.door.palette import Palette
 from karst41.door.present.paint import Paint, light_distance
 from tests.presentation.snapshots import snapshot
 
 
+class RecordingCaller(accept_s10_netbbs.CombatCaller):
+    """S48c1b (technical lead): the packet stores its own inputs.
+
+    Every byte string the caller writes after connect is kept in order, so
+    a later change can be checked against the stored inputs instead of
+    being reconstructed from the script. Only this process uses it."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.inputs: list[Any] = []
+        send = self.write
+
+        async def write(data: bytes) -> None:
+            self.inputs.append(data.decode('utf-8'))
+            await send(data)
+        self.write = write
+
+
+accept_s10_netbbs.CombatCaller = RecordingCaller
+_return_to = accept_s10_netbbs.return_to
+
+
+def _recorded_return_to(service: Any, session: Any, home: Any) -> None:
+    # create()'s disclosed server-side return to the arrival tile is a move,
+    # not a key; record it in the same sequence so the inputs are complete.
+    caller = next(c.caller for c in _probes[-1].connections if c.session is session)
+    caller.inputs.append({'move': 'return_to', 'tile': list(home)})
+    _return_to(service, session, home)
+
+
+accept_s10_netbbs.return_to = _recorded_return_to
+_probes: list['PresentationProbe'] = []
+
+
 class PresentationProbe(NativeProbe):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.steps: dict[int, list[dict[str, Any]]] = {}
+        self.cursor: dict[int, int] = {}
+        _probes.append(self)
+
     def save(self, connection: Connection, label: str) -> None:
         super().save(connection, label)
         (self.root / (label + '.json')).write_text(json.dumps(snapshot(connection.caller.screen),
             ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8', newline='\n')
+        inputs = connection.caller.inputs
+        start = self.cursor.get(id(connection.caller), 0)
+        self.steps.setdefault(id(connection.caller), []).append({'capture': label, 'inputs': inputs[start:]})
+        self.cursor[id(connection.caller)] = len(inputs)
 
 
 async def accept(root: Path, door_python: Path, show: bool,
@@ -140,7 +187,12 @@ async def accept(root: Path, door_python: Path, show: bool,
                               'character_name': name, 'wide_bbs_handle': False, 'wide_character_name': True,
                               'new_safe_frame': True, 'training_fight': 'done',
                                'plaza_person_lift': person_lift,
-                              'captures': captures, 'ordinary_inputs': True})
+                              'captures': captures, 'ordinary_inputs': True,
+                              'inputs': {'connect': {'naws': [width, height],
+                                                     'term': 'xterm-direct' if tier == 'truecolor' else 'xterm-256color',
+                                                     'colorterm': 'truecolor' if tier == 'truecolor' else None,
+                                                     'sixteen_account': tier == '16'},
+                                         'steps': probe.steps[id(caller.caller)]}})
                 await probe.leave(caller, f'finished-{width}x{height}-{tier}')
                 probe.report(f'PASS P5 {width}x{height} {tier}: Wake, training, Plaza, inventory, contracts, help')
         assert not probe.errors, probe.errors
@@ -152,6 +204,10 @@ async def accept(root: Path, door_python: Path, show: bool,
                 for case in cases for label in case['captures']
                 for ext in ('.ans', '.txt', '.json') for path in [root / (label + ext)]}
     (root / 'result.json').write_text(json.dumps({'head': head, 'passed': True, 'cases': cases,
+        'inputs_record': {'script': 'scripts/accept_p5_netbbs.py', 'commit': head,
+                          'form': 'per case: connect (Telnet NAWS/TERM/COLORTERM), then per capture every '
+                                  'string the caller wrote since the previous capture, in order, plus '
+                                  'server-side moves as {"move": ...}'},
         'transport': 'NetBBS Telnet -> registered native stdio, DOOR_KARST41_PRESENTATION=1',
         'source_matched_wheel': json.loads((root / 'native-client.json').read_text()),
         'show': show, 'console': console, 'human_approval': False, 'fixtures': 'private node/world/accounts only; normal game rules',
