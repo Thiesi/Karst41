@@ -306,22 +306,26 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     def release() -> None:
                         for g, move in held.values():
                             g.cooldowns['move'] = move
+                    try:
+                        await asker.caller.write(b'e')
+                        try:
+                            await wait(lambda: asker.session.id in core.dialogue.menus, 3)
+                        except TimeoutError:
+                            release()
+                            continue
+                        wrong = core.dialogue.menus[asker.session.id].contact.target not in held
+                        if wrong:
+                            release()  # Another talker answered.
+                            await asker.caller.write(b'\x1b')
+                            await wait(lambda: asker.session.id not in core.dialogue.menus)
+                    finally:
+                        # Every path, a timeout or failure included: the regulars
+                        # are held for the press only, never left frozen.
                         for r, pause in paused.values():
                             r.behaviour['pause'] = pause
-                    await asker.caller.write(b'e')
-                    try:
-                        await wait(lambda: asker.session.id in core.dialogue.menus, 3)
-                    except TimeoutError:
-                        release()
+                    if wrong:
+                        await asyncio.sleep(1)  # Let the regular wander off, then try again.
                         continue
-                    if core.dialogue.menus[asker.session.id].contact.target not in held:
-                        release()  # Another talker answered; let it wander off first.
-                        await asker.caller.write(b'\x1b')
-                        await wait(lambda: asker.session.id not in core.dialogue.menus)
-                        await asyncio.sleep(1)
-                        continue
-                    for r, pause in paused.values():
-                        r.behaviour['pause'] = pause  # Only the enforcers stay held for the page.
             await wait(lambda: 'Ask about the peace' in asker.caller.screen.screen_text())
             await delivered(asker)
             save(asker, 'enforcer-talk', {'label': 'Ask about the peace'})
