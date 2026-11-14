@@ -26,6 +26,10 @@ HUB = {'achterberg', 'amsel', 'brann', 'dolf', 'ivey', 'lindgren', 'marsh', 'qua
 # return with their chains.
 HELD = {('brann', 'season_stage finale_done')}
 HELD_RECORDS = {'s19-war-s1-1-stairwell', 's19-war-s1-2-curfew', 's19-war-s1-3-book', 's19-war-s1-4-line'}
+# S48c2 holds Vantongeren's Season 1 record lines too (dialogue/vantongeren.json
+# at 81d754f); S48b had already held Vane's copies. They return with S26.
+HELD_RECORDS |= {'s19-sab-s1-1-retrieval', 's19-sab-s1-2-provenance', 's19-sab-s1-3-dreaming',
+                 's19-sab-s1-4-batch'}
 HALL = {'okafor', 'vantongeren'}  # S48c2: posted in the Wake Hall (bundle s48-wake-hall).
 
 

@@ -54,12 +54,16 @@ def test_the_drone_wakes_with_the_scripts_lines_not_the_engines(game: HeadlessSe
 
 
 def test_with_no_live_script_the_engine_still_speaks_for_the_drone(game: HeadlessServer) -> None:
-    """Technical lead, fix 1: a drone spawned for a finished character (#239) is not silent."""
+    """Technical lead, fix 1: a drone with no live script is not silent.
+
+    Since S48c1b only an unread body gets a drone, so the case is an unread
+    body whose runner is gone (a #239 replay or a direct spawn)."""
     client = game.connect()
-    create(game, client, name="Noor", card="none")
-    player = game.core.characters.players[client.session.player_id]
-    assert not game.core.opening.live(player.id)   # The direct path finished the opening.
-    player.progress.pop("wake_combat", None)
+    game.step(2)
+    pid = client.session.player_id
+    assert game.core.characters.unread(pid)
+    game.core.opening.stop(client.session)
+    assert not game.core.opening.live(pid)
     said(game, client)
     place(game, client, HALL, (22, 14))
     game.step(3)
