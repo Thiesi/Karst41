@@ -11,7 +11,8 @@ read and the hall left (only the errand, a per-character flag, goes on).
   `delay` waits until due and is then said at once, never gated like
   speech and without setting `voice_tick` (fix 1 as amended 2026-11-14,
   owner-approved). A line with both `when` and `after` is armed by its
-  trigger and follows its `after` line only once armed.
+  trigger and follows its `after` line only once armed; armed after that
+  line was already spoken, it is queued at once (second amendment).
 - When a beat begins, its own lines go first; waiting non-anchor lines of
   earlier beats are dropped. An older anchor is spoken only when no line
   of the current beat is waiting, oldest first.
@@ -139,6 +140,14 @@ class Opening:
         # its followers armed (fix 1 as amended).
         armed = state.setdefault("armed", [])
         armed.extend(lid for lid in matched if self.lines[lid][1].after and lid not in armed)
+        # Armed after its `after` line was already spoken: queued at once
+        # (fix 1, second amendment, owner-approved 2026-11-14).
+        for lid in matched:
+            ln = self.lines[lid][1]
+            if ln.after and ln.after in state["spoken"] and lid not in state["fired"]:
+                state["fired"].append(lid)
+                if self.eligible(state, ln):
+                    self.queue_line(session, state, lid, front=True)
         # A triggered line, in any beat (the record can open from beat 3).
         for lid in matched:
             index, ln = self.lines[lid]

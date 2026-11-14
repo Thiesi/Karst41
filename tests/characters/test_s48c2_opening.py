@@ -100,44 +100,75 @@ def test_the_record_beat_speaks_inside_its_menu_and_9_7_comes_before_the_name(ga
     kit = "Issued: sidearm, 50 rounds, baton, two patches, two rations."
     vest = "Issued: a Kestrel Issue Vest. It's on you already."    # The item's own name (creative lead).
     card = "200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row."
-    assert kit in lines and vest not in lines and card not in lines  # 9.10 at once; the rest are paced.
+    assert kit not in lines and vest not in lines and card not in lines  # After 9.8 and 9.9 (creative lead).
 
 
-def take_kit(game: HeadlessServer, client, archetype: int, ticks: int = 70, leave_at: int | None = None) -> list[tuple[int, dict]]:
-    """Read the record as `archetype` (menu index), name the body and return
-    every log line after the name as (ticks since the name was sent, line)."""
+DOOR, BY_OKAFOR = (37, 16), (34, 18)   # Inside and outside 10.1/10.2's region.
+
+
+def take_kit(game: HeadlessServer, client, archetype: int, ticks: int = 200, leave_at: int | None = None,
+             at: tuple[int, int] = DOOR, walk_to_door_at: int | None = None) -> list[tuple[int, dict]]:
+    """Read the record as `archetype` (menu index) at `at`, name the body
+    and return every log line after the name as (clock ticks since then, line).
+    Earlier beats count as played, as for a caller who walked through them;
+    kit_issued comes the tick after the name."""
     game.step(1)
-    place(game, client, HALL, (37, 16))
+    opening = game.core.opening
+    state = opening.states[client.session.id]
+    record = next(i for i, beat in enumerate(opening.script.beats) if beat.id == "the-record")
+    state["fired"] += [ln.id for beat in opening.script.beats[:record] for ln in beat.lines]
+    state["queue"] = []
+    place(game, client, HALL, at)
     act(game, client, Frame("key", {"k": "e", "t": 0}))
     game.step(10)
     for _ in range(archetype):
         act(game, client, Frame("intent", {"name": "menu_cursor", "args": {"delta": 1}}))
     act(game, client, Frame("intent", {"name": "menu_select", "args": {}}))
-    game.step(10)
+    # The name is typed once the record's own lines are said and the
+    # four-second speech gap is over, so 9.8 can speak the tick the kit lands.
+    for _ in range(600):
+        voice = client.session.voice_tick
+        if not state["queue"] and (voice is None or game.core.clock.now_tick() - voice >= 40):
+            break
+        game.step()
     said(game, client)
     wake = game.core.characters.wakes[client.session.id]
     act(game, client, Frame("line", {"id": wake.prompt_id, "text": "Noor"}))
-    game.commit_characters()
+    clock = game.core.clock
+    base = clock.now_tick()
     out = [(0, line) for line in said(game, client)]
-    for tick in range(1, ticks + 1):
-        if tick == leave_at:
+    game.step(1)
+    game.commit_characters()
+    while clock.now_tick() - base < ticks:
+        now = clock.now_tick() - base
+        if now == leave_at:
             place(game, client, "vatside-clinics", (30, 18))
-        game.step()
-        out.extend((tick, line) for line in said(game, client))
+        elif now == walk_to_door_at:
+            place(game, client, HALL, DOOR)
+        else:
+            game.step()
+        out.extend((clock.now_tick() - base, line) for line in said(game, client))
     return out
 
 
+def script_lines(heard: list[tuple[int, dict]]) -> list[tuple[int, str]]:
+    return [(tick, line["script"]) for tick, line in heard
+            if line.get("script", "").startswith(("9.8", "9.9", "9.1", "10."))]
+
+
 def kit_lines(heard: list[tuple[int, dict]]) -> list[tuple[int, str]]:
-    return [(tick, line["script"]) for tick, line in heard if line.get("script", "").startswith("9.1")]
+    return [(tick, lid) for tick, lid in script_lines(heard) if lid.startswith("9.1")]
 
 
-def test_the_kit_comes_line_by_line_at_the_creative_leads_delays(game: HeadlessServer) -> None:
-    """Beat 9 (creative lead): 9.10 at once, the template line 2.5 s after it, 9.11 5 s after it."""
+def test_at_the_street_door_beat_nine_closes_in_the_creative_leads_order(game: HeadlessServer) -> None:
+    """Creative lead's beat 9: 9.8 at 0 s, 9.9 at 4 s, 9.10 at 6.5 s, the
+    template line at 9 s, 9.11 at 11.5 s; then the door lines (fix 1,
+    second amendment: 10.1 2.5 s after 9.11, 10.2 by speech pacing)."""
     client = game.connect()
-    kit = kit_lines(take_kit(game, client, 0))
-    assert [lid for _, lid in kit] == ["9.10", "9.10h", "9.11"]
-    start = kit[0][0]
-    assert [tick - start for tick, _ in kit] == [0, 25, 50]
+    heard = script_lines(take_kit(game, client, 0))
+    assert [lid for _, lid in heard] == ["9.8", "9.9", "9.10", "9.10h", "9.11", "10.1", "10.2"]
+    start = heard[0][0]
+    assert [tick - start for tick, _ in heard] == [0, 40, 65, 90, 115, 140, 180]
 
 
 @pytest.mark.parametrize(("index", "own"), [(0, "9.10h"), (2, "9.10c"), (3, "9.10o")])
@@ -154,11 +185,26 @@ def test_a_ghost_hears_the_kit_then_the_card_with_no_template_line(game: Headles
     assert kit[1][0] - kit[0][0] == 50
 
 
-def test_leaving_the_hall_inside_five_seconds_drops_the_card_line(game: HeadlessServer) -> None:
-    """Technical lead: 9.11 gets no exemption from the hall drop (creative lead, fix 3)."""
+def test_read_at_okafor_the_door_lines_wait_for_the_door(game: HeadlessServer) -> None:
+    """Fix 1, second amendment: 10.1 armed after 9.11 was spoken is queued at once."""
     client = game.connect()
-    heard = take_kit(game, client, 0, ticks=90, leave_at=35)
-    assert [lid for _, lid in kit_lines(heard)] == ["9.10", "9.10h"]
+    heard = script_lines(take_kit(game, client, 0, ticks=300, at=BY_OKAFOR, walk_to_door_at=220))
+    early = [lid for tick, lid in heard if tick < 220]
+    assert early == ["9.8", "9.9", "9.10", "9.10h", "9.11"]          # No door line away from the door.
+    late = [(tick, lid) for tick, lid in heard if tick >= 220]
+    assert [lid for _, lid in late] == ["10.1", "10.2"]
+    assert late[0][0] - 220 <= 2 and late[1][0] - late[0][0] == 40
+
+
+def test_leaving_the_hall_at_seven_seconds_keeps_what_was_said_and_drops_the_rest(game: HeadlessServer) -> None:
+    """Technical lead: no exemption from the hall drop (a playtest watch item).
+    At 7 s, 9.8, 9.9 and 9.10 were said; the template line, 9.11 and the
+    door lines are dropped. The kit itself was issued either way."""
+    client = game.connect()
+    heard = take_kit(game, client, 0, leave_at=72)
+    lines = script_lines(heard)
+    assert lines[0] == (2, "9.8")                                    # 9.8 as the kit lands; leave 7 s later.
+    assert [lid for _, lid in lines] == ["9.8", "9.9", "9.10"]
     assert not game.core.opening.states[client.session.id]["queue"]
     assert game.core.characters.players[client.session.player_id].progress.get("errand")
 
@@ -167,7 +213,8 @@ def test_the_paced_kit_lines_leave_speech_pacing_alone(game: HeadlessServer) -> 
     """Fix 1 as amended: a delayed event line is never gated like speech and
     never sets voice_tick; speech keeps its own four seconds."""
     client = game.connect()
-    take_kit(game, client, 0, ticks=5)
+    heard = kit_lines(take_kit(game, client, 0, ticks=80))
+    assert [lid for _, lid in heard] == ["9.10"]
     session, opening = client.session, game.core.opening
     state = opening.states[session.id]
     assert {q[0] for q in state["queue"]} >= {"9.10h", "9.11"}

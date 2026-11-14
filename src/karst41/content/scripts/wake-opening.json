@@ -498,6 +498,7 @@
           "id": "9.8",
           "text": "Many names vanish from the lease rolls. Some leave the work; some disappear. The roll does not tell me which.",
           "speaker": "vantongeren",
+          "anchor": true,
           "when": [
             {
               "name": "name_entered"
@@ -508,6 +509,7 @@
           "id": "9.9",
           "text": "Keep your own record.",
           "speaker": "vantongeren",
+          "anchor": true,
           "after": "9.8",
           "delay": 4
         },
@@ -515,6 +517,8 @@
           "id": "9.10",
           "text": "Issued: sidearm, 50 rounds, baton, two patches, two rations.",
           "kind": "reward",
+          "after": "9.9",
+          "delay": 2.5,
           "when": [
             {
               "name": "kit_issued"
@@ -587,6 +591,8 @@
           "text": "Vesper, at the Tin Halo on Sodium Row, pays on time. Her card's the one I put on top.",
           "speaker": "vantongeren",
           "anchor": true,
+          "after": "9.11",
+          "delay": 2.5,
           "when": [
             {
               "name": "region",
@@ -603,6 +609,7 @@
           "id": "10.2",
           "text": "Past the step it's Clinic Row. Our name's on it, not our protection. Walk like you know that.",
           "speaker": "okafor",
+          "after": "10.1",
           "when": [
             {
               "name": "region",
