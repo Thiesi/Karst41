@@ -66,9 +66,12 @@ system.
      Two identities can push branches to Thiesi/Karst41: the owner's
      account, which every session works as, and the Claude GitHub App
      (`claude[bot]`) when someone writes `@claude` on an issue or PR. The
-     runner refuses commits made by any `[bot]` account (section 3), so
-     the gate is the sessions the owner runs. It is only as strong as that
-     list: a session that took in untrusted text can still push as him.
+     runner refuses commits whose author or committer is a `[bot]` account
+     (section 3). Those fields are set by whoever makes the commit, so this
+     catches accidents, not a hostile bot that writes the owner's name.
+     The real gate is who can push, and it is only as strong as that list:
+     a session or bot run that took in untrusted text can still push code
+     that runs here. The owner's acceptance below covers that.
    - **Windows is reachable too.** By default, WSL2 mounts the Windows
      drives at `/mnt/c` and lets Linux run Windows programs (interop). So
      branch code can also read the owner's Windows user folder, OneDrive
@@ -139,7 +142,9 @@ system.
            "Bash(rm -rf /home/<user>/karst41-runner)",
            "Bash(rm -rf /home/<user>/karst41-runner/repo*)",
            "Bash(rm -rf $HOME/karst41-runner)",
-           "Bash(rm -rf $HOME/karst41-runner/repo*)"
+           "Bash(rm -rf $HOME/karst41-runner/repo*)",
+           "Bash(git push *)", "Bash(git -C * push *)",
+           "Bash(git config *)", "Bash(git -C * config *)"
          ]
        }
      }
@@ -154,6 +159,9 @@ system.
      `git worktree remove` and a short `python -I` call that deletes only
      a named `runs/<run-id>/` path after checking that it resolves inside
      `runs/`.
+   - The runner never pushes or changes git config, so those are denied.
+     Like the `rm` rules, they catch the usual spellings, not every one.
+     The gist-only token is what actually stops a push as the owner.
    - The deny rules keep the runner's own tools from rewriting this file.
      Claude Code checks file-path rules only as `Edit(...)`, which covers
      every file-writing tool, or as `Read(...)`. So there is no `Write(...)`
@@ -176,7 +184,8 @@ system.
    - It then lists the commits the SHA adds to main
      (`git log --format='%an %ae %cn %ce' origin/main..<sha>`) and refuses
      the SHA if any author or committer is a `[bot]` account, such as
-     `claude[bot]`. It names the commit in the refusal.
+     `claude[bot]`. It names the commit in the refusal. This check reads
+     fields the committer sets, so it catches accidents only (section 2).
    - Before starting, it deletes expired `runs/` entries (section 3,
      step 8), so the disk is pruned on every request.
 2. **Acknowledge.** The runner replies `ACK <run-id>`, with its queue
@@ -202,6 +211,9 @@ system.
      the runner stops and reports which step and why.
 5. **One at a time.** There is one job at a time and one batch at a time,
    first come first served. A new request waits in the queue.
+   - The runner starts every job in the background and checks on it,
+     never as one long foreground command. That way it can still `ACK` new
+     requests and answer `STATUS` while a job runs.
 6. **Full pytest** runs as the `test` job in `.github/workflows/ci.yml`
    does at that SHA: `pip install -e .[test]` in the run's venv, then CI's
    `pytest` command. There's no deselect: the deselect used on the Windows
@@ -231,6 +243,9 @@ stuck in either case:
 - no `ACK` within 10 minutes of a request;
 - no `DONE` within the job's expected time plus 50%. Expected times come
   from the job's last CI duration, and the full suite counts as 30 minutes.
+  The clock starts when the job starts, not when it was requested: a queued
+  request waits behind the jobs ahead of it, and the `ACK` gives its queue
+  position.
 
 The requester then sends one status check, `STATUS <run-id>`. If that gets
 no answer within 10 minutes, the technical lead tells the owner once, with
@@ -303,7 +318,8 @@ leaves the file out and says so.
 >   push, comment, review, label or merge. Your output is the report
 >   message and a secret gist of the failure evidence, plus captures when
 >   a request asks for them (section 5).
-> - One job at a time, with `nice -n 10`. If a step can't run as written,
+> - One job at a time, with `nice -n 10`, started in the background so you
+>   can still ACK and answer STATUS. If a step can't run as written,
 >   or a command is refused (auto mode or a deny rule), stop and report it.
 >   Don't work around it, and never edit `.claude/settings.json`. Delete
 >   only named paths that you've checked resolve inside `runs/`.
