@@ -68,11 +68,42 @@ system.
    Claude Code documentation and log in. Start it in `~/karst41-runner` and
    name the session `Karst 41: runner`. Turn on Remote Control, so that the
    technical lead and the engineer can reach it from the development host.
-8. **Permissions.** The runner needs to run shell commands inside
-   `~/karst41-runner` without a prompt for each one, or batches stall while
-   nobody is watching. Choose a permission mode that allows that for this
-   folder. That is the owner's choice. The runner never needs access
-   outside `~/karst41-runner`, apart from `apt` during setup.
+8. **Permissions: allow the runner's commands, refuse everything else.**
+   The owner logs on to that workstation about once a day, so a permission
+   prompt would stall a batch for hours. The runner therefore pre-approves
+   exactly the commands its job needs. Everything else is refused at once
+   instead of prompting, and the runner reports the refusal. Create
+   `~/karst41-runner/.claude/settings.json`:
+   ```json
+   {
+     "permissions": {
+       "defaultMode": "dontAsk",
+       "allow": [
+         "Bash(git *)",
+         "Bash(python *)",
+         "Bash(python3.12 *)",
+         "Bash(nice *)",
+         "Bash(gh gist create *)",
+         "Bash(zip *)",
+         "Bash(rm -rf runs/*)",
+         "Read(~/karst41-runner/**)",
+         "Write(~/karst41-runner/**)",
+         "Edit(~/karst41-runner/**)"
+       ]
+     }
+   }
+   ```
+   - Check the mode name against the installed Claude Code's permission
+     documentation. The mode wanted is the one that refuses anything not
+     pre-approved, never one that prompts or that skips permission checks.
+   - The runner may propose an addition to this list when a workflow needs
+     another command. Only the owner adds it. The runner never edits this
+     file itself.
+   - The runner never needs access outside `~/karst41-runner`, apart from
+     `apt` during setup, which the owner runs.
+   - Prompts that still occur can be answered from the Claude app or
+     claude.ai/code through Remote Control, without logging on to the
+     workstation.
 9. **First message.** Paste the brief from section 6 as the runner's first
    message, then tell the technical lead that the runner is up.
 
@@ -104,6 +135,21 @@ system.
 8. **Clean up.** The runner deletes the worktree and the venv after the
    report. It keeps `runs/<run-id>/` (captures and logs) for 7 days, then
    deletes it.
+
+### A stuck runner
+
+The requester (the technical lead or the engineer) treats the runner as
+stuck in either case:
+- no `ACK` within 10 minutes of a request;
+- no `DONE` within the job's expected time plus 50%. Expected times come
+  from the job's last CI duration, and the full suite counts as 30 minutes.
+
+The requester then sends one status check, `STATUS <run-id>`. If that gets
+no answer within 10 minutes, the technical lead tells the owner once, with
+the run ID and the time of the last message. Until the owner has looked,
+nobody sends more requests, and long runs fall back to the development
+host under the usual slot arrangement. A refusal under the permission list
+is not "stuck": the runner reports it and the run stops.
 
 ## 4. Request format
 
