@@ -71,8 +71,8 @@ system.
      included, and run `powershell.exe`. That reaches the Windows-side `gh`
      login, which is the owner's full login, and the Windows credential
      store. A gist-only WSL token alone does not close that.
-   - On 2026-11-14 the owner accepted this exposure for now, on the basis
-     above. To close it, put this in `/etc/wsl.conf`, then run
+   - On 2026-11-14 the owner accepted this exposure for now, Windows side
+     included, and kept the default WSL settings. To close it later, put this in `/etc/wsl.conf`, then run
      `wsl --shutdown`:
      ```
      [interop]
