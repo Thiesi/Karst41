@@ -86,6 +86,15 @@ system.
          "Bash(gh gist create *)",
          "Bash(zip *)",
          "Bash(rm -rf runs/*)",
+         "Bash(powershell.exe *)",
+         "Bash(date *)",
+         "Bash(mkdir *)",
+         "Bash(ls *)",
+         "Bash(cat *)",
+         "Bash(tail *)",
+         "Bash(lsb_release *)",
+         "Bash(cd *)",
+         "Bash(export *)",
          "Read(~/karst41-runner/**)",
          "Write(~/karst41-runner/**)",
          "Edit(~/karst41-runner/**)"
@@ -93,6 +102,12 @@ system.
      }
    }
    ```
+   - The list comes from the smoke run on 2026-11-14 (smoke-1). `powershell.exe`
+     reads the host CPU for the report. `rm -rf runs/*` is relative to
+     `~/karst41-runner`.
+   - Auto mode, the mode the runner ran smoke-1 in, also works: it
+     raised no prompt in a full run. It refuses risky actions instead of
+     asking. Keep this file even then: allowed commands skip the check.
    - Check the mode name against the installed Claude Code's permission
      documentation. The mode wanted is the one that refuses anything not
      pre-approved, never one that prompts or that skips permission checks.
@@ -125,6 +140,13 @@ system.
    and uses `~/karst41-runner/runs/<run-id>/` in place of `$RUNNER_TEMP`. It
    doesn't improvise steps. If a workflow step can't run in WSL, it stops
    and reports which step and why.
+   - `actions/setup-python` becomes a fresh `python3.12 -m venv` placed first
+     on `PATH`, because Ubuntu's system Python refuses `pip install` (PEP
+     668). Then the workflow's bare `python` is 3.12 with pip.
+   - `actions/checkout` becomes local worktrees, NetBBS at
+     `.test-tmp/netbbs`.
+   - `upload-artifact` becomes keeping the files in `runs/<run-id>/`.
+   - Every `run:` step runs verbatim.
 5. **One at a time.** There is one job at a time and one batch at a time,
    first come first served. A new request waits in the queue.
 6. **Full pytest:**
