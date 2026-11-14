@@ -55,9 +55,13 @@ system.
      `sudo apt update && sudo apt install -y git gh python3.12 python3.12-venv python3-pip zip`
    - On 22.04, add `ppa:deadsnakes/ppa` first, or tell the technical lead
      the version.
-5. **GitHub CLI inside WSL, with a gist-only token.** The runner executes
-   code from PR branches, and that code can read any file in the WSL home.
-   So the WSL `gh` login must not be the owner's full login.
+5. **GitHub CLI inside WSL, preferably with a gist-only token.** The runner
+   executes code from PR branches, and that code can read any file in the
+   WSL home, including the `gh` login.
+   - On 2026-11-14 the owner accepted the full login for now. Code is limited
+     to same-repository branches (section 3), which is the same exposure as
+     the development host. The gist-only token below is still recommended,
+     and removes the risk entirely.
    - Create a **fine-grained personal access token** with no repository
      access and only the account permission **Gists: read and write**. Both
      repositories are public, so cloning needs no token.
