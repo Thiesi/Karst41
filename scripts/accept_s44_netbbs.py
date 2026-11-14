@@ -280,9 +280,16 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     if guard is None:
                         await asyncio.sleep(.2)
                         continue
-                    spot = next(t for t in ((guard.x-1, guard.y), (guard.x+1, guard.y), (guard.x, guard.y-1),
-                                            (guard.x, guard.y+1))
-                                if zone.passable(t) and not any(a.position == t for a in zone.actors.values()))
+                    spots = [t for t in ((guard.x-1, guard.y), (guard.x+1, guard.y), (guard.x, guard.y-1),
+                                         (guard.x, guard.y+1))
+                             if zone.passable(t) and not any(a.position == t for a in zone.actors.values())]
+                    # #247 (review 6882115489): E breaks nearest-talker ties by
+                    # id, so a regular standing beside the spot can win every
+                    # press. Prefer a spot no regular touches.
+                    clear = [t for t in spots if not any(
+                        r.behaviour.get('template') == 'npc-sodium-regular'
+                        and max(abs(r.x-t[0]), abs(r.y-t[1])) <= 1 for r in zone.actors.values())]
+                    spot = (clear or spots)[0]
                     await probe.walk(asker, spot)
                     await delivered(asker)
                     if max(abs(guard.x-asker.avatar.actor.x), abs(guard.y-asker.avatar.actor.y)) > 1:
