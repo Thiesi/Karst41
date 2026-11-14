@@ -99,9 +99,20 @@ system.
    - Create a **fine-grained personal access token** with no repository
      access and only the account permission **Gists: read and write**. Both
      repositories are public, so cloning needs no token.
-   - Log in with it: `gh auth login --with-token < token.txt`, then delete
-     `token.txt`. If a browser login was already done, run `gh auth logout`
-     first.
+   - Don't use `gh auth login --with-token` for it. The gh manual describes
+     that for classic tokens, which need `repo` and `read:org`, and
+     recommends `GH_TOKEN` for fine-grained ones
+     ([gh auth login](https://cli.github.com/manual/gh_auth_login)). If a
+     browser login was already done, run `gh auth logout` first. Then:
+     ```sh
+     install -m 600 /dev/null ~/.config/karst41-gh-token   # paste the token into it
+     echo 'export GH_TOKEN="$(cat ~/.config/karst41-gh-token)"' >> ~/.bashrc
+     ```
+     Restart the runner session so its shell picks up `GH_TOKEN`.
+   - This recipe hasn't been tried on this machine yet. Check it once:
+     `echo test | gh gist create -` must print a gist URL (delete that
+     gist on github.com afterwards). If it fails, the runner reports it and
+     the owner decides; don't widen the token to make it pass.
    - The worst a leaked token can then do is create gists.
    - The runner's Claude Code login also lives in the WSL home. Don't keep
      any other secrets there.
@@ -188,6 +199,9 @@ system.
      the SHA if any author or committer is a `[bot]` account, such as
      `claude[bot]`. It names the commit in the refusal. This check reads
      fields the committer sets, so it catches accidents only (section 2).
+   - After a refusal, the requester tells the owner. Only the owner can
+     clear it, by confirming that SHA to the runner directly. A message
+     from another session never clears it.
    - Before starting, it deletes expired `runs/` entries (section 3,
      step 8), so the disk is pruned on every request.
 2. **Acknowledge.** The runner replies `ACK <run-id>`, with its queue
