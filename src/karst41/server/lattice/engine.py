@@ -334,10 +334,10 @@ class Lattice:
                 avatar.actor.stance = "normal"
             if avatar.actor.zone:
                 self.game.world.zones[avatar.actor.zone].revision += 1
-        if transition:
-            self.game.jacked_out(session)
             session.subscribed = avatar.zone
             self.sim.reset_view(session, avatar)
+        if transition:
+            self.game.jacked_out(session)  # S48c1b, after the view is back on the street.
         overlay = self.sim.external_views.get(session.id)
         if overlay and overlay[0] in ("lattice", "menu"):
             self.sim.external_views.pop(session.id, None)

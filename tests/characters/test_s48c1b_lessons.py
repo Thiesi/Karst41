@@ -352,3 +352,35 @@ def test_a_disconnect_in_the_training_core_drops_the_unread_body_at_once(game: H
     game.core.sessions.disconnect(client.session)
     game.step()
     assert pid not in lattice.presences and pid not in lattice.orphans and pid not in manager.players
+
+
+def test_leaving_the_lattice_still_resets_the_view_and_survives_a_missing_avatar(game: HeadlessServer) -> None:
+    """Review 6875277541: the jacked_out hook must not move the subscription and
+    view reset out from under `if avatar:` (transition=False skipped them, and
+    no avatar crashed)."""
+    client = game.connect()
+    create(game, client, name="Noor", card="none")
+    lattice, session = game.core.lattice, client.session
+    resets: list[str] = []
+    original = lattice.sim.reset_view
+    lattice.sim.reset_view = lambda s, a: (resets.append(s.id), original(s, a))[1]
+    for transition in (False, True):
+        place(game, client, HALL, (34, 15))
+        act(game, client, Frame("key", {"k": "j", "t": 0}))
+        game.step(3)
+        assert session.player_id in lattice.presences
+        session.subscribed, resets[:] = "elsewhere", []
+        lattice.leave(session, transition=transition)
+        assert session.player_id not in lattice.presences
+        assert session.subscribed == HALL and resets == [session.id], transition
+        game.step(3)
+    act(game, client, Frame("key", {"k": "j", "t": 0}))
+    game.step(3)
+    assert session.player_id in lattice.presences
+    real_avatar = lattice.avatar
+    lattice.avatar = lambda s: None
+    try:
+        lattice.leave(session)  # Used to raise AttributeError on avatar.zone.
+    finally:
+        lattice.avatar = real_avatar
+    assert session.player_id not in lattice.presences
