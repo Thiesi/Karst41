@@ -1,0 +1,50 @@
+╔═VATSIDE═Wake Hall═POCKET════════════════════════════════════════════════════Crews end on a service restart. Use G to invite.═════╗
+║                                                                                                           │─ TARGET ─────────────║
+║                                                                                                           │ none   Tab picks     ║
+║                                                                                                           │─ NEARBY ─────────────║
+║                                                                                                           │ ☻ Sablier orderly ~  ║
+║                                                                                                           │ ☻ Sablier orderly ~  ║
+║                                                                                                           │                      ║
+║                                                                                                           │                      ║
+║                                                                                                           │                      ║
+║                                                                                                           │                      ║
+║                                  ███████████████████                                                      │                      ║
+║                                 █···················█                                                     │                      ║
+║                                 █················  ·█                                                     │                      ║
+║                                 █··Θ·Θ·Θ·Θ···☻··  ··█                                                     │                      ║
+║                                 █············☻·· · ·█                                                     │                      ║
+║                                 █·····@·····$····  ·█                                                     │                      ║
+║                                 █···············  ··█                                                     │                      ║
+║                                 █··············· · ·█                                                     │                      ║
+║                                 █················  ·█                                                     │                      ║
+║                                 █···············  ··█                                                     │                      ║
+║                                 █·······$······  · ·█                                                     │                      ║
+║                                 █·············· ·  ·███████████████████                                   │                      ║
+║                                 █············· ·  ··█··················█                                  │                      ║
+║                                 █············ ·  · ·█· ·  ·  ·  ·  ·  ·█                                  │                      ║
+║                                   ·········  ·  ·  ·+ ·  ·  ·  ·  ·  ··█                                  │                      ║
+║                                       ·  ·  ·  ·  ··█·  ·  ·  ·  · §· ·█                                  │                      ║
+║                                            ·  ·  · ·█· ·  ·  ·  ·  ·  +█                                  │                      ║
+║                                           ·  ·  ·  ·█··  ·  ·  ·  ·  ··█                                  │                      ║
+║                                            ·········█··················█                                  │                      ║
+║                                            █████████ ██████████████████                                   │                      ║
+║                                                                                                           │                      ║
+║                                                                                                           │                      ║
+║                                                                                                           │──────────────────────║
+║                                                                                                           │ P界132 · S10P132 G1  ║
+║                                                                                                           │ HP  ██████████ 130   ║
+║                                                                                                           │ STA ██████████ 70    ║
+║                                                                                                           │ SHK ░░░░░░░░░░ 0     ║
+║                                                                                                           │ 200 ch   lease 0/90  ║
+║                                                                                                           │ signatory 0/1500     ║
+╟───────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────╢
+║» You wake on a gurney under a number. White light, warm plastic, a floor drain. Past the cards, a corridor. Past the corridor, a ║
+║  terminal.                                                                                                                       ║
+║‼ Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.                                                ║
+║‼ You raise your weapon. Fire again after two seconds; the target can move to safety.                                             ║
+║‼ Training drone hits you for 5. (x2)                                                                                             ║
+║* Miss: Training drone. (x2)                                                                                                      ║
+║* Hit: Training drone. (x2)                                                                                                       ║
+║* The training drone falls silent. The tutorial terminal is ahead.                                                                ║
+║? help  Tab target  F fire  X weapon  1-5 quick  V abilities  E interact  I inventory                                             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 
