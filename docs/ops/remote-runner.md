@@ -102,9 +102,14 @@ system.
    - The list comes from the smoke run on 2026-11-14 (smoke-1). `powershell.exe`
      reads the host CPU for the report. `rm -rf runs/*` is relative to
      `~/karst41-runner`.
-   - File reads and listings use the Read and Glob tools, which the
-     `Read(~/karst41-runner/**)` rule keeps inside the workspace. There is
-     no `cat`, `tail` or `ls` in the list for that reason.
+   - File reads use the Read tool, which the `Read(~/karst41-runner/**)`
+     rule keeps inside the workspace. Directory listings use `git` or a
+     short `python` call, limited by rule to paths under
+     `~/karst41-runner`. Neither is enforced by the list, since `git *` and
+     `python *` can't be scoped by path. So containment rests on the
+     runner's brief and on WSL's separation from Windows. The list exists
+     to keep the runner from prompting, not to be a sandbox. Keep no
+     secrets in the WSL home apart from the gh login.
    - Auto mode, the mode the runner ran smoke-1 in, also works: it
      raised no prompt in a full run. It refuses risky actions instead of
      asking. Keep this file even then: allowed commands skip the check.
