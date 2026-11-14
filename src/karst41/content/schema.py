@@ -1388,7 +1388,9 @@ class ScriptLine:
 
     With no `when`, a line is queued when its beat begins; otherwise it is
     queued when any of its triggers fires (once). `after` chains it `delay`
-    seconds after another line is spoken. `requires` and
+    seconds after another line is spoken; a line with both `when` and
+    `after` is armed by its trigger and follows only once armed (runner
+    contract fix 1, amended 2026-11-14). `requires` and
     `unless` name lesson facts (`first_hit`, `fired`, `jacked_in`,
     `drone_woke`, `lifted`) that must, or must not, have happened.
     """
@@ -1401,7 +1403,7 @@ class ScriptLine:
     kind: ScriptLineKind = "speech"
     when: tuple[ScriptTrigger, ...] = ()
     after: str = ""
-    delay: int = 0
+    delay: float = 0
     anchor: bool = False
     """Never dropped while the caller is in the hall (#220 section 4, marked with a dagger)."""
     fight: bool = False

@@ -524,6 +524,8 @@
         {
           "id": "9.10h",
           "kind": "reward",
+          "after": "9.10",
+          "delay": 2.5,
           "text": "Issued: a {item:arm_kestrel_vest}. It's on you already.",
           "when": [
             {
@@ -535,6 +537,8 @@
         {
           "id": "9.10c",
           "kind": "reward",
+          "after": "9.10",
+          "delay": 2.5,
           "text": "Already fitted: a {item:imp_res_first_ear}. It knows one hymn, {hymn:hymn_steady}.",
           "when": [
             {
@@ -546,6 +550,8 @@
         {
           "id": "9.10o",
           "kind": "reward",
+          "after": "9.10",
+          "delay": 2.5,
           "text": "Issued: a {item:drn_kestrel_mule}. It carries the load. You give the orders.",
           "when": [
             {
@@ -558,6 +564,8 @@
           "id": "9.11",
           "text": "200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.",
           "kind": "reward",
+          "after": "9.10",
+          "delay": 5,
           "when": [
             {
               "name": "kit_issued"

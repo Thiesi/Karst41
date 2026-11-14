@@ -1,5 +1,7 @@
 """S48c2: the opening's beats runner (#220 section 4; technical lead's contract)."""
 
+import pytest
+
 from karst41.server.protocol import Frame
 from tests.character_helpers import act, create, place
 from tests.harness import HeadlessServer
@@ -98,7 +100,90 @@ def test_the_record_beat_speaks_inside_its_menu_and_9_7_comes_before_the_name(ga
     kit = "Issued: sidearm, 50 rounds, baton, two patches, two rations."
     vest = "Issued: a Kestrel Issue Vest. It's on you already."    # The item's own name (creative lead).
     card = "200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row."
-    assert lines.index(kit) < lines.index(vest) < lines.index(card)  # All at once, in order.
+    assert kit in lines and vest not in lines and card not in lines  # 9.10 at once; the rest are paced.
+
+
+def take_kit(game: HeadlessServer, client, archetype: int, ticks: int = 70, leave_at: int | None = None) -> list[tuple[int, dict]]:
+    """Read the record as `archetype` (menu index), name the body and return
+    every log line after the name as (ticks since the name was sent, line)."""
+    game.step(1)
+    place(game, client, HALL, (37, 16))
+    act(game, client, Frame("key", {"k": "e", "t": 0}))
+    game.step(10)
+    for _ in range(archetype):
+        act(game, client, Frame("intent", {"name": "menu_cursor", "args": {"delta": 1}}))
+    act(game, client, Frame("intent", {"name": "menu_select", "args": {}}))
+    game.step(10)
+    said(game, client)
+    wake = game.core.characters.wakes[client.session.id]
+    act(game, client, Frame("line", {"id": wake.prompt_id, "text": "Noor"}))
+    game.commit_characters()
+    out = [(0, line) for line in said(game, client)]
+    for tick in range(1, ticks + 1):
+        if tick == leave_at:
+            place(game, client, "vatside-clinics", (30, 18))
+        game.step()
+        out.extend((tick, line) for line in said(game, client))
+    return out
+
+
+def kit_lines(heard: list[tuple[int, dict]]) -> list[tuple[int, str]]:
+    return [(tick, line["script"]) for tick, line in heard if line.get("script", "").startswith("9.1")]
+
+
+def test_the_kit_comes_line_by_line_at_the_creative_leads_delays(game: HeadlessServer) -> None:
+    """Beat 9 (creative lead): 9.10 at once, the template line 2.5 s after it, 9.11 5 s after it."""
+    client = game.connect()
+    kit = kit_lines(take_kit(game, client, 0))
+    assert [lid for _, lid in kit] == ["9.10", "9.10h", "9.11"]
+    start = kit[0][0]
+    assert [tick - start for tick, _ in kit] == [0, 25, 50]
+
+
+@pytest.mark.parametrize(("index", "own"), [(0, "9.10h"), (2, "9.10c"), (3, "9.10o")])
+def test_only_the_callers_own_template_line_follows_the_kit(game: HeadlessServer, index: int, own: str) -> None:
+    client = game.connect()
+    kit = [lid for _, lid in kit_lines(take_kit(game, client, index))]
+    assert kit == ["9.10", own, "9.11"]
+
+
+def test_a_ghost_hears_the_kit_then_the_card_with_no_template_line(game: HeadlessServer) -> None:
+    client = game.connect()
+    kit = kit_lines(take_kit(game, client, 1))
+    assert [lid for _, lid in kit] == ["9.10", "9.11"]
+    assert kit[1][0] - kit[0][0] == 50
+
+
+def test_leaving_the_hall_inside_five_seconds_drops_the_card_line(game: HeadlessServer) -> None:
+    """Technical lead: 9.11 gets no exemption from the hall drop (creative lead, fix 3)."""
+    client = game.connect()
+    heard = take_kit(game, client, 0, ticks=90, leave_at=35)
+    assert [lid for _, lid in kit_lines(heard)] == ["9.10", "9.10h"]
+    assert not game.core.opening.states[client.session.id]["queue"]
+    assert game.core.characters.players[client.session.player_id].progress.get("errand")
+
+
+def test_the_paced_kit_lines_leave_speech_pacing_alone(game: HeadlessServer) -> None:
+    """Fix 1 as amended: a delayed event line is never gated like speech and
+    never sets voice_tick; speech keeps its own four seconds."""
+    client = game.connect()
+    take_kit(game, client, 0, ticks=5)
+    session, opening = client.session, game.core.opening
+    state = opening.states[session.id]
+    assert {q[0] for q in state["queue"]} >= {"9.10h", "9.11"}
+    session.voice_tick = game.core.clock.now_tick()      # A line was just spoken.
+    speech = opening.lines["10.2"][1]
+    played = []
+    for _ in range(50):
+        before = session.voice_tick
+        game.step()
+        kit = [line["script"] for line in said(game, client) if line.get("script") in ("9.10h", "9.11")]
+        if kit:
+            played += kit
+            assert session.voice_tick == before                       # A kit line never sets voice_tick,
+            if kit == ["9.10h"]:                                      # and plays while speech must wait.
+                assert opening.quiet(session, speech, game.core.clock.now_tick())
+    assert played == ["9.10h", "9.11"]
 
 
 def test_speech_waits_while_the_card_table_is_open(game: HeadlessServer) -> None:

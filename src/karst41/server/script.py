@@ -7,7 +7,11 @@ read and the hall left (only the errand, a per-character flag, goes on).
 
 - Speech (Vantongeren, Okafor) is queued and paced: at least four seconds
   between two lines to this caller, from any source (`session.voice_tick`
-  is shared with P8). Every other kind is said at once and never queued.
+  is shared with P8). Every other kind is said at once; one chained with a
+  `delay` waits until due and is then said at once, never gated like
+  speech and without setting `voice_tick` (fix 1 as amended 2026-11-14,
+  owner-approved). A line with both `when` and `after` is armed by its
+  trigger and follows its `after` line only once armed.
 - When a beat begins, its own lines go first; waiting non-anchor lines of
   earlier beats are dropped. An older anchor is spoken only when no line
   of the current beat is waiting, oldest first.
@@ -45,7 +49,7 @@ SCRIPT_ID = "wake-opening"
 
 def fresh() -> dict[str, Any]:
     """A runner state, as stored in the wake record and later in `progress`."""
-    return {"beat": 0, "spoken": [], "fired": [], "queue": [], "facts": [], "hints": [],
+    return {"beat": 0, "spoken": [], "fired": [], "armed": [], "queue": [], "facts": [], "hints": [],
             "beat_tick": None, "steps": 0, "pos": None, "read": False, "done": False}
 
 
@@ -73,6 +77,7 @@ class Opening:
         """Attach a caller's stored state (fresh or resumed)."""
         if not self.script or state.get("done"):
             return
+        state.setdefault("armed", [])  # States saved before the fix 1 amendment.
         if state.get("queue"):  # Resume: waiting non-anchors are dropped (technical lead, ruling b).
             state["queue"] = [q for q in state["queue"] if self.lines[q[0]][1].anchor]
         if state.get("beat_tick") is None:
@@ -128,9 +133,16 @@ class Opening:
 
     def fire(self, session: Session, state: dict[str, Any], name: str, value: Any) -> None:
         beats = self.script.beats
+        matched = [lid for lid, (_, ln) in self.lines.items()
+                   if lid not in state["fired"] and any(self.matches(t, name, value) for t in ln.when)]
+        # Arm chained lines first, so a line said in this same call finds
+        # its followers armed (fix 1 as amended).
+        armed = state.setdefault("armed", [])
+        armed.extend(lid for lid in matched if self.lines[lid][1].after and lid not in armed)
         # A triggered line, in any beat (the record can open from beat 3).
-        for lid, (index, ln) in self.lines.items():
-            if lid in state["fired"] or not any(self.matches(t, name, value) for t in ln.when):
+        for lid in matched:
+            index, ln = self.lines[lid]
+            if ln.after:
                 continue
             if not self.eligible(state, ln):
                 state["fired"].append(lid)
@@ -156,7 +168,11 @@ class Opening:
 
     def begin(self, session: Session, state: dict[str, Any], index: int) -> None:
         state["beat"], state["beat_tick"], state["steps"] = index, self.core.clock.now_tick(), 0
-        state["queue"] = [q for q in state["queue"] if q[1] >= index or self.lines[q[0]][1].anchor]
+        # Waiting speech of earlier beats is dropped unless it is an anchor. A
+        # delayed event line is not waiting speech: it plays when due, and
+        # only the hall drop removes it (fix 1 as amended; 9.11 after kit_issued).
+        state["queue"] = [q for q in state["queue"] if q[1] >= index or self.lines[q[0]][1].anchor
+                          or self.lines[q[0]][1].kind != "speech"]
         for ln in self.script.beats[index].lines:
             if not ln.when and not ln.after and ln.id not in state["fired"]:
                 state["fired"].append(ln.id)
@@ -166,7 +182,7 @@ class Opening:
     def queue_line(self, session: Session, state: dict[str, Any], lid: str, front: bool = False,
                    due: int = 0) -> None:
         index, ln = self.lines[lid]
-        if ln.kind != "speech":
+        if ln.kind != "speech" and due <= self.core.clock.now_tick():
             self.say(session, state, ln)  # Event lines come at once (creative lead, fix 1).
             return
         entry = [lid, index, due]
@@ -203,11 +219,13 @@ class Opening:
         state["spoken"].append(ln.id)
         for follower in self.after.get(ln.id, ()):
             _, nxt = self.lines[follower]
+            if nxt.when and follower not in state.get("armed", ()):
+                continue  # Its own trigger never fired (another archetype's line).
             if follower not in state["fired"]:
                 state["fired"].append(follower)
                 if self.eligible(state, nxt):
                     self.queue_line(session, state, follower,
-                                    due=self.core.clock.now_tick() + nxt.delay * TICK_HZ)
+                                    due=self.core.clock.now_tick() + round(nxt.delay * TICK_HZ))
 
     def quiet(self, session: Session, ln: s.ScriptLine, tick: int) -> bool:
         """Speech only (creative lead, fix 1)."""
@@ -301,10 +319,17 @@ class Opening:
         return False
 
     def speak_next(self, session: Session, state: dict[str, Any], tick: int) -> None:
+        # A delayed event line plays once due, never gated like speech (fix 1 as amended).
+        for entry in [q for q in state["queue"] if self.lines[q[0]][1].kind != "speech" and tick >= q[2]]:
+            if entry in state["queue"]:
+                state["queue"].remove(entry)
+                self.say(session, state, self.lines[entry[0]][1])
         for at, (lid, _, due) in enumerate(state["queue"]):
             if due and tick < due:
                 continue
             _, ln = self.lines[lid]
+            if ln.kind != "speech":
+                continue
             if self.quiet(session, ln, tick):
                 return
             state["queue"].pop(at)
