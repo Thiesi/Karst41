@@ -24,7 +24,9 @@ Declared fixtures (technical lead's ruling on #214):
   the first-target notice comes once per session. Likewise the enforcers
   hold still while the Ask page is open: a step out of reach closes the
   page before the answer is filmed, and E can open a second guard beside
-  the one walked to.
+  the one walked to. The regulars also hold still for the E press only,
+  and a page that opens on anyone but an enforcer is closed and the press
+  retried (#247): E reaches the nearest talker, which can be a regular.
 """
 
 import argparse
@@ -293,13 +295,33 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                             if g.behaviour.get('template') == 'npc-sable-enforcer'}
                     for g, _ in held.values():
                         g.cooldowns['move'] = 10**12
+                    # #247: a wandering regular can also be the nearest talker.
+                    # Hold the regulars for the press too, and accept only an
+                    # enforcer's page; otherwise close it and try again.
+                    paused = {r.id: (r, r.behaviour.get('pause', 0)) for r in zone.actors.values()
+                              if r.behaviour.get('template') == 'npc-sodium-regular'}
+                    for r, _ in paused.values():
+                        r.behaviour['pause'] = 1 << 40
+
+                    def release() -> None:
+                        for g, move in held.values():
+                            g.cooldowns['move'] = move
+                        for r, pause in paused.values():
+                            r.behaviour['pause'] = pause
                     await asker.caller.write(b'e')
                     try:
                         await wait(lambda: asker.session.id in core.dialogue.menus, 3)
                     except TimeoutError:
-                        for g, move in held.values():
-                            g.cooldowns['move'] = move
+                        release()
                         continue
+                    if core.dialogue.menus[asker.session.id].contact.target not in held:
+                        release()  # Another talker answered; let it wander off first.
+                        await asker.caller.write(b'\x1b')
+                        await wait(lambda: asker.session.id not in core.dialogue.menus)
+                        await asyncio.sleep(1)
+                        continue
+                    for r, pause in paused.values():
+                        r.behaviour['pause'] = pause  # Only the enforcers stay held for the page.
             await wait(lambda: 'Ask about the peace' in asker.caller.screen.screen_text())
             await delivered(asker)
             save(asker, 'enforcer-talk', {'label': 'Ask about the peace'})
@@ -331,7 +353,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                          'keeper guards (and any that spawn) hold fire until the death scene; released for the death',
                          'one pursuer in the bar scene: the other guard leaves the world and respawns from its spawner',
                          'price-target: the targeted regular holds still for that step, then wanders again (#225)',
-                         'enforcer-ask: the enforcers hold still while the page is open, then are released (#225)'],
+                         'enforcer-ask: the enforcers hold still while the page is open, then are released (#225); the regulars hold still for the E press only, and a page opened on anyone but an enforcer is closed and retried (#247)'],
             'fixture_walls': walls,
             'presentation_acceptance': False, 'h1_layout_approval': False,
             's25_layout_approval': False}, indent=2)+'\n', encoding='utf-8', newline='\n')
