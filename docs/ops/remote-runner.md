@@ -37,30 +37,43 @@ system.
    longer than two hours. A sleeping machine kills a running batch.
 2. **Start Ubuntu** from PowerShell with `wsl -d Ubuntu`, then check the
    version with `lsb_release -rs`.
-3. **Packages.**
+3. **Proxy, if the network needs one.**
+   - In `/etc/environment`, set `http_proxy`, `https_proxy`, `HTTP_PROXY`
+     and `HTTPS_PROXY` to the proxy. Set `no_proxy` and `NO_PROXY` to
+     `localhost,127.0.0.1,::1`, because the acceptance scripts connect to
+     NetBBS on localhost.
+   - `sudo apt` ignores those variables, so also add
+     `/etc/apt/apt.conf.d/95proxy` with `Acquire::http::Proxy` and
+     `Acquire::https::Proxy`.
+   - Alternatively, on Windows 11, set `networkingMode=mirrored` and
+     `autoProxy=true` under `[wsl2]` in `%UserProfile%\.wslconfig`, which
+     makes WSL inherit the Windows proxy.
+   - Either way, restart WSL with `wsl --shutdown`.
+   - No proxy address or credentials go in this repository.
+4. **Packages.**
    - On Ubuntu 24.04 or later:
      `sudo apt update && sudo apt install -y git gh python3.12 python3.12-venv python3-pip zip`
    - On 22.04, add `ppa:deadsnakes/ppa` first, or tell the technical lead
      the version.
-4. **GitHub CLI inside WSL.** Run `gh auth login`, choosing github.com, HTTPS
+5. **GitHub CLI inside WSL.** Run `gh auth login`, choosing github.com, HTTPS
    and the browser login. The runner uses it for read access and for secret
    gists of failure evidence. It never pushes or comments.
-5. **Workspace,** in the Linux home directory, never under `/mnt/c`:
+6. **Workspace,** in the Linux home directory, never under `/mnt/c`:
    ```sh
    mkdir -p ~/karst41-runner/runs && cd ~/karst41-runner
    git clone https://github.com/Thiesi/Karst41.git repo
    git clone https://github.com/Thiesi/NetBBS.git netbbs
    ```
-6. **Claude Code inside WSL.** Install it with the native installer from the
+7. **Claude Code inside WSL.** Install it with the native installer from the
    Claude Code documentation and log in. Start it in `~/karst41-runner` and
    name the session `Karst 41: runner`. Turn on Remote Control, so that the
    technical lead and the engineer can reach it from the development host.
-7. **Permissions.** The runner needs to run shell commands inside
+8. **Permissions.** The runner needs to run shell commands inside
    `~/karst41-runner` without a prompt for each one, or batches stall while
    nobody is watching. Choose a permission mode that allows that for this
    folder. That is the owner's choice. The runner never needs access
    outside `~/karst41-runner`, apart from `apt` during setup.
-8. **First message.** Paste the brief from section 6 as the runner's first
+9. **First message.** Paste the brief from section 6 as the runner's first
    message, then tell the technical lead that the runner is up.
 
 ## 3. How a run works
