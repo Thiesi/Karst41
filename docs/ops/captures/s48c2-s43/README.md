@@ -28,6 +28,17 @@ presentation door at 132x50 in the 256-colour tier.
   it is the only difference outside the hall: the maps, panels and headers are
   identical.
 - **The Wake Hall:** Vantongeren shows under NEARBY, her ambient line is in
-  the log, and the orderlies stand on different tiles. Not verified: this is
-  probably because the two new spawns come first, which changes where the
-  orderlies' random spawns land.
+  the log, and the orderlies stand on different tiles.
+  - **Cause, verified: spawn order in the zone's random stream.**
+    `Spawners.process` (`src/karst41/server/npcs/spawn.py`) walks the hall's
+    spawners in file order: Okafor, Vantongeren, then the orderlies. Each
+    spawn's `location()` ends in `zone.rng.choice(candidates)`, and a 1x1
+    region still makes that draw. So the orderlies' draws come two later.
+  - **Nothing else changed.** The talkers' tiles, (35,18) and (13,6), are
+    outside the orderly region (x 8-13, y 3-4), so the orderlies' candidate
+    tiles are unchanged. c2's diff doesn't touch `server/npcs/spawn.py` or
+    `server/world/`.
+  - **Check:** the S43 hall fixture, run on c2 with the two 1x1 talker spawns
+    placed without an RNG draw, puts the orderlies exactly where main does.
+    That holds at spawn ((13,4), (12,4)) and after the 50-tick scene.
+    Unpatched c2 spawns them at (12,4) and (12,3).
