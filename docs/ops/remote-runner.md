@@ -89,9 +89,6 @@ system.
          "Bash(powershell.exe *)",
          "Bash(date *)",
          "Bash(mkdir *)",
-         "Bash(ls *)",
-         "Bash(cat *)",
-         "Bash(tail *)",
          "Bash(lsb_release *)",
          "Bash(cd *)",
          "Bash(export *)",
@@ -105,6 +102,9 @@ system.
    - The list comes from the smoke run on 2026-11-14 (smoke-1). `powershell.exe`
      reads the host CPU for the report. `rm -rf runs/*` is relative to
      `~/karst41-runner`.
+   - File reads and listings use the Read and Glob tools, which the
+     `Read(~/karst41-runner/**)` rule keeps inside the workspace. There is
+     no `cat`, `tail` or `ls` in the list for that reason.
    - Auto mode, the mode the runner ran smoke-1 in, also works: it
      raised no prompt in a full run. It refuses risky actions instead of
      asking. Keep this file even then: allowed commands skip the check.
