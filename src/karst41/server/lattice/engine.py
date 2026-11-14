@@ -303,6 +303,12 @@ class Lattice:
         if not (terminal and terminal.spec.params.get("training_core")):
             self.game.progression.record_discovery(player.id, "cell", sector+"/"+presence.cell)
             self.sense_hidden(presence)
+        else:
+            # S48c1b (#220 item 6): no district grid before the first real jack-in.
+            try:
+                self.encounters.enter(session, str(terminal.spec.params["training_core"]))
+            except ValueError as exc:
+                self.log(session, str(exc), True)
 
     def notify(self, presence: Presence, text: str, exclude: str | None = None) -> None:
         for other in self.presences.values():
@@ -330,6 +336,8 @@ class Lattice:
                 self.game.world.zones[avatar.actor.zone].revision += 1
             session.subscribed = avatar.zone
             self.sim.reset_view(session, avatar)
+        if transition:
+            self.game.jacked_out(session)  # S48c1b, after the view is back on the street.
         overlay = self.sim.external_views.get(session.id)
         if overlay and overlay[0] in ("lattice", "menu"):
             self.sim.external_views.pop(session.id, None)
@@ -710,7 +718,7 @@ class Lattice:
         presence = self.presences.get(session.player_id)
         avatar = self.avatar(session)
         if (presence and avatar and avatar.actor.stance == "jacked"
-                and not self.public(presence)):
+                and not self.public(presence) and not self.game.unread(presence.player_id)):
             self.orphans[presence.player_id] = session, avatar
             self.jack_out(session)
             return True

@@ -1,0 +1,274 @@
+{
+  "retirements": [
+    {
+      "capture": "../p5-client-foundations/training-drone-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-drone-80x24-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-complete-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-complete-80x24-16.txt"
+    },
+    {
+      "capture": "../s48c1a-creation/wake-record-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-record-80x24-16.txt"
+    },
+    {
+      "capture": "../s48c1a-creation/wake-hall-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-hall-80x24-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/meridian-plaza-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "meridian-plaza-80x24-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/inventory-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "inventory-80x24-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/contracts-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "contracts-80x24-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/help-80x24-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "help-80x24-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-drone-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-drone-80x24-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-complete-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-complete-80x24-256.txt"
+    },
+    {
+      "capture": "../s48c1a-creation/wake-record-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-record-80x24-256.txt"
+    },
+    {
+      "capture": "../s48c1a-creation/wake-hall-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-hall-80x24-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/meridian-plaza-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "meridian-plaza-80x24-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/inventory-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "inventory-80x24-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/contracts-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "contracts-80x24-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/help-80x24-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "help-80x24-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-drone-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-drone-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-complete-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-complete-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../s48c1a-creation/wake-record-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-record-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../s48c1a-creation/wake-hall-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-hall-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/meridian-plaza-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "meridian-plaza-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/inventory-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "inventory-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/contracts-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "contracts-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/help-80x24-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "help-80x24-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-drone-132x50-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-drone-132x50-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-complete-132x50-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-complete-132x50-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/wake-hall-132x50-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-hall-132x50-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/meridian-plaza-132x50-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "meridian-plaza-132x50-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/inventory-132x50-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "inventory-132x50-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/contracts-132x50-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "contracts-132x50-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/help-132x50-16.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "help-132x50-16.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-drone-132x50-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-drone-132x50-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-complete-132x50-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-complete-132x50-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/wake-hall-132x50-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-hall-132x50-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/meridian-plaza-132x50-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "meridian-plaza-132x50-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/inventory-132x50-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "inventory-132x50-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/contracts-132x50-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "contracts-132x50-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/help-132x50-256.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "help-132x50-256.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-drone-132x50-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-drone-132x50-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/training-complete-132x50-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "training-complete-132x50-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/wake-hall-132x50-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "wake-hall-132x50-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/meridian-plaza-132x50-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "meridian-plaza-132x50-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/inventory-132x50-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "inventory-132x50-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/contracts-132x50-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "contracts-132x50-truecolor.txt"
+    },
+    {
+      "capture": "../p5-client-foundations/help-132x50-truecolor.txt",
+      "reason": "drone no longer engages created characters, c1b, #220/#217 ruling; fight moved to the unread body before creation",
+      "pr": 245,
+      "superseded_by": "help-132x50-truecolor.txt"
+    }
+  ]
+}

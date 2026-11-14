@@ -1,0 +1,50 @@
+╔═DECANT RECORD - No. 0004 - Template═POCKET══════════════════════════════════════════════════════════════════════════S10P132══════╗
+║          ┌─ DECANT RECORD - No. 0004 - Template ──────────────────────────────────────────────────────────────────────┐          ║
+║          │ Choice                                               You hold the heavy end. You can use heavy weapons     │          ║
+║          │ Hardline                                             and armour. Your frame takes the load. Your implant   │          ║
+║          │ Ghost                                                tolerance gains two points.                           │          ║
+║          │ Cantor                                                                                                     │          ║
+║          │ Operator                                                                                                   │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │ enter read this line  Esc/B put the record down                                                            │          ║
+║          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          ║
+╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║» You wake on a gurney under a number. White light, warm plastic, a floor drain. Past the cards, a corridor. Past the corridor, a ║
+║  terminal.                                                                                                                       ║
+║‼ Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.                                                ║
+║‼ You raise your weapon. Fire again after two seconds; the target can move to safety.                                             ║
+║‼ Training drone hits you for 5. (x2)                                                                                             ║
+║* Miss: Training drone. (x2)                                                                                                      ║
+║* Hit: Training drone. (x2)                                                                                                       ║
+║* The training drone falls silent. The tutorial terminal is ahead.                                                                ║
+║? help  Enter read this line  Esc/B put the record down                                                                           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 

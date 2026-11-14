@@ -85,7 +85,10 @@ async def accept(root: Path, door_python: Path, show: bool,
                 zone.objects[marker.id] = ObjectState(marker)
                 await caller.caller.write(b'e')
                 await wait(lambda: actor.id in probe.service.core.lattice.presences)
-                await wait(lambda: 'LATTICE' in caller.caller.screen.screen_text().upper())
+                # S48c1b (first ten minutes 8, item 6): the fixture is a training
+                # terminal, so the jack lands in its core (was: the LATTICE grid).
+                await wait(lambda: probe.service.core.lattice.presences[actor.id].core == 'lat-wake-hall'
+                           and '/ CORE' in caller.caller.screen.screen_text().splitlines()[0])
                 probe.save(caller, f's25a-{kind}-jack-{width}x{height}')
                 await caller.caller.write(b'j')
                 await wait(lambda: actor.id not in probe.service.core.lattice.presences)

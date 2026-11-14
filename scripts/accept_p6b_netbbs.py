@@ -16,6 +16,7 @@ from typing import Any
 
 from accept_p5_netbbs import PresentationProbe
 from accept_s10_netbbs import wait
+from acceptance_hall import crossed_quietly
 
 
 async def accept(root: Path, door_python: Path, size: tuple[int, int], tier: str, show: bool) -> None:
@@ -66,9 +67,8 @@ async def accept(root: Path, door_python: Path, size: tuple[int, int], tier: str
 
         # The Wake's offered B skip is an ordinary action, without fighting
         # or changing the character's grade, equipment or training actor.
-        await probe.walk(caller, (21, 14))
-        await caller.caller.write(b'b')
-        await wait(lambda: player.progress.get('wake_combat') == 'skipped')
+        # S48c1b: a character crosses the drone's ring and nothing happens.
+        await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
         await probe.travel(caller, 'vatside-clinics')
         await probe.walk(caller, (12, 13))
         zone = probe.service.world.zones['vatside-clinics']
@@ -109,7 +109,7 @@ async def accept(root: Path, door_python: Path, size: tuple[int, int], tier: str
         assert caller.session.door_info['handle'] == handle
         case = {'size': list(size), 'tier': tier, 'captures': captures, 'checkpoints': checkpoints,
                 'character_name': player.name, 'handle': handle, 'wide_character_name': True,
-                'wide_bbs_handle': False, 'ordinary_inputs': True, 'training': 'normal B skip',
+                'wide_bbs_handle': False, 'ordinary_inputs': True, 'training': 'none: a character never wakes the drone (S48c1b)',
                 'clinic_terminal': [17, 8], 'jack_in_out': True, 'remembered_clinic_terminal': True,
                 'tin_halo_entered': False, 'key_hex_after_character_creation': keys}
         await probe.leave(caller, f'return-{size[0]}x{size[1]}-{tier}')

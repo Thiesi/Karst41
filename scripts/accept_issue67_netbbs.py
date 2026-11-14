@@ -12,7 +12,8 @@ from math import isclose
 from pathlib import Path
 
 from accept_s10_netbbs import NativeProbe, wait
-from accept_s14_netbbs import choose, menu, program
+from acceptance_hall import crossed_quietly
+from accept_s14_netbbs import choose, program
 
 
 async def accept(root: Path, door_python: Path, tier: str, show: bool = False) -> None:
@@ -27,20 +28,18 @@ async def accept(root: Path, door_python: Path, tier: str, show: bool = False) -
             lattice = probe.service.core.lattice
             encounters = lattice.encounters
             player = probe.game.players[caller.session.player_id]
-            await probe.walk(caller, (21, 14))
-            await caller.caller.write(b'b')
-            await wait(lambda: player.progress.get('wake_combat') == 'skipped')
+            # S48c1b: a character crosses the drone's ring and nothing happens.
+            await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
             terminal = next(obj for obj in probe.service.world.zones[caller.avatar.zone].objects.values()
                             if obj.spec.params.get('training_core') == 'lat-wake-hall')
             await probe.walk(caller, terminal.spec.tile)
             await caller.caller.write(b'j')
             await wait(lambda: player.id in lattice.presences)
             presence = lattice.presences[player.id]
-            await wait(lambda: 'INTEGRITY' in caller.caller.screen.screen_text())
-            await caller.caller.write(b'e')
-            await wait(lambda: caller.session.id in encounters.menus)
-            await menu(probe, caller, 'enter:lat-wake-hall')
+            # S48c1b (first ten minutes 8, item 6): J at the training terminal
+            # enters its core directly; there is no district grid to enter it from.
             await wait(lambda: presence.core == 'lat-wake-hall')
+            await wait(lambda: 'INTEGRITY' in caller.caller.screen.screen_text())
             defender = encounters.defenders(presence)[0]
             await wait(lambda: defender.template.name in caller.caller.screen.screen_text()
                 and '/ CORE' in caller.caller.screen.screen_text().splitlines()[0]
@@ -63,9 +62,8 @@ async def accept(root: Path, door_python: Path, tier: str, show: bool = False) -
                     'ice_integrity': defender.integrity, 'display': '19.99/40', 'damage_text': '10.01'})
             finally:
                 encounters.content.programs[pick.id] = pick
+            # S48c1b: B in the training core leaves the Lattice (was: back to the grid, then J).
             await caller.caller.write(b'b')
-            await wait(lambda: presence.instance is None)
-            await caller.caller.write(b'j')
             await wait(lambda: player.id not in lattice.presences)
             await wait(lambda: 'Wake Hall' in caller.caller.screen.screen_text().splitlines()[0])
             await probe.leave(caller, f'issue67-return-{width}x{height}')

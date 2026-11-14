@@ -13,6 +13,7 @@ import subprocess
 from typing import Any
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from karst41.layout import compute
 from tests.presentation.snapshots import snapshot
 
@@ -59,9 +60,8 @@ async def accept(root: Path, door_python: Path, show: bool,
 
                 # Cross the authored tutorial corridor and explicitly skip its
                 # training fight. This is the existing Wake Hall route.
-                await probe.walk(caller, (21, 14))
-                await caller.caller.write(b'b')
-                await wait(lambda: probe.game.players[caller.session.player_id].progress.get('wake_combat') == 'skipped')
+                # S48c1b: a character crosses the drone's ring and nothing happens.
+                await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
                 await probe.walk(caller, (34, 15))
                 outfitter = await predicted('wake-outfitter')
                 jack = dict(zone_body()['jack_focus'])

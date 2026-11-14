@@ -27,6 +27,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import wait
+from acceptance_hall import crossed_quietly
 from accept_s19_netbbs import ContractProbe
 from karst41.content.schema import ObjectSpec
 from karst41.door.fit import wrap_text
@@ -83,9 +84,8 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
 
             # Skip the Wake's training fight first (as enter_row does), so
             # no drone fires while the caller shops.
-            await probe.walk(caller, (21, 14))
-            await caller.caller.write(b'b')
-            await wait(lambda: probe.game.players[caller.session.player_id].progress.get('wake_combat') == 'skipped')
+            # S48c1b: a character crosses the drone's ring and nothing happens.
+            await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
             if full:
                 await probe.near(caller, OUTFITTER)
                 await delivered()

@@ -85,6 +85,7 @@ class NativeProbe:
         self.service = Server(self.root/"world",tcp=True)
         self.connections: list[Connection] = []
         self.accounts: deque[tuple[Any,bool]] = deque()
+        self.homes: dict[str,tuple[int,int]] = {}  # Arrival tile per session (open, then create).
         self.errors: list[str] = []
         self.console = ThreadPoolExecutor(max_workers=1, thread_name_prefix='native-proof-console') if show else None
         self.console_jobs: list[Future[None]] = []
@@ -159,7 +160,7 @@ class NativeProbe:
 
     async def open(self, width: int, height: int, label: str, archetype: int = 0,
                    sixteen: bool = False, capture_cards: bool = False,
-                    truecolor: bool = False, capture_wake: bool = False) -> Connection:
+                    truecolor: bool = False, capture_wake: bool = False, unread: bool = False) -> Connection:
         user=create_user(self.db,f"S10{label}{width}",password="LocalProbe-S10",user_level=10)
         self.accounts.append((user,sixteen))
         reader,writer=await asyncio.open_connection("127.0.0.1",self.node.port)
@@ -196,9 +197,11 @@ class NativeProbe:
         # chooses a template and a name, all with keys. A disclosed setup step
         # then puts the body back on its arrival tile (acceptance_hall.return_to),
         # so every script starts from the same place and state as before.
+        # unread=True (S48c1b) stops before the record and leaves the body
+        # unread: the training drone wakes only for an unread body, so a
+        # script that fights it does so first, then calls create().
         connection.avatar=self.game.sim.avatars[session.user_id]
-        wake=self.game.wakes[session.id]
-        home=connection.avatar.actor.position
+        self.homes[session.id]=connection.avatar.actor.position
         settled=lambda:session.ack_revision==session.view_revision
         if capture_cards:
             await self.walk(connection,(8,9))
@@ -208,6 +211,19 @@ class NativeProbe:
             self.save(connection, f'issue67-recruiters-{width}x{height}')
             await caller.write(b"\x1b")
             await wait(lambda:session.id not in self.game.screens and settled())
+        if unread:
+            return connection
+        await self.create(connection,width,height,label,archetype,sixteen,capture_wake)
+        return connection
+
+    async def create(self, connection: Connection, width: int, height: int, label: str,
+                     archetype: int = 0, sixteen: bool = False, capture_wake: bool = False) -> None:
+        """The S48c1a record and name with ordinary keys, then the disclosed
+        return to the arrival tile. open() calls it unless unread=True."""
+        caller,session=connection.caller,connection.session
+        wake=self.game.wakes[session.id]
+        home=self.homes[session.id]
+        settled=lambda:session.ack_revision==session.view_revision
         await self.walk(connection,(37,16))
         await wait(settled);await caller.write(b"e")
         await wait(lambda:wake.stage=="record" and "DECANT RECORD" in caller.screen.screen_text() and settled())
@@ -223,7 +239,6 @@ class NativeProbe:
         return_to(self.service,session,home)
         await wait(lambda:"Wake Hall" in caller.screen.screen_text().splitlines()[0] and settled())
         if sixteen: assert session.caps["tier"]=="16",session.caps
-        return connection
 
     async def walk(self, connection: Connection,
                    target: tuple[int,int] | Callable[[], tuple[int,int] | None]) -> None:
@@ -421,9 +436,13 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
     results=[]
     try:
         for width,height in ((80,24),(132,50)):
-            a=await probe.open(width,height,"Cantor",2,True)
-            b=await probe.open(width,height,"Ghost",1)
-            for connection,parking in ((a,(22,14)),(b,(24,14))):
+            # S48c1b: the drone wakes only for an unread body, so each caller
+            # fights it before reading the record; "done" is held and applied
+            # at creation (checked on the created character below).
+            a=await probe.open(width,height,"Cantor",2,True,unread=True)
+            b=await probe.open(width,height,"Ghost",1,unread=True)
+            for connection,parking,label,archetype,sixteen in ((a,(22,14),"Cantor",2,True),(b,(24,14),"Ghost",1,False)):
+                assert probe.game.unread(connection.session.player_id)
                 await probe.walk(connection,(21,14))
                 await wait(lambda:any(n.owner==connection.avatar.actor.id for n in probe.service.world.actors.values()))
                 await connection.caller.write(b"\t")
@@ -432,6 +451,10 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
                     while probe.game.players[connection.session.player_id].progress.get("wake_combat")!="done":
                         await connection.caller.write(b"f");await asyncio.sleep(.2)
                 probe.report(f"PASS private training {width}x{height}: {time.monotonic()-started:.1f}s, nonlethal, real Tab/F")
+                await probe.create(connection,width,height,label,archetype,sixteen)
+                assert probe.game.players[connection.session.player_id].progress.get("wake_combat")=="done"
+                assert not any(n.owner==connection.avatar.actor.id and n.behaviour.get("training")
+                               for n in probe.service.world.actors.values())
                 await probe.walk(connection,parking)
             # Bind Steady and Jam through the real server-driven menu.
             # S16's real implant gate applies. This combat-only probe lends

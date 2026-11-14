@@ -16,6 +16,7 @@ import threading
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from karst41.admin.client import request
 from karst41.server.loop import TickContext
 from karst41.server.world.actors import Actor
@@ -270,9 +271,8 @@ async def accept(root: Path, door_python: Path, show: bool,
         for width,height in sizes:
             caller=await probe.open(width,height,"NpcRunner",0,True)
             actor=caller.avatar.actor
-            await probe.walk(caller,(21,14))
-            await caller.caller.write(b"b")
-            await wait(lambda:probe.game.players[actor.id].progress.get("wake_combat")=="skipped")
+            # S48c1b: a character crosses the drone's ring and nothing happens.
+            await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
             await probe.travel(caller,"vatside-clinics")
             await probe.travel(caller,"core-plaza")
             await probe.walk(caller,(20,6))

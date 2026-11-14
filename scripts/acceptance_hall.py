@@ -5,8 +5,9 @@ caller wakes in the hall with an unread body. Optionally they take a card
 at the table, open the decant record with E beside the street door,
 choose a template and a name, all with keys. Then a disclosed setup step
 puts the body back on its arrival tile, so a script carries on from the
-same place and state as under the old Wake screens (drone not yet fought,
-no outcome recorded). Walking back would cross the drone's corridor.
+same place and state as under the old Wake screens (no outcome recorded).
+Since S48c1b the training drone never wakes for a character, so the
+setup step is kept for stable starts only, not for safety.
 """
 
 from __future__ import annotations
@@ -25,6 +26,39 @@ async def until(condition: Callable[[], bool], timeout: float = 10) -> None:
     async with asyncio.timeout(timeout):
         while not condition():
             await asyncio.sleep(.02)
+
+
+async def crossed_quietly(service: Any, player_id: str, walking: Awaitable[None], hold_ticks: int = 10) -> None:
+    """S48c1b (creative lead beat (a)): a character crosses the training
+    drone's ring and nothing happens. Watched for the whole walk and
+    `hold_ticks` after it: no training drone owned by the caller ever
+    spawns, and `wake_combat` never changes. Replaces the old B skip,
+    which waited for "skipped" (a character no longer has a drone to skip)."""
+    manager = service.core.characters
+    assert not manager.unread(player_id), "crossed_quietly is for a created character"
+    before = manager.players[player_id].progress.get("wake_combat")
+
+    def check() -> None:
+        drones = [a.id for a in service.world.actors.values()
+                  if a.owner == player_id and a.behaviour.get("training")]
+        assert not drones, ("the training drone woke for a character", drones)
+        now = manager.players[player_id].progress.get("wake_combat")
+        assert now == before, ("wake_combat changed for a character", before, now)
+
+    task = asyncio.ensure_future(walking)
+    try:
+        while not task.done():
+            check()
+            await asyncio.sleep(.02)
+        await task
+        end = service.clock.now_tick() + hold_ticks
+        while service.clock.now_tick() < end:
+            check()
+            await asyncio.sleep(.02)
+        check()
+    finally:
+        if not task.done():
+            task.cancel()
 
 
 async def walk(service: Any, avatar: Any, write: Callable[[bytes], Awaitable[None]],

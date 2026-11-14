@@ -14,6 +14,7 @@ from collections.abc import Callable
 
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from accept_p4_netbbs import navigate
 from accept_s16_netbbs import commit_key, key, loan
 from karst41.layout import compute
@@ -21,9 +22,8 @@ from karst41.server.world.actors import Actor
 
 
 async def enter_row(probe: NativeProbe, caller: Connection) -> None:
-    await probe.walk(caller, (21, 14))
-    await caller.caller.write(b"b")
-    await wait(lambda: probe.game.players[caller.session.player_id].progress.get("wake_combat") == "skipped")
+    # S48c1b: a character crosses the drone's ring and nothing happens.
+    await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
     for destination in ("vatside-clinics", "core-plaza", "sodium-row"):
         await probe.travel(caller, destination)
     await wait(lambda: "TRUCE" in caller.caller.screen.screen_text().splitlines()[0])
