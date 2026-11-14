@@ -19,8 +19,12 @@ from karst41.server.protocol import Frame
 from tests.character_helpers import act, place
 from tests.fake_terminal import FakeTerminal
 from tests.harness import HeadlessServer
+from tests.presentation.snapshots import assert_golden
 
 HALL = "vatside-wake-hall"
+# The text differs by colour tier (the 16-colour tier draws walls), so each
+# tier has its own name, kept outside tests/door/golden (one text per name).
+GOLDEN = Path("tests/presentation/golden/s48c2-hint")
 HINT = "Arrow keys walk. Follow the line on the floor."
 # Frame 3: beside Vantongeren, the hall's longest E label (talk to Dr. Ilse
 # Vantongeren) with the longest hint: at 80x24 the context takes its short form.
@@ -30,7 +34,7 @@ FRAMES = (("1_no_context", (6, 5)), ("2_e_context", (19, 14)), ("3_worst", (14, 
 @pytest.mark.parametrize("width,height", [(80, 24), (132, 50)])
 @pytest.mark.parametrize("tier", ["16", "256", "truecolor"])
 def test_s48c2_lesson_hint_row_captures(info: DoorInfo, repo_root: Path, width: int, height: int,
-                                        tier: str, golden) -> None:
+                                        tier: str, request, caller_provenance) -> None:
     content = load_content(repo_root/"src/karst41/content")
     for name, tile in FRAMES:
         game = HeadlessServer(content, character_state={})
@@ -51,7 +55,7 @@ def test_s48c2_lesson_hint_row_captures(info: DoorInfo, repo_root: Path, width: 
         assert "Ctrl-X" not in hint_row and "? help" in hint_row
         if name == "3_worst" and width == 80:
             assert "E talk to Vantongeren  ? help" in hint_row   # The short form: the last whole word.
-        golden(f"s48c2_hint_{name}_{width}x{height}_{tier}", terminal, tier, trim=True)
+        check(repo_root, request, f"s48c2_hint_{name}_{width}x{height}_{tier}", terminal, tier)
         if name == "1_no_context":
             # Frame 4: the walk key is used once; the full key-help row comes back.
             act(game, client, Frame("key", {"k": "right", "t": 0}))
@@ -61,4 +65,10 @@ def test_s48c2_lesson_hint_row_captures(info: DoorInfo, repo_root: Path, width: 
             terminal.write(model.render(1)[0])  # The door draws only what changed.
             row = terminal.screen_text().splitlines()[model.layout.hint.y]
             assert HINT not in row and "? help" in row
-            golden(f"s48c2_hint_4_after_key_{width}x{height}_{tier}", terminal, tier, trim=True)
+            check(repo_root, request, f"s48c2_hint_4_after_key_{width}x{height}_{tier}", terminal, tier)
+
+
+def check(repo_root: Path, request, name: str, terminal: FakeTerminal, tier: str) -> None:
+    assert_golden(repo_root/GOLDEN, name, terminal, tier, trim=True,
+                  update=request.config.getoption("--update-goldens"),
+                  packet=request.config.getoption("--review-packet"))
