@@ -317,7 +317,9 @@ a packet, the runner also puts them in the gist, even on a pass: the
 A request may also ask for diagnostic files from a run, for example to
 find out why a line never played: the console capture (`*.ans`), the raw
 `.ans` frames and `progress.log`. The runner adds them to the gist, with
-the same scrub and nothing else (the owner agreed on 2026-11-15).
+the same scrub and nothing else (the owner agreed on 2026-11-15). Gists
+take text only, so raw CP437 frames go in base64 as `NAME.ans.b64`,
+checked to decode back byte for byte (`base64 -d NAME.ans.b64 > NAME.ans`).
 
 Secret gists are unlisted, not private: anyone with the URL can read them.
 Before uploading, the runner replaces the home path with `~` and includes
