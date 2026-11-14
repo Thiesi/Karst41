@@ -87,7 +87,7 @@ async def accept(root: Path, door_python: Path, show: bool,
                 terminal = await predicted('wake-terminal')
                 assert zone_body()['jack_focus'] == terminal
                 terminal_hint = screen.screen_text().splitlines()[layout.hint.y].strip()
-                assert terminal_hint.count('E/J jack in at Tutorial terminal') == 1
+                assert terminal_hint.count('E/J jack in at Hall terminal') == 1
                 assert 'E act' not in terminal_hint and '  J jack in at' not in terminal_hint
                 save(f'terminal-before-e-{width}x{height}-{tier}')
                 await caller.caller.write(b'e')
