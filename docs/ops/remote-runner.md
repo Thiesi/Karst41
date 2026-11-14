@@ -127,7 +127,12 @@ system.
          ],
          "deny": [
            "Edit(~/karst41-runner/.claude/**)",
-           "Bash(rm -rf ~/karst41-runner)", "Bash(rm -rf ~/karst41-runner/repo*)"
+           "Bash(rm -rf ~/karst41-runner)",
+           "Bash(rm -rf ~/karst41-runner/repo*)",
+           "Bash(rm -rf /home/<user>/karst41-runner)",
+           "Bash(rm -rf /home/<user>/karst41-runner/repo*)",
+           "Bash(rm -rf $HOME/karst41-runner)",
+           "Bash(rm -rf $HOME/karst41-runner/repo*)"
          ]
        }
      }
@@ -135,6 +140,9 @@ system.
    - The allow rules only spare the auto-mode check on routine commands.
      They are not a sandbox: `git *`, `python *` and `nice *` can't be
      scoped by path.
+   - `<user>` is the WSL user name. The `rm -rf` deny rules only catch these
+     exact spellings. The main protection is that `rm` isn't on the allow
+     list, so auto mode checks every `rm`.
    - There is no allow rule for `rm`. Cleanup goes through
      `git worktree remove` and a short `python -I` call that deletes only
      a named `runs/<run-id>/` path after checking that it resolves inside
