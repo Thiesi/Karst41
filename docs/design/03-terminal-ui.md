@@ -426,7 +426,11 @@ kind is told apart by colour alone.
   seconds per caller, never in combat or travel, and they can be muted
   in settings.
 - Identical lines within 10 seconds coalesce (`(x13)`); reward lines
-  within 5 seconds merge into one.
+  within 5 seconds merge into one. Lines an authored script emits (such
+  as the opening's record and kit lines) never merge: each stays its own
+  entry. A merged entry joins its parts with a space after a part that
+  ends in `.`, `!` or `?`, and with `; ` after any other part, so it
+  never shows `.;` (S48c2).
 - Danger lines never coalesce with other kinds, and no other line pushes
   a danger or combat line out of the visible log within 10 seconds.
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
