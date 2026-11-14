@@ -161,7 +161,9 @@ system.
      `runs/`.
    - The runner never pushes or changes git config, so those are denied.
      Like the `rm` rules, they catch the usual spellings, not every one.
-     The gist-only token is what actually stops a push as the owner.
+     Only the gist-only token would actually stop a push as the owner.
+     The owner kept his full `gh` login for now (step 5), so until he
+     switches, that risk is part of the exposure he accepted.
    - The deny rules keep the runner's own tools from rewriting this file.
      Claude Code checks file-path rules only as `Edit(...)`, which covers
      every file-writing tool, or as `Read(...)`. So there is no `Write(...)`
