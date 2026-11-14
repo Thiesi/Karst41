@@ -37,6 +37,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from accept_p4_netbbs import navigate
 from karst41 import truce_text
 from karst41.content.formats import parse_map
@@ -79,9 +80,8 @@ def in_bar(actor: Actor) -> bool:
 
 
 async def enter_row(probe: NativeProbe, caller: Connection) -> None:
-    await probe.walk(caller, (21, 14))
-    await caller.caller.write(b'b')
-    await wait(lambda: probe.game.players[caller.session.player_id].progress.get('wake_combat') == 'skipped')
+    # S48c1b: a character crosses the drone's ring and nothing happens.
+    await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
     for destination in ('vatside-clinics', 'core-plaza', ROW):
         await probe.travel(caller, destination)
 

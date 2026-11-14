@@ -172,6 +172,31 @@ blocks. Once the S11 20 ms/10 ms gate lands, it applies here too. The
 ordering was weighed against these stalls on 2026-11-12: the owner put
 the first evening first.
 
+### Delivery: the PR split (technical lead, 2026-11-13)
+
+The slice lands as a series of PRs, in this order. Each one stacks on
+the one before it and merges main in. The H1 gate stays on the last one.
+
+- **S48a** (#235, merged): the new presentation by default (part 3).
+- **S48b** (#237, merged): the hub cast outside the Wake Hall (part 4).
+- **S48c1a** (#241): the body before the record. This covers the unread
+  body, the card table and the record at the street door.
+- **S48c1b**: the lessons. This covers the training terminal and the
+  drone and pistol beat. Once a character has a template, the drone is
+  inert (creative lead's beat, technical lead's mechanics).
+- **S48c2**: the opening's script. This covers the runner, the hint row,
+  staging and the #220 §4.12 text.
+- **S48c3**, panel and paint:
+  - the `»` door glyph, the §2.4 panel rows, help page 1, and the
+    painted floor line and marks;
+  - the orderlies;
+  - the door-side signal for the in-hall Ctrl-P hint;
+  - the whole-word NEARBY cut;
+  - the short recruiter pitches (#242).
+- **S48d**: a voice in the walls (part 5).
+- **S48e**: the walk and the native evidence. This build is the H1
+  session.
+
 ## Out of scope
 
 - Season 0's maps (Contractor Street, The Drop) and the Ninety-Nine
@@ -243,7 +268,61 @@ re-ranks the plan from both sessions' findings.
 - **Hint fit and symbol labels** along the path move to S48e, where the
   headless walk of the evening finds them.
 
-## Implementation notes (PR #TBD, S48c1a)
+## Implementation notes (PR #237, S48b)
+
+- **Switched on:** 12 talkers outside the Wake Hall, moved from `s27-cast`
+  into the new active bundle `s48-hub-cast`. The rest of `s27-cast` stays
+  authoring and unchanged:
+  - Core Precinct: Amsel, Brann (beside her `marshal-office` door marker;
+    the office isn't built) and Lindgren;
+  - Meridian Plaza: Quaye and Ranke;
+  - Central Tram Hub: Achterberg;
+  - Block Street: Ivey and Marsh;
+  - Clinic Row: Vane;
+  - Sodium Row: Solenne;
+  - The Tin Halo: Dolf and Vesper.
+- **Placement.** Each stands on an existing walkable tile beside their
+  counter or desk, on a one-tile `talker` spawner, and answers E from one
+  step away (S42 reach). Lindgren and Vesper are their counters' existing
+  NPCs, now named for them.
+- **Vesper.** Vesper's talk page wins E over her vendor counter. A Marked
+  caller gets the counter's refusal; a hunted caller in the Halo gets the
+  bouncer's line, with no page and no meeting recorded. Each offer
+  re-checks at dispatch.
+- **Dormant until S48c:** the Wake Hall talkers (Okafor, Vantongeren) and
+  the orderlies, because S48c restages the hall and its P3 changes land
+  there once. The four Wake Hall door recruiters (Achebe-Roux, Kettle,
+  Vance, Vael) stay dormant, per the creative lead.
+- **Held back:** Season 1 lines and offers that reference authoring
+  content, and Brann's finale and Curfew bark. The validator rejects active
+  content that references authoring content, and a test pins that. S26
+  restores them when Season 1 content goes active. The source is
+  `src/karst41/content/dialogue/<talker>.json` as of `b96051c`:
+  - Amsel: lines `record-war-s1-4-line`, `record-war-s1-3-book`,
+    `record-war-s1-2-curfew`, `record-war-s1-1-stairwell` and `work`, plus
+    the Work board offer (`war-s1-1-stairwell`).
+  - Brann: lines `record-war-s1-4-line`, `record-war-s1-3-book`,
+    `record-war-s1-2-curfew`, `record-war-s1-1-stairwell` and `finale`, the
+    Work board offer (`war-s1-1-stairwell`), and her bark ("Curfew drills
+    at oh-four-hundred…").
+  - Marsh: line `work` and the Work board offer (`war-s1-1-stairwell`).
+  - Vane: lines `record-sab-s1-4-batch`, `record-sab-s1-3-dreaming`,
+    `record-sab-s1-2-provenance`, `record-sab-s1-1-retrieval` and `work`,
+    plus the Work board offer (`sab-s1-1-retrieval`).
+- **New lines:** the creative lead's fillers for Vane, Ranke and Solenne,
+  and three fixes to Vesper's record.
+- **P3:** the interaction digest is unchanged from main (10,704 cases,
+  same sha256).
+- **S43 output pin:** six scenes (precinct, blocks and clinics, idle and
+  walk) now have the new talker posts in view, so their frame and body
+  hashes are re-pinned in `docs/ops/captures/s43/content-repins.json`. The
+  actor traces, inputs and moves are unchanged. By the technical lead's
+  ruling, content may re-pin frame and body only; the test rejects a
+  re-pin of anything else.
+- **Acceptance:** Ranke stands at (34,7), off the S09 walk row. S19 opens
+  Vesper's board from her talk page's "Work board" offer, the S42 order.
+
+## Implementation notes (PR #241, S48c1a)
 
 The body before the record (#220; game design 4 and 17, canon #238). No
 lessons yet (c1b) and no new lines (c2).
@@ -282,6 +361,15 @@ lessons yet (c1b) and no new lines (c2).
 - **Interim, until c2:** the briefing pages are no longer shown as
   screens. Slice §2 moves Vantongeren's lines into the log while you move,
   which is c2's staging; `wake.briefing` and #216's paging stay for it.
+- **Writer table.** The PR body maps the 38 writers reachable from the hall,
+  checked against this code. Several of the planning table's holds (drone
+  outcome, lift, hit, jacked and jacked out, meetings) are c1b's or not yet
+  built; in c1a those writers are suppressed by the write guards or
+  unreachable. The check found and fixed two leaks: an unread body could
+  start a delete, and a refused death patched another effect. The second fix
+  is interim, because c1b's direct core entry closes that route. A chat
+  report may name an unread body (technical lead): it is moderation, and the
+  report row needs no character row.
 - **Panel:** an unread body sends no grade, so the panel shows name and
   bars only. The terminal UI §2.4 panel (gurney number, empty grade slot,
   lease row) is presentation work for the S48 panel pass.
@@ -313,10 +401,43 @@ Lines and hints stay c2.
   This replaces the earlier ruling that it counts as skipped. The drone
   and pistol go before anything is saved; a redial starts the lesson
   fresh, and the fact written is the win, not a skip.
-- **Replay trigger:** deferred to #239 (technical lead, Q2). Whenever the
-  drone does spawn for a finished character, the pistol and lesson work.
+- **The drone wakes only for an unread body** (creative lead, beat (a);
+  technical lead, mechanics). For any character with a template, by any
+  route, it never wakes: no ring trigger, no line (6.7 is only for the
+  opening's skip) and no `wake_combat` write. A skipper who read the
+  record at the door and a winner who comes back both cross the ring and
+  nothing happens. A drone that is already up when its owner becomes a
+  character stays drawn as `τ` but inert: no Tab target, no hit either
+  way, no B skip, and `~` in NEARBY rather than `!`, under its own name
+  (presentation lead); if it was the target, TARGET clears to
+  `none   Tab picks` on that frame. It goes when its
+  owner moves out of range or leaves the hall, and does not come back.
+  The redial ruling stands for unread bodies.
+- **The drone holds fire while its target's record or name prompt is
+  open** (technical lead), and resumes when it closes.
+- **Record read mid-fight** (technical lead): the drone goes inert, the
+  pistol is reeled back, and `wake_combat = "skipped"` is held in the wake
+  record and applied at creation. Esc instead closes the record and the
+  fight resumes unchanged. c2 carries the line: only 6.8 plays in that
+  case (creative lead). Every key that opens the record (street door,
+  outfitter, training terminal) is outside the drone's range in today's
+  hall, so this guards later layouts; the tests open the record directly.
+- **Replay trigger:** deferred to #239 (technical lead, Q2). With the
+  ruling above the drone never wakes for a finished character, so #239
+  decides whether any replay exists and how.
 - **Lift for a character (Q4):** unchanged, identity-scoped.
-- The pistol's item description is a placeholder for the creative lead.
+- **Write guards, call-site test** (technical lead, review 6873460059 on
+  #241): `tests/characters/test_s48c1b_write_guards.py` walks the server
+  source for every `queue(...)` and `commerce.settle(...)` call, every
+  direct outbox write, every write into the live identity store, every
+  live identity accessor that is not only read or copied, and every
+  clone-debt write. It fails when a site appears or disappears without
+  its table changing, and each entry says why it is safe for an unread
+  body. `Characters.recover` now returns at once for an unread body.
+- **Acceptance `return_to`** may stay for stable starts. It is no longer
+  needed for safety: a created character no longer wakes the drone.
+- **Known gaps, filled in c2:** the core entry line that says B leaves,
+  and the pistol's item description (the creative lead's wording).
 
 ## Implementation notes (PR #TBD, S48c2)
 

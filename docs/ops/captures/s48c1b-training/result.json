@@ -1,0 +1,2910 @@
+{
+  "head": "3ee2f70e4f466ded5b1316cdcf9861430d3c9b19",
+  "passed": true,
+  "cases": [
+    {
+      "size": [
+        80,
+        24
+      ],
+      "tier": "16",
+      "handle": "S10P80",
+      "character_name": "P界80",
+      "wide_bbs_handle": false,
+      "wide_character_name": true,
+      "new_safe_frame": true,
+      "training_fight": "done",
+      "plaza_person_lift": null,
+      "captures": [
+        "training-drone-80x24-16",
+        "training-complete-80x24-16",
+        "wake-record-80x24-16",
+        "wake-hall-80x24-16",
+        "meridian-plaza-80x24-16",
+        "inventory-80x24-16",
+        "contracts-80x24-16",
+        "help-80x24-16"
+      ],
+      "ordinary_inputs": true,
+      "inputs": {
+        "connect": {
+          "naws": [
+            80,
+            24
+          ],
+          "term": "xterm-256color",
+          "colorterm": null,
+          "sixteen_account": true
+        },
+        "steps": [
+          {
+            "capture": "training-drone-80x24-16",
+            "inputs": [
+              "\u001b[B\r",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\t",
+              "f"
+            ]
+          },
+          {
+            "capture": "training-complete-80x24-16",
+            "inputs": [
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f"
+            ]
+          },
+          {
+            "capture": "wake-record-80x24-16",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e"
+            ]
+          },
+          {
+            "capture": "wake-hall-80x24-16",
+            "inputs": [
+              "\r",
+              "P界80\r",
+              {
+                "move": "return_to",
+                "tile": [
+                  6,
+                  5
+                ]
+              }
+            ]
+          },
+          {
+            "capture": "meridian-plaza-80x24-16",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D"
+            ]
+          },
+          {
+            "capture": "inventory-80x24-16",
+            "inputs": [
+              "i"
+            ]
+          },
+          {
+            "capture": "contracts-80x24-16",
+            "inputs": [
+              "\u001b",
+              "q"
+            ]
+          },
+          {
+            "capture": "help-80x24-16",
+            "inputs": [
+              "\u001b",
+              "?"
+            ]
+          },
+          {
+            "capture": "finished-80x24-16",
+            "inputs": [
+              "\u001b",
+              "\u0018y",
+              " ",
+              "b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "size": [
+        80,
+        24
+      ],
+      "tier": "256",
+      "handle": "S10Q80",
+      "character_name": "Q界80",
+      "wide_bbs_handle": false,
+      "wide_character_name": true,
+      "new_safe_frame": true,
+      "training_fight": "done",
+      "plaza_person_lift": null,
+      "captures": [
+        "training-drone-80x24-256",
+        "training-complete-80x24-256",
+        "wake-record-80x24-256",
+        "wake-hall-80x24-256",
+        "meridian-plaza-80x24-256",
+        "inventory-80x24-256",
+        "contracts-80x24-256",
+        "help-80x24-256"
+      ],
+      "ordinary_inputs": true,
+      "inputs": {
+        "connect": {
+          "naws": [
+            80,
+            24
+          ],
+          "term": "xterm-256color",
+          "colorterm": null,
+          "sixteen_account": false
+        },
+        "steps": [
+          {
+            "capture": "training-drone-80x24-256",
+            "inputs": [
+              "\u001b[B\r",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\t",
+              "f"
+            ]
+          },
+          {
+            "capture": "training-complete-80x24-256",
+            "inputs": [
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f"
+            ]
+          },
+          {
+            "capture": "wake-record-80x24-256",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e"
+            ]
+          },
+          {
+            "capture": "wake-hall-80x24-256",
+            "inputs": [
+              "\r",
+              "Q界80\r",
+              {
+                "move": "return_to",
+                "tile": [
+                  6,
+                  5
+                ]
+              }
+            ]
+          },
+          {
+            "capture": "meridian-plaza-80x24-256",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D"
+            ]
+          },
+          {
+            "capture": "inventory-80x24-256",
+            "inputs": [
+              "i"
+            ]
+          },
+          {
+            "capture": "contracts-80x24-256",
+            "inputs": [
+              "\u001b",
+              "q"
+            ]
+          },
+          {
+            "capture": "help-80x24-256",
+            "inputs": [
+              "\u001b",
+              "?"
+            ]
+          },
+          {
+            "capture": "finished-80x24-256",
+            "inputs": [
+              "\u001b",
+              "\u0018y",
+              " ",
+              "b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "size": [
+        80,
+        24
+      ],
+      "tier": "truecolor",
+      "handle": "S10R80",
+      "character_name": "R界80",
+      "wide_bbs_handle": false,
+      "wide_character_name": true,
+      "new_safe_frame": true,
+      "training_fight": "done",
+      "plaza_person_lift": {
+        "role": "npc_wardens",
+        "original_rgb": [
+          37,
+          99,
+          235
+        ],
+        "paint_rgb": [
+          130,
+          145,
+          255
+        ],
+        "original_distance": 46.06156571096115,
+        "paint_distance": 63.52087333710712,
+        "people_floor": 63.38528726606927,
+        "terminal_cells": [
+          [
+            4,
+            4
+          ],
+          [
+            58,
+            6
+          ],
+          [
+            58,
+            8
+          ]
+        ]
+      },
+      "captures": [
+        "training-drone-80x24-truecolor",
+        "training-complete-80x24-truecolor",
+        "wake-record-80x24-truecolor",
+        "wake-hall-80x24-truecolor",
+        "meridian-plaza-80x24-truecolor",
+        "inventory-80x24-truecolor",
+        "contracts-80x24-truecolor",
+        "help-80x24-truecolor"
+      ],
+      "ordinary_inputs": true,
+      "inputs": {
+        "connect": {
+          "naws": [
+            80,
+            24
+          ],
+          "term": "xterm-direct",
+          "colorterm": "truecolor",
+          "sixteen_account": false
+        },
+        "steps": [
+          {
+            "capture": "training-drone-80x24-truecolor",
+            "inputs": [
+              "\u001b[B\r",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\t",
+              "f"
+            ]
+          },
+          {
+            "capture": "training-complete-80x24-truecolor",
+            "inputs": [
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f"
+            ]
+          },
+          {
+            "capture": "wake-record-80x24-truecolor",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e"
+            ]
+          },
+          {
+            "capture": "wake-hall-80x24-truecolor",
+            "inputs": [
+              "\r",
+              "R界80\r",
+              {
+                "move": "return_to",
+                "tile": [
+                  6,
+                  5
+                ]
+              }
+            ]
+          },
+          {
+            "capture": "meridian-plaza-80x24-truecolor",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D"
+            ]
+          },
+          {
+            "capture": "inventory-80x24-truecolor",
+            "inputs": [
+              "i"
+            ]
+          },
+          {
+            "capture": "contracts-80x24-truecolor",
+            "inputs": [
+              "\u001b",
+              "q"
+            ]
+          },
+          {
+            "capture": "help-80x24-truecolor",
+            "inputs": [
+              "\u001b",
+              "?"
+            ]
+          },
+          {
+            "capture": "finished-80x24-truecolor",
+            "inputs": [
+              "\u001b",
+              "\u0018y",
+              " ",
+              "b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "size": [
+        132,
+        50
+      ],
+      "tier": "16",
+      "handle": "S10P132",
+      "character_name": "P界132",
+      "wide_bbs_handle": false,
+      "wide_character_name": true,
+      "new_safe_frame": true,
+      "training_fight": "done",
+      "plaza_person_lift": null,
+      "captures": [
+        "training-drone-132x50-16",
+        "training-complete-132x50-16",
+        "wake-record-132x50-16",
+        "wake-hall-132x50-16",
+        "meridian-plaza-132x50-16",
+        "inventory-132x50-16",
+        "contracts-132x50-16",
+        "help-132x50-16"
+      ],
+      "ordinary_inputs": true,
+      "inputs": {
+        "connect": {
+          "naws": [
+            132,
+            50
+          ],
+          "term": "xterm-256color",
+          "colorterm": null,
+          "sixteen_account": true
+        },
+        "steps": [
+          {
+            "capture": "training-drone-132x50-16",
+            "inputs": [
+              "\u001b[B\r",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\t",
+              "f"
+            ]
+          },
+          {
+            "capture": "training-complete-132x50-16",
+            "inputs": [
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f"
+            ]
+          },
+          {
+            "capture": "wake-record-132x50-16",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e"
+            ]
+          },
+          {
+            "capture": "wake-hall-132x50-16",
+            "inputs": [
+              "\r",
+              "P界132\r",
+              {
+                "move": "return_to",
+                "tile": [
+                  6,
+                  5
+                ]
+              }
+            ]
+          },
+          {
+            "capture": "meridian-plaza-132x50-16",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D"
+            ]
+          },
+          {
+            "capture": "inventory-132x50-16",
+            "inputs": [
+              "i"
+            ]
+          },
+          {
+            "capture": "contracts-132x50-16",
+            "inputs": [
+              "\u001b",
+              "q"
+            ]
+          },
+          {
+            "capture": "help-132x50-16",
+            "inputs": [
+              "\u001b",
+              "?"
+            ]
+          },
+          {
+            "capture": "finished-132x50-16",
+            "inputs": [
+              "\u001b",
+              "\u0018y",
+              " ",
+              "b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "size": [
+        132,
+        50
+      ],
+      "tier": "256",
+      "handle": "S10Q132",
+      "character_name": "Q界132",
+      "wide_bbs_handle": false,
+      "wide_character_name": true,
+      "new_safe_frame": true,
+      "training_fight": "done",
+      "plaza_person_lift": null,
+      "captures": [
+        "training-drone-132x50-256",
+        "training-complete-132x50-256",
+        "wake-record-132x50-256",
+        "wake-hall-132x50-256",
+        "meridian-plaza-132x50-256",
+        "inventory-132x50-256",
+        "contracts-132x50-256",
+        "help-132x50-256"
+      ],
+      "ordinary_inputs": true,
+      "inputs": {
+        "connect": {
+          "naws": [
+            132,
+            50
+          ],
+          "term": "xterm-256color",
+          "colorterm": null,
+          "sixteen_account": false
+        },
+        "steps": [
+          {
+            "capture": "training-drone-132x50-256",
+            "inputs": [
+              "\u001b[B\r",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\t",
+              "f"
+            ]
+          },
+          {
+            "capture": "training-complete-132x50-256",
+            "inputs": [
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f"
+            ]
+          },
+          {
+            "capture": "wake-record-132x50-256",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e"
+            ]
+          },
+          {
+            "capture": "wake-hall-132x50-256",
+            "inputs": [
+              "\r",
+              "Q界132\r",
+              {
+                "move": "return_to",
+                "tile": [
+                  6,
+                  5
+                ]
+              }
+            ]
+          },
+          {
+            "capture": "meridian-plaza-132x50-256",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D"
+            ]
+          },
+          {
+            "capture": "inventory-132x50-256",
+            "inputs": [
+              "i"
+            ]
+          },
+          {
+            "capture": "contracts-132x50-256",
+            "inputs": [
+              "\u001b",
+              "q"
+            ]
+          },
+          {
+            "capture": "help-132x50-256",
+            "inputs": [
+              "\u001b",
+              "?"
+            ]
+          },
+          {
+            "capture": "finished-132x50-256",
+            "inputs": [
+              "\u001b",
+              "\u0018y",
+              " ",
+              "b"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "size": [
+        132,
+        50
+      ],
+      "tier": "truecolor",
+      "handle": "S10R132",
+      "character_name": "R界132",
+      "wide_bbs_handle": false,
+      "wide_character_name": true,
+      "new_safe_frame": true,
+      "training_fight": "done",
+      "plaza_person_lift": {
+        "role": "npc_wardens",
+        "original_rgb": [
+          37,
+          99,
+          235
+        ],
+        "paint_rgb": [
+          130,
+          145,
+          255
+        ],
+        "original_distance": 46.06156571096115,
+        "paint_distance": 63.52087333710712,
+        "people_floor": 63.38528726606927,
+        "terminal_cells": [
+          [
+            36,
+            5
+          ],
+          [
+            49,
+            5
+          ],
+          [
+            110,
+            7
+          ],
+          [
+            110,
+            8
+          ]
+        ]
+      },
+      "captures": [
+        "training-drone-132x50-truecolor",
+        "training-complete-132x50-truecolor",
+        "wake-record-132x50-truecolor",
+        "wake-hall-132x50-truecolor",
+        "meridian-plaza-132x50-truecolor",
+        "inventory-132x50-truecolor",
+        "contracts-132x50-truecolor",
+        "help-132x50-truecolor"
+      ],
+      "ordinary_inputs": true,
+      "inputs": {
+        "connect": {
+          "naws": [
+            132,
+            50
+          ],
+          "term": "xterm-direct",
+          "colorterm": "truecolor",
+          "sixteen_account": false
+        },
+        "steps": [
+          {
+            "capture": "training-drone-132x50-truecolor",
+            "inputs": [
+              "\u001b[B\r",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\t",
+              "f"
+            ]
+          },
+          {
+            "capture": "training-complete-132x50-truecolor",
+            "inputs": [
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f"
+            ]
+          },
+          {
+            "capture": "wake-record-132x50-truecolor",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e"
+            ]
+          },
+          {
+            "capture": "wake-hall-132x50-truecolor",
+            "inputs": [
+              "\r",
+              "R界132\r",
+              {
+                "move": "return_to",
+                "tile": [
+                  6,
+                  5
+                ]
+              }
+            ]
+          },
+          {
+            "capture": "meridian-plaza-132x50-truecolor",
+            "inputs": [
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[B",
+              "e",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[B",
+              "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D"
+            ]
+          },
+          {
+            "capture": "inventory-132x50-truecolor",
+            "inputs": [
+              "i"
+            ]
+          },
+          {
+            "capture": "contracts-132x50-truecolor",
+            "inputs": [
+              "\u001b",
+              "q"
+            ]
+          },
+          {
+            "capture": "help-132x50-truecolor",
+            "inputs": [
+              "\u001b",
+              "?"
+            ]
+          },
+          {
+            "capture": "finished-132x50-truecolor",
+            "inputs": [
+              "\u001b",
+              "\u0018y",
+              " ",
+              "b"
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "inputs_record": {
+    "script": "scripts/accept_p5_netbbs.py",
+    "commit": "3ee2f70e4f466ded5b1316cdcf9861430d3c9b19",
+    "form": "per case: connect (Telnet NAWS/TERM/COLORTERM), then per capture every string the caller wrote since the previous capture, in order, plus server-side moves as {\"move\": ...}"
+  },
+  "transport": "NetBBS Telnet -> registered native stdio, DOOR_KARST41_PRESENTATION=1",
+  "source_matched_wheel": {
+    "version": "0.0.20",
+    "file": "C:\\Users\\Thiesi\\AppData\\Local\\Temp\\claude\\670f1e8759e85af8\\fc3cddc2-1ba6-4dd9-ad64-6af894bc4b24\\scratchpad\\accept-env\\door\\Lib\\site-packages\\karst41\\__init__.py",
+    "python_tree_sha256": "1d6f838e463625ff082f215bf04e639742399db33f8b819095e6f14f68fe787a",
+    "renderer": "present"
+  },
+  "show": false,
+  "console": {
+    "isatty": false,
+    "size": null
+  },
+  "human_approval": false,
+  "fixtures": "private node/world/accounts only; normal game rules",
+  "manifest": {
+    "training-drone-80x24-16.ans": {
+      "bytes": 24805,
+      "sha256": "81b26020e6e9258b42283ccb69eec2cc29c5d94883e4d97f2f67dc7344c43564"
+    },
+    "training-drone-80x24-16.txt": {
+      "bytes": 3007,
+      "sha256": "e91ac6596f89927e5ad14a53f3fdd03bb20ed71ae8264de87051628f82cdbb46",
+      "committed_lf": {
+        "bytes": 2984,
+        "sha256": "3e74303db22dd7bf50ef62e1bd95fb98aadc7cdd7ee45af0bace5067d1394bd1"
+      }
+    },
+    "training-drone-80x24-16.json": {
+      "bytes": 5024,
+      "sha256": "0ab481d0826310ca41aa2f78e4a7015ac6850b7e9d9375e2d0c931b8fb0b282f"
+    },
+    "training-complete-80x24-16.ans": {
+      "bytes": 30192,
+      "sha256": "7228b0bb0b0521560e903afe83e095442f3b16ddd4b540a23fd7c6303c4aa450"
+    },
+    "training-complete-80x24-16.txt": {
+      "bytes": 2954,
+      "sha256": "a2775d243035a3a2d9e620a34696fb18d69cce96d56e09489bf8af2ad25f4a49",
+      "committed_lf": {
+        "bytes": 2931,
+        "sha256": "403a3f3365f19d494da1382afbfa7734d5cee1d065e5a3a10a73873b99a06c48"
+      }
+    },
+    "training-complete-80x24-16.json": {
+      "bytes": 4618,
+      "sha256": "97a22281233e9dadcf3c183b340c66bac3d1049b5064d8864fc1f9082d954819"
+    },
+    "wake-record-80x24-16.ans": {
+      "bytes": 43944,
+      "sha256": "4723ba0d4e1da95a8059f5179eb335b6c5ad142c40adfaee7840e22c4fdceb69"
+    },
+    "wake-record-80x24-16.txt": {
+      "bytes": 2700,
+      "sha256": "96edf462977bf098ddcc71cbd2f3a9efbfe73ca4a3504966a19e76ef6d21b14d",
+      "committed_lf": {
+        "bytes": 2677,
+        "sha256": "2f0196e0e1beaf24ce5714d5fc39817aba86acf4c158b3a986360b6c84ea9f8b"
+      }
+    },
+    "wake-record-80x24-16.json": {
+      "bytes": 4095,
+      "sha256": "44e9cae015d2eebcb33fc2d45d182e55b7a80ef212c0e5c0bfe530093e62d081"
+    },
+    "wake-hall-80x24-16.ans": {
+      "bytes": 54994,
+      "sha256": "6a905214294bef90d5ab26ffe5cdfafee1e2dae7f1aa54d9c0074fa624d9792f"
+    },
+    "wake-hall-80x24-16.txt": {
+      "bytes": 3026,
+      "sha256": "e0555db55c35d9ecb167058fc02e231bf43c851c51a783724993e48d1e4c182e",
+      "committed_lf": {
+        "bytes": 3003,
+        "sha256": "a50336913b483fa94a2297224ca9868a5053a2d7822d96cd237be84d23ea9c51"
+      }
+    },
+    "wake-hall-80x24-16.json": {
+      "bytes": 4822,
+      "sha256": "047b801a5897b31f31378d8066d1aa4e45ae27b3899cceb6d8bc721b3e8250db"
+    },
+    "meridian-plaza-80x24-16.ans": {
+      "bytes": 270851,
+      "sha256": "b6468235f39a6ba691c67ffe887621e00db7d0fc079dad2d90e72f36b0cb5c58"
+    },
+    "meridian-plaza-80x24-16.txt": {
+      "bytes": 3342,
+      "sha256": "29ce5b9ba35200abfcc96717ba0440141ccc505c855e6c12fd998fc72f07baf7",
+      "committed_lf": {
+        "bytes": 3319,
+        "sha256": "fba3a6d71edf87cdc1cd3c51e14406a323cbd3993f0197859e81cc72d0882c53"
+      }
+    },
+    "meridian-plaza-80x24-16.json": {
+      "bytes": 4874,
+      "sha256": "ccecc4561ada765d697bb472f576d45c7ab72a8ab704677205992566344ac25c"
+    },
+    "inventory-80x24-16.ans": {
+      "bytes": 275122,
+      "sha256": "028bcb4c3a20951fbaab5f6884d40e510ac36c44b525217b9bc4b57e7c3b7a5e"
+    },
+    "inventory-80x24-16.txt": {
+      "bytes": 2811,
+      "sha256": "4891cc1c85da652d633ea8847d4a794a6c0074a3dd875946c626a83f3bc3af61",
+      "committed_lf": {
+        "bytes": 2788,
+        "sha256": "c590b6d94aa988d079d390e930d87fe2b567e5dde3b79237603574a5a77baec9"
+      }
+    },
+    "inventory-80x24-16.json": {
+      "bytes": 4223,
+      "sha256": "e7d4159b9bad4d69e5cff2669cab27896ea26e543d4346844135e18274a646f0"
+    },
+    "contracts-80x24-16.ans": {
+      "bytes": 284249,
+      "sha256": "981cc492bdbd870f860cacd2f9ee0acf0fc68b972a757ec93929fbce6d953533"
+    },
+    "contracts-80x24-16.txt": {
+      "bytes": 2783,
+      "sha256": "2d8d4a5bf337ea126f150781fdd30317f818c60f6c8345cab0be33ecbe3a4eda",
+      "committed_lf": {
+        "bytes": 2760,
+        "sha256": "1f7ecae0e9742c278c8d5a95b4dc92acf37213142ff8b7887589840ecf90ae32"
+      }
+    },
+    "contracts-80x24-16.json": {
+      "bytes": 4198,
+      "sha256": "2801f5afe16dbe12226227149a9f089b68142fb8aad147dbad61b984cc6b21c7"
+    },
+    "help-80x24-16.ans": {
+      "bytes": 291002,
+      "sha256": "7b979f4b78b94b6e76617ac6b672a8d4a4d44efc74c606566d1e823d8edc0968"
+    },
+    "help-80x24-16.txt": {
+      "bytes": 2503,
+      "sha256": "ec049ec82a3ca69cc7fba2c22bc11c58681b856d0329cbc862acc0cc223ed0b8",
+      "committed_lf": {
+        "bytes": 2480,
+        "sha256": "6bb424d7aa070c4034f9d952db8a9e284da761807ac4f88c4867ff644152edb8"
+      }
+    },
+    "help-80x24-16.json": {
+      "bytes": 3443,
+      "sha256": "c64aeb1d4795d6894357c574edf11d7d5f8242fdc8599bca303282fdd6ec81b0"
+    },
+    "training-drone-80x24-256.ans": {
+      "bytes": 44144,
+      "sha256": "4ec366f6d0e60c5eb3a299e037a5b873c55781e1cf429f7bc74a287a8850faea"
+    },
+    "training-drone-80x24-256.txt": {
+      "bytes": 3083,
+      "sha256": "72a3c1c22d1123bb85e9f1893c74f4ab56915077d994a66f7cf6c48fbd79f47e",
+      "committed_lf": {
+        "bytes": 3060,
+        "sha256": "1298cb94326b3887dc060899b23da3cf44620e31ff7657499156b0e5cd88f3c1"
+      }
+    },
+    "training-drone-80x24-256.json": {
+      "bytes": 6563,
+      "sha256": "3ce37b80b453f43f31e2529aa48212032d05993c7cb6ee11deb64266299a90cd"
+    },
+    "training-complete-80x24-256.ans": {
+      "bytes": 53961,
+      "sha256": "f51a37f562cccdad2a2e1d7a68428f52c3fb31d4a001f9cb59ccedb83ab72bc2"
+    },
+    "training-complete-80x24-256.txt": {
+      "bytes": 3030,
+      "sha256": "b5b8e57e12395fef5bfbfecde466f4e1eb038dbba1427b158e7c3c8aec638a79",
+      "committed_lf": {
+        "bytes": 3007,
+        "sha256": "53dc40059a690264d7e472f841f344875d425e30e621d179139c8fecaa80cb1a"
+      }
+    },
+    "training-complete-80x24-256.json": {
+      "bytes": 6205,
+      "sha256": "602133758f45cb069b43530717728ed2b1299740bb208f356a570ee0e2c9a9d9"
+    },
+    "wake-record-80x24-256.ans": {
+      "bytes": 76426,
+      "sha256": "dd8127da6d26efbe897fe445e47f96a2c59e0a3aa504834d0999325c96d54d26"
+    },
+    "wake-record-80x24-256.txt": {
+      "bytes": 2700,
+      "sha256": "4b4d7a26ba7469aa0302a4f594200ba9bd0b3e71144fb05f6c8bd290da025d06",
+      "committed_lf": {
+        "bytes": 2677,
+        "sha256": "73348f08c9ba2fe53a9e2dfa8969cbd930bddb65a884579786a0bfd2b0179c72"
+      }
+    },
+    "wake-record-80x24-256.json": {
+      "bytes": 4333,
+      "sha256": "4a7eb2f3d01e5bc23a753c70ac5cbeaa7cd00a384210ece8b285f0782db05c7a"
+    },
+    "wake-hall-80x24-256.ans": {
+      "bytes": 92040,
+      "sha256": "0fa9f57c2fa9e14d31198c0adb6a9174e327cdd489e348ba20ed68665a69912f"
+    },
+    "wake-hall-80x24-256.txt": {
+      "bytes": 2978,
+      "sha256": "d419ff36c80b82e0dd7c9b24f317f067c191df16ffa9f22b855047410f5fbbd5",
+      "committed_lf": {
+        "bytes": 2955,
+        "sha256": "86fecb0c6d11a89adf2a8476e5c3f04181e67261f888d6afaaf92443c1f7787f"
+      }
+    },
+    "wake-hall-80x24-256.json": {
+      "bytes": 6354,
+      "sha256": "734ceac17e3358df65d2813d700dd4e296e8760d6bd8d2c5202865471cce65e9"
+    },
+    "meridian-plaza-80x24-256.ans": {
+      "bytes": 480929,
+      "sha256": "2860948c943fd53de3058df35631e03be9a5b11322032fcfe0d460235f474373"
+    },
+    "meridian-plaza-80x24-256.txt": {
+      "bytes": 3353,
+      "sha256": "fd23b6f3c4907e3a10a74c49c13d6380c16610ccf9479557ed8900d0820bc595",
+      "committed_lf": {
+        "bytes": 3330,
+        "sha256": "cf0a4251499978e5f4a0553709c9c485542b22f9e03d3a81f305f86f606135aa"
+      }
+    },
+    "meridian-plaza-80x24-256.json": {
+      "bytes": 7838,
+      "sha256": "291c70eb08320e476f7a69b564fa349687c2631c939f95104234fe57cf9a12b5"
+    },
+    "inventory-80x24-256.ans": {
+      "bytes": 486567,
+      "sha256": "d6652eb135d9f2b0dc07a8ea547e0b375f92595b5c0bbf5a2861e5b55a50bbbf"
+    },
+    "inventory-80x24-256.txt": {
+      "bytes": 2811,
+      "sha256": "35a7bd47cb7176f404aa6021f13e3d349a1ade8454849b46ba5068a93a65c4cc",
+      "committed_lf": {
+        "bytes": 2788,
+        "sha256": "3c72342cdfe1e220cecea128ce3ff08cc3eadb3fe6874f1a65b2af92b095ee42"
+      }
+    },
+    "inventory-80x24-256.json": {
+      "bytes": 4599,
+      "sha256": "71073399d74f3f35a27bacead3c1708fd8c3c672a6f40230a094f9751a115abe"
+    },
+    "contracts-80x24-256.ans": {
+      "bytes": 500420,
+      "sha256": "f0ab03c4ec27368644040e28f630fffd8f4c2b11bbd8b2aa1732f6f548f8c751"
+    },
+    "contracts-80x24-256.txt": {
+      "bytes": 2783,
+      "sha256": "63ce5e8a448d5949a4b04e0586ed97488f23e334a30a5528cd8ca9154d8b0209",
+      "committed_lf": {
+        "bytes": 2760,
+        "sha256": "7128d52bb0a5b5e5432ae26a4580ff8d9ed99c3b896410899ba310a123573c4f"
+      }
+    },
+    "contracts-80x24-256.json": {
+      "bytes": 4574,
+      "sha256": "6f75402a5a4007fb530f125bc96dcd2895567a4532d14466b314433c7300f0a9"
+    },
+    "help-80x24-256.ans": {
+      "bytes": 510174,
+      "sha256": "536f46751f29bc5ab8dc0a334c8bab4405017fb343f2fc9ef69f3cefa6f96eb6"
+    },
+    "help-80x24-256.txt": {
+      "bytes": 2503,
+      "sha256": "511722469082520025c187686fd929fc4f0cad60b3552ba33da60988f59e299a",
+      "committed_lf": {
+        "bytes": 2480,
+        "sha256": "3eb7ca49db8d628d6f2ee6b18d9fcec2b0bf05bd91919d44fd2557a289523939"
+      }
+    },
+    "help-80x24-256.json": {
+      "bytes": 3711,
+      "sha256": "1cdf3d0d5be35e3f409dab8fa424af9ef8cbca9382c2bccb440ea6566fc8a342"
+    },
+    "training-drone-80x24-truecolor.ans": {
+      "bytes": 52106,
+      "sha256": "b302aef5cf87f11e2cd222fbb8dce1715e59ffbee5118100c975744dd8aa7366"
+    },
+    "training-drone-80x24-truecolor.txt": {
+      "bytes": 3083,
+      "sha256": "a3131d7275cc953d88f902a4431caf8856d85de6d16460e28660b8f715010723",
+      "committed_lf": {
+        "bytes": 3060,
+        "sha256": "af3189f130829b846e9da6588a74a7b44705b9058f09eafc73e8cf07c20b720d"
+      }
+    },
+    "training-drone-80x24-truecolor.json": {
+      "bytes": 6818,
+      "sha256": "f71f678cf3399c74d48922986e6d86d8bcb5d1c1f10360ea4582c4ba614675c4"
+    },
+    "training-complete-80x24-truecolor.ans": {
+      "bytes": 62288,
+      "sha256": "a296e6e085d7d23f4ee0f5c3bb0130df73826d9010cee9b973a0ec37ac9e6149"
+    },
+    "training-complete-80x24-truecolor.txt": {
+      "bytes": 3030,
+      "sha256": "42db5283809bb2cf35408711f4a81659d9be9a43d52dbc662681d1a10e92c952",
+      "committed_lf": {
+        "bytes": 3007,
+        "sha256": "c749eb4fbb491ce3444db1fec6a067a5d3a9fd88e77eb66051ab3ac44e30ac09"
+      }
+    },
+    "training-complete-80x24-truecolor.json": {
+      "bytes": 6446,
+      "sha256": "08833fe5c1d2a4e1aff2183504c79f5e40080d7c9f807df1dc1d0d3e94e3f9ec"
+    },
+    "wake-record-80x24-truecolor.ans": {
+      "bytes": 89410,
+      "sha256": "17d581b78d700d46ff5072f402527909b4ec600c6569c0204dbfdda1b5b7b314"
+    },
+    "wake-record-80x24-truecolor.txt": {
+      "bytes": 2700,
+      "sha256": "1bb7b46411f6b7d9d77b4a14ed06a02d2693b80bf51b13d23e675a59318caeda",
+      "committed_lf": {
+        "bytes": 2677,
+        "sha256": "5bf5c4c6b55ea5fdb8429e6a3df1060bac3c39383fa2aec124c61a42c9cc6f9c"
+      }
+    },
+    "wake-record-80x24-truecolor.json": {
+      "bytes": 4394,
+      "sha256": "af8307f261a86357593bdc57e6c6256dc175c24c3e559448dc16e0c793d647ed"
+    },
+    "wake-hall-80x24-truecolor.ans": {
+      "bytes": 107937,
+      "sha256": "4985e861d7a2b5b5cfbdd2f81a197a5399c82c8cd72dd6889e4b2fc7e9c34eb0"
+    },
+    "wake-hall-80x24-truecolor.txt": {
+      "bytes": 2978,
+      "sha256": "5b8d7d64f48dbc63f4b8ad8c802188199d7b15689a536e05444d031510624e28",
+      "committed_lf": {
+        "bytes": 2955,
+        "sha256": "e71bf21638a517b399602f0737ee06a5ea41706d3f63320dd047cf7314619903"
+      }
+    },
+    "wake-hall-80x24-truecolor.json": {
+      "bytes": 6601,
+      "sha256": "cdd8e3fa7fe81bf68b6d33f797e1abe67fc30883880e5702451653687b8c63ad"
+    },
+    "meridian-plaza-80x24-truecolor.ans": {
+      "bytes": 589828,
+      "sha256": "0b0f7c70c2f0f8f663415a4af14dd6f677eb9ccecc916b3c64927dfc40e08e43"
+    },
+    "meridian-plaza-80x24-truecolor.txt": {
+      "bytes": 3365,
+      "sha256": "6f53f798e6a02f38003728228e916c4d496fde4fb88cd50bb3076944724a33c4",
+      "committed_lf": {
+        "bytes": 3342,
+        "sha256": "eb9a529fa335b15aace2e6da4b228250262cb0a974c4181f501b85423932e34b"
+      }
+    },
+    "meridian-plaza-80x24-truecolor.json": {
+      "bytes": 8664,
+      "sha256": "a5e5f51e100175516057655cf5e641085f346f87ee088e4d7a619cf6b248921c"
+    },
+    "inventory-80x24-truecolor.ans": {
+      "bytes": 606785,
+      "sha256": "6e529177edeeea8814d796c7cdce625f84c49ab979a77ef82399527236ea6237"
+    },
+    "inventory-80x24-truecolor.txt": {
+      "bytes": 2811,
+      "sha256": "622ef51e9e31fce3d4790003e63659956b9dc1e19b5f275b4d595c68b39dd329",
+      "committed_lf": {
+        "bytes": 2788,
+        "sha256": "08d3bd8baf455bc531fc46feb0e84caf84719c030f09d35c5590e11c854778c1"
+      }
+    },
+    "inventory-80x24-truecolor.json": {
+      "bytes": 4660,
+      "sha256": "70eeb322b471dd182db67f539d2c480268d571bdfa69e6fdb81fde6fa891a26e"
+    },
+    "contracts-80x24-truecolor.ans": {
+      "bytes": 623523,
+      "sha256": "6c208270b0ff83e79ed3c1f7d7afefd6acb3b7f565618642c6643f88a1abfa16"
+    },
+    "contracts-80x24-truecolor.txt": {
+      "bytes": 2783,
+      "sha256": "4f60bfb3c2231040420b6dfe8390f587024e0ea74886cc53e137210f466395d3",
+      "committed_lf": {
+        "bytes": 2760,
+        "sha256": "a75139c19bffc20d0d42622502f0f5effee0ad18fc80504a196a31fe7fd45c8a"
+      }
+    },
+    "contracts-80x24-truecolor.json": {
+      "bytes": 4635,
+      "sha256": "afca47e04218c909cc72095df553c59f784872e0d167c2e3855037ba2a43f549"
+    },
+    "help-80x24-truecolor.ans": {
+      "bytes": 635859,
+      "sha256": "6523133ec4e20f18a4f9b15f6abf46d605b2226d778aeca198268ce65202bb50"
+    },
+    "help-80x24-truecolor.txt": {
+      "bytes": 2503,
+      "sha256": "3239e6da1f66fdc7a4254f06c95b43dc1e4d1512523343e527a2ab8cc301929d",
+      "committed_lf": {
+        "bytes": 2480,
+        "sha256": "b58e672c5e7d2499d32e67f963f382252918d630eb2dc6040ff6d573c7fcccee"
+      }
+    },
+    "help-80x24-truecolor.json": {
+      "bytes": 3774,
+      "sha256": "c73dc3cdb3ece117973689c3dd2f219eac06beb436c6d6631a0763bb63fc1f42"
+    },
+    "training-drone-132x50-16.ans": {
+      "bytes": 38458,
+      "sha256": "4c76262ff9704fdd0aeb359f698c0db687bc32ffd4a8c2f9b9f5ffbaa4d01e06"
+    },
+    "training-drone-132x50-16.txt": {
+      "bytes": 8303,
+      "sha256": "a8bd03a67af46df210191aa19b85f684b6c981ffcfdd56762a482d5f0af01d6a",
+      "committed_lf": {
+        "bytes": 8254,
+        "sha256": "d574c4d4c17f47b00a41bfed335cc90d8fd70a497fc46c98413eaff81c649591"
+      }
+    },
+    "training-drone-132x50-16.json": {
+      "bytes": 11316,
+      "sha256": "58ebcbc91054df95fd7ab4e8c130688a6799104e60ba355ed9a6a646aefa2a88"
+    },
+    "training-complete-132x50-16.ans": {
+      "bytes": 48141,
+      "sha256": "414cc568dd6059f7922dafe4b0405fe45af3e3ae9f2b2333a6464cce6b2699c1"
+    },
+    "training-complete-132x50-16.txt": {
+      "bytes": 8254,
+      "sha256": "e8e31ba8f5197cdb851cd560fa45e412a53dcd1a20bd6a8a78291882706e1865",
+      "committed_lf": {
+        "bytes": 8205,
+        "sha256": "d257a0cd552e1b82a8a25cc2b98d3b44189e8df7378778c0780678fc5933da20"
+      }
+    },
+    "training-complete-132x50-16.json": {
+      "bytes": 10971,
+      "sha256": "1cd5bfe840eae75ea66a27242fb98315269f413f4c632a6de466d3bddbde7439"
+    },
+    "wake-record-132x50-16.ans": {
+      "bytes": 65114,
+      "sha256": "8fb7b8cbd5e4bba9dcf552eb28bd3df8c4c1d7ee8f4bb5ee26f31ba5add7a38f"
+    },
+    "wake-record-132x50-16.txt": {
+      "bytes": 8097,
+      "sha256": "c368a5ea650252a7541dd05b638c5b969af7fe4deb7bd07c32cf81300b0d25b9",
+      "committed_lf": {
+        "bytes": 8048,
+        "sha256": "6d2c8057b0135865716283ac6a6ab334bfa50f52206f8fc6180d3e0e6c46f2f8"
+      }
+    },
+    "wake-record-132x50-16.json": {
+      "bytes": 10802,
+      "sha256": "4a3221b71962aabb12a0d3639e915f5c1fdf1ef21ebdef68b8de40a034e472c5"
+    },
+    "wake-hall-132x50-16.ans": {
+      "bytes": 94537,
+      "sha256": "4adfc99a8ff38c1de65ff5b7e2d08f01e6bb1db7d73094c291cc7a21840cde95"
+    },
+    "wake-hall-132x50-16.txt": {
+      "bytes": 8311,
+      "sha256": "d4e051b6a589a264e4a36c26d747e8dee88d542afbb26441a9678a8b29437c5c",
+      "committed_lf": {
+        "bytes": 8262,
+        "sha256": "1b338d4c2d809621b5d1880902b1b29ec13b831bd8513d4f113a4fa029c00745"
+      }
+    },
+    "wake-hall-132x50-16.json": {
+      "bytes": 11124,
+      "sha256": "72e6e79f65a1a68876846fffa89a3c92c42fa4e99d60a2f07d40b35254ed1f45"
+    },
+    "meridian-plaza-132x50-16.ans": {
+      "bytes": 172372,
+      "sha256": "4af3eee6106e7a19de22ce23af8e2d8056f59055fab3b378f3a8a54983dc8653"
+    },
+    "meridian-plaza-132x50-16.txt": {
+      "bytes": 9807,
+      "sha256": "4767fb57fd08349007190bd898dd847b1b359664e551734c02a7a8f6c0e5174a",
+      "committed_lf": {
+        "bytes": 9758,
+        "sha256": "59fd15a9b909845f14e468884ccd2153795d00da380519ab76dcc2f13bf8d8af"
+      }
+    },
+    "meridian-plaza-132x50-16.json": {
+      "bytes": 12744,
+      "sha256": "b7a80923f2718995ede43de0a5eb7f296f40d9ef5fe66951f89c40bf37f70115"
+    },
+    "inventory-132x50-16.ans": {
+      "bytes": 183747,
+      "sha256": "2f580ec865814b5f49d1e1bd0ef86850b986049f376bcd04281b22301b68601e"
+    },
+    "inventory-132x50-16.txt": {
+      "bytes": 8205,
+      "sha256": "b07a0071efbea1e1fb7566f3ccc53218519a15a5d4b5f1a9e9c2b148a1b0dbca",
+      "committed_lf": {
+        "bytes": 8156,
+        "sha256": "e9d184ccb1271e42c28e03f39e8d96f348504cba8f3c16043aeb7934267de137"
+      }
+    },
+    "inventory-132x50-16.json": {
+      "bytes": 10893,
+      "sha256": "d07c771b5e9268cebe37aaa92769577d414111deae7ed63d0e73ef2ef1d539ff"
+    },
+    "contracts-132x50-16.ans": {
+      "bytes": 208381,
+      "sha256": "2ced4f4f6c2cb642ffacf39643472866fe5158ee3fdcb9d25dc87b75563e185d"
+    },
+    "contracts-132x50-16.txt": {
+      "bytes": 8177,
+      "sha256": "f4623110a16154135601afbae69a2e2af911f1908081f5d16d393fe4aa0af3cc",
+      "committed_lf": {
+        "bytes": 8128,
+        "sha256": "408802c969dd086fa725b373207f2373628b1711da559f376dd8a7e5a7c43e60"
+      }
+    },
+    "contracts-132x50-16.json": {
+      "bytes": 10864,
+      "sha256": "2b5c999d40939f58f44d5f79a5a141f4ca538ca0e86ea3fb3dd6842018687d2f"
+    },
+    "help-132x50-16.ans": {
+      "bytes": 226955,
+      "sha256": "71aa120cf6c1d52b2b80b2c07dd37c3b52269e9ea06bccf191bc470f676606bb"
+    },
+    "help-132x50-16.txt": {
+      "bytes": 7653,
+      "sha256": "4147dfc5b0d0d8ee7c1211afcde68b67d0b1d81b32d9d1ec8ff937eb2013be80",
+      "committed_lf": {
+        "bytes": 7604,
+        "sha256": "0276834c0d8d44179e14a968d1cbab8000644c13d3d3d4a634c1ce7eb1e02412"
+      }
+    },
+    "help-132x50-16.json": {
+      "bytes": 9296,
+      "sha256": "2ab274e6fbbbad95177aa869bb8952163efd4a36800f2a3529a499200eba16c1"
+    },
+    "training-drone-132x50-256.ans": {
+      "bytes": 51333,
+      "sha256": "5031d94c61c5028e86cdd418bae0d2298c1398cac74123e6bb80b0ca563701e1"
+    },
+    "training-drone-132x50-256.txt": {
+      "bytes": 8296,
+      "sha256": "8b127d137d89c4399c76575cc808903ed7da1f6e306362ad281bce920a79d5c9",
+      "committed_lf": {
+        "bytes": 8247,
+        "sha256": "37498da72d25f56adcb6da8e414d98f3deb4b14fccbf274c0e8812a4a115b28f"
+      }
+    },
+    "training-drone-132x50-256.json": {
+      "bytes": 12956,
+      "sha256": "f052a59c9b562f0f679a4985d0ae59795a49167765ff8329bc818d336f029eb2"
+    },
+    "training-complete-132x50-256.ans": {
+      "bytes": 56258,
+      "sha256": "27d9f99bde505f4290b46b870d37889c5fd49a547a4a5094c5c9f5a296667eb1"
+    },
+    "training-complete-132x50-256.txt": {
+      "bytes": 8247,
+      "sha256": "030f78224e28a7242f0e51e554ec904a7f9dc3941268d7f86c00e0415a7d3891",
+      "committed_lf": {
+        "bytes": 8198,
+        "sha256": "030d6bca89d8a8522486400cf9455865ad18cc549c9c35ead0ea26234603c944"
+      }
+    },
+    "training-complete-132x50-256.json": {
+      "bytes": 12786,
+      "sha256": "dde69c84b140c3a3c448c1251c5bbf68848864430f3b7ff80ff22e07b27e0f22"
+    },
+    "wake-record-132x50-256.ans": {
+      "bytes": 80573,
+      "sha256": "3f10cce6400a7a95a1841c4bfea3a12d05b77b19191c37a442b0f95a3ec0627a"
+    },
+    "wake-record-132x50-256.txt": {
+      "bytes": 8097,
+      "sha256": "f5be3a468ee7d24c21df94462692a7d73edc1c004d4193a0401a9fdd6272dfcd",
+      "committed_lf": {
+        "bytes": 8048,
+        "sha256": "abeebbbc7d0e8f4aea9acb7b814b98cc06830d5ae126f70d4dc7582ae4469729"
+      }
+    },
+    "wake-record-132x50-256.json": {
+      "bytes": 11229,
+      "sha256": "4a4c7e90fe29c004e241e7d2be2c7104056a0c018e499f30f265f871cb72aeed"
+    },
+    "wake-hall-132x50-256.ans": {
+      "bytes": 117179,
+      "sha256": "1aeb7308d15f4eb2634107b609ae0d6a9c912687d6980a640310ad9ddd5a84b0"
+    },
+    "wake-hall-132x50-256.txt": {
+      "bytes": 8218,
+      "sha256": "bae38a1d3c74803c2ca373c659f03f29f8f23aa3a7f0c5f1df6202520d2a1452",
+      "committed_lf": {
+        "bytes": 8169,
+        "sha256": "448178ba83628a82281abf0e6b7d32c3a6feb94b148e232725ba8b479bcd5639"
+      }
+    },
+    "wake-hall-132x50-256.json": {
+      "bytes": 13021,
+      "sha256": "9a548ab00f90d42e3ab6fbfc4df8edd2c3b053588d107917759c62207563ca98"
+    },
+    "meridian-plaza-132x50-256.ans": {
+      "bytes": 298327,
+      "sha256": "afb9cf53c0c85a902d5eb3d2ea38418a7dce8a95e412c40508537544852ccc24"
+    },
+    "meridian-plaza-132x50-256.txt": {
+      "bytes": 9887,
+      "sha256": "3323b85412423c8eca4125c26cbe0d1243298021b9e52aada2cb1ee0d55f6576",
+      "committed_lf": {
+        "bytes": 9838,
+        "sha256": "e38a2ed4d5532d1b9bd88c1ce6b7ea66335e20a998d46ddb9a5e906007d6650e"
+      }
+    },
+    "meridian-plaza-132x50-256.json": {
+      "bytes": 17521,
+      "sha256": "0b7ee597b40a702b78bf83a1464a837786d87d29f169dfdd89a6a7dc24b7fd48"
+    },
+    "inventory-132x50-256.ans": {
+      "bytes": 312382,
+      "sha256": "af61228a6b1848cf76d3bdd6293ae474a6c974d3b27fa7b2c4ae4a15fcf618cd"
+    },
+    "inventory-132x50-256.txt": {
+      "bytes": 8205,
+      "sha256": "30be2a6cfc45ec20211434651563bfc4813fe0693f4ae0be8eafbd4355f797dd",
+      "committed_lf": {
+        "bytes": 8156,
+        "sha256": "c41bd7647be14b08d813a3899d3f3c2a329316d24f4f16ddc4dcb2d981bbcab2"
+      }
+    },
+    "inventory-132x50-256.json": {
+      "bytes": 11595,
+      "sha256": "dd651730ff082629ead38917c6475a0424ba771cdcb911147924e46e363f3b79"
+    },
+    "contracts-132x50-256.ans": {
+      "bytes": 348204,
+      "sha256": "d8543a02dab43199bf255c48a6d0fcc93842fc170e1efb61c17132fda759b7de"
+    },
+    "contracts-132x50-256.txt": {
+      "bytes": 8177,
+      "sha256": "4c490692cd1de023d0b1e2a973fe88d624e1cf7333d2af23703581181376f801",
+      "committed_lf": {
+        "bytes": 8128,
+        "sha256": "bc2b60b74d5e947f26cec7fcc896e1ad9e047a7656dc31588fd2ee948b069c5c"
+      }
+    },
+    "contracts-132x50-256.json": {
+      "bytes": 11566,
+      "sha256": "ee5922db38d0759e80415cce5311b8b8015eec590c2dace5d1a2edfb9fca4d13"
+    },
+    "help-132x50-256.ans": {
+      "bytes": 375281,
+      "sha256": "eb663c451b501ef589ac2080bf5162419cd5c4fe068e01f7866c2309ab87e6f8"
+    },
+    "help-132x50-256.txt": {
+      "bytes": 7653,
+      "sha256": "6420231862f252d1170cda5cc732dfc421f2e17fcddf637d0c1d7b86c0f712fe",
+      "committed_lf": {
+        "bytes": 7604,
+        "sha256": "e78614dff12d6911bc9e0d028d0a4b5e9ed427fe0c46d2811cb6a445ec443e00"
+      }
+    },
+    "help-132x50-256.json": {
+      "bytes": 9919,
+      "sha256": "5fd26029022dd2e5d1ed7645026d20a5e09778f5951afec90fa3540edbe83436"
+    },
+    "training-drone-132x50-truecolor.ans": {
+      "bytes": 46504,
+      "sha256": "0799556aefbba2d76db2f2e29d478bd7f327a3fbf15938994216f1ed4e0962e8"
+    },
+    "training-drone-132x50-truecolor.txt": {
+      "bytes": 8296,
+      "sha256": "f136e76f0c9ccfad809c36d7fae1197a59ba35fa636afec344b3714eda46b0d3",
+      "committed_lf": {
+        "bytes": 8247,
+        "sha256": "186b4680acae275657b90003bd31b58cb99a2090ca0033d4a27c411e64f0be5e"
+      }
+    },
+    "training-drone-132x50-truecolor.json": {
+      "bytes": 13227,
+      "sha256": "e4f1746aad661a1d09a7520722eb2435678d98a201d6689e00e7f104aa770952"
+    },
+    "training-complete-132x50-truecolor.ans": {
+      "bytes": 56822,
+      "sha256": "16274bc063b93a68a795826f8728f0ab447cbf0617f636d1cfd8b488fd686eb5"
+    },
+    "training-complete-132x50-truecolor.txt": {
+      "bytes": 8247,
+      "sha256": "12aaa36aa4046ab4a32ddef24c8a6e40733b88048365ac307ee2d979ad02c29b",
+      "committed_lf": {
+        "bytes": 8198,
+        "sha256": "c69db6f4df846bacfe1df5a2e35d8b4e9361e6e1a480ab2b53af63d8dd3cf41d"
+      }
+    },
+    "training-complete-132x50-truecolor.json": {
+      "bytes": 13060,
+      "sha256": "d6f47ee12fa5ed1f163373dbbf4eff9169b28db49a1f86013b3d7dbf3b19051e"
+    },
+    "wake-record-132x50-truecolor.ans": {
+      "bytes": 85649,
+      "sha256": "e7015141e82438a0e276009d74e388a487084e76508d569f805f793c8e978873"
+    },
+    "wake-record-132x50-truecolor.txt": {
+      "bytes": 8097,
+      "sha256": "6ff398493bc7fe36dd3316a38b87b4af5b65bd5acc9213f40b4903edab6259b3",
+      "committed_lf": {
+        "bytes": 8048,
+        "sha256": "1a4c532d50936049fef68cc23e4c563a414a1d68365807c781983bcf28f741e1"
+      }
+    },
+    "wake-record-132x50-truecolor.json": {
+      "bytes": 11279,
+      "sha256": "ffa940fabc893260db10eca669fb505ad0bf1e0eeb50bb6e8d130420cd43b173"
+    },
+    "wake-hall-132x50-truecolor.ans": {
+      "bytes": 127296,
+      "sha256": "41392435cf4ec2ec36099ceaeecde9a96190ae635dbd6b4d6d598aafc2ee55b3"
+    },
+    "wake-hall-132x50-truecolor.txt": {
+      "bytes": 8218,
+      "sha256": "e6919b2e6e8b81cac688fe9457e540c3566e64a2c51efe952deeea9e4c02342d",
+      "committed_lf": {
+        "bytes": 8169,
+        "sha256": "9defd62e0a14da75b76bf5bd03d15f1e7b658c360f1858f9e66bf8cb5fda3c67"
+      }
+    },
+    "wake-hall-132x50-truecolor.json": {
+      "bytes": 13298,
+      "sha256": "a148599f051c70acfe33fb8d94248669b1ec596ae84fd4f961cb3a72173ef736"
+    },
+    "meridian-plaza-132x50-truecolor.ans": {
+      "bytes": 355595,
+      "sha256": "7e00bc3d87a8aca6356144cd4970eaa3de09724f137c759d05c7b5aa2793554f"
+    },
+    "meridian-plaza-132x50-truecolor.txt": {
+      "bytes": 9882,
+      "sha256": "ce4a7b67195ff85e03cb635b505d30133964ddc05c7e550e6ac799a9173b4503",
+      "committed_lf": {
+        "bytes": 9833,
+        "sha256": "4478d923e87666a196a8e013de2bbfd29dbb95c601bcffafe3b18b7d078f624a"
+      }
+    },
+    "meridian-plaza-132x50-truecolor.json": {
+      "bytes": 18069,
+      "sha256": "fb108badd960a5c4159efdfadf4000ba9d859e0571a67f42450e14c127c8aafe"
+    },
+    "inventory-132x50-truecolor.ans": {
+      "bytes": 371618,
+      "sha256": "712029622fa544280657f0732df5184b66b497d10e22f9793da3b2bc5a2409ac"
+    },
+    "inventory-132x50-truecolor.txt": {
+      "bytes": 8205,
+      "sha256": "11b5e84ef9968670766e84b72bb6d41c3ecb74d070cb8c1115b2883cf14fbb5e",
+      "committed_lf": {
+        "bytes": 8156,
+        "sha256": "8d3e4c54fab5471892edff77c7d744eb5e706af321b1aa71cff78e9020b8a90f"
+      }
+    },
+    "inventory-132x50-truecolor.json": {
+      "bytes": 11629,
+      "sha256": "89aa223f8b4080c3f9e6e96298609cb756c5606946e04b3f4a963712431f8449"
+    },
+    "contracts-132x50-truecolor.ans": {
+      "bytes": 414606,
+      "sha256": "a57b1757f7016cbfd95f61d7f7888f9570aed195a5c91634b001a591f394d784"
+    },
+    "contracts-132x50-truecolor.txt": {
+      "bytes": 8177,
+      "sha256": "d9ceed32634d7206f68a59f3c16d7a60fed330f7a994eb54665bd7f3e8e38bc1",
+      "committed_lf": {
+        "bytes": 8128,
+        "sha256": "562b3bd3201bbdb35a0f502c2d8aba31756a8bc0a31c695d2242d4e15197923d"
+      }
+    },
+    "contracts-132x50-truecolor.json": {
+      "bytes": 11600,
+      "sha256": "77d65f305024f4f29c673ad0e6a05f2d2f48d4042e1e66e99f8a211ff9d339d3"
+    },
+    "help-132x50-truecolor.ans": {
+      "bytes": 446972,
+      "sha256": "5f03019fe5edb681b530ac1e4fb4b825cf6c6be12e93f957cdfc3277babf20ae"
+    },
+    "help-132x50-truecolor.txt": {
+      "bytes": 7653,
+      "sha256": "69a0b5b54af1a28357c6fd7697361e6e954b5191cc9cb7c9904126a72fb226e6",
+      "committed_lf": {
+        "bytes": 7604,
+        "sha256": "2e2972ed8b76ea313d2cb87d74c1da4e030d3e1485854674fa9c9fe2e7660be2"
+      }
+    },
+    "help-132x50-truecolor.json": {
+      "bytes": 9950,
+      "sha256": "0cda2bc3934be77afd236b11c3d8f710bd76816b580b302c2c0728a22f4566f6"
+    }
+  },
+  "committed_note": "manifest sha256/bytes are the files as the Windows run wrote them (CRLF in .txt); committed_lf is the committed LF .txt frame, added after the run; .ans/.json are run artifacts"
+}

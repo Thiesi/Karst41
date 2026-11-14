@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_hall import crossed_quietly
 
 
 async def accept(root: Path, door_python: Path, tier: str) -> None:
@@ -21,14 +22,16 @@ async def accept(root: Path, door_python: Path, tier: str) -> None:
         lattice = probe.service.core.lattice
         for width, height in ((80, 24), (132, 50)):
             caller = await probe.open(width, height, 'Edge86', 0, tier == '16', truecolor=tier == 'truecolor')
-            await probe.walk(caller, (21, 14))
-            await caller.caller.write(b'b')
+            # S48c1b: a character crosses the drone's ring and nothing happens.
+            await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
             player = probe.game.players[caller.session.player_id]
-            await wait(lambda: player.progress.get('wake_combat') == 'skipped')
-            terminal = next(obj for obj in probe.service.world.zones[caller.avatar.zone].objects.values()
-                if obj.spec.params.get('training_core') == 'lat-wake-hall')
-            await probe.walk(caller, terminal.spec.tile)
-            await caller.caller.write(b'j')
+            # S48c1b (first ten minutes 8, item 6): the hall's training terminal
+            # enters its own core, with no district grid, so the grid is
+            # reached at the Plaza's public terminal, as accept_s14's silt stage does.
+            await probe.travel(caller, 'vatside-clinics')
+            await probe.travel(caller, 'core-plaza')
+            await probe.walk(caller, (30, 5))
+            await caller.caller.write(b'e')
             await wait(lambda: player.id in lattice.presences)
             presence = lattice.presences[player.id]
             for sid, sector in sorted(lattice.sectors.records.items()):

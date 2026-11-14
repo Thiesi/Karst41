@@ -14,6 +14,7 @@ import time
 import traceback
 
 from accept_s10_netbbs import NativeProbe, Connection, wait
+from acceptance_hall import crossed_quietly
 from accept_s13_netbbs import lat_walk
 from accept_s14_netbbs import choose, room_walk
 from accept_s19_netbbs import encounter_row
@@ -36,9 +37,8 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
                                ('S21Runner',(33,18),'halvard'),
                                ('S21Rival',(32,19),'choir')):
         connection=await probe.open(width,height,label,1,True)
-        await probe.walk(connection,(21,14))
-        await key(connection,b'b')
-        await wait(lambda:probe.game.players[connection.session.player_id].progress.get('wake_combat')=='skipped')
+        # S48c1b: a character crosses the drone's ring and nothing happens.
+        await crossed_quietly(probe.service, connection.session.player_id, probe.walk(connection, (21, 14)))
         await probe.travel(connection,'vatside-clinics')
         p=probe.game.players[connection.session.player_id]
         p.faction=faction

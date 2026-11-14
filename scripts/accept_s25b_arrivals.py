@@ -13,6 +13,7 @@ import subprocess
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from build_city_content import build, read, write
 from karst41.content.loader import load_content
 from karst41.content.validate import validate
@@ -131,10 +132,9 @@ async def accept(root: Path, door_python: Path, tier: str, show: bool) -> None:
                 caller = await probe.open(width, height, 'Arrival', 0,
                     tier == '16', truecolor=tier == 'truecolor')
                 if generated:
-                    await probe.walk(caller, (21, 14))
-                    await caller.caller.write(b'b')
+                    # S48c1b: a character crosses the drone's ring and nothing happens.
+                    await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
                     player = probe.game.players[caller.session.player_id]
-                    await wait(lambda: player.progress.get('wake_combat') == 'skipped')
                     before = {line['id'] for line in caller.session.log_ring}
                     await probe.travel(caller, 'under-service')
                     await wait(lambda: (caller.session.player_id, 'zone', caller.avatar.zone)

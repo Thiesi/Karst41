@@ -16,6 +16,7 @@ from typing import Any
 from collections.abc import Callable
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from karst41.server.drugs import detox_until
 from karst41.server.inventory import Inventory
 from karst41.server.items import make_item
@@ -91,11 +92,8 @@ async def use(probe: NativeProbe, connection: Connection, iid: str) -> None:
 
 async def prepare(probe: NativeProbe, width: int, height: int) -> tuple[Connection,dict[str,Any]]:
     connection = await probe.open(width,height,'S16Ghost',1)
-    await probe.walk(connection,(22,14))
-    await wait(lambda:any(a.owner == connection.session.player_id and a.behaviour.get('training')
-                          for a in probe.service.world.actors.values()))
-    await key(connection,b'b')  # Ordinary skip of private training.
-    await wait(lambda:probe.game.players[connection.session.player_id].progress.get('wake_combat') == 'skipped')
+    # S48c1b: a character crosses the drone's ring and nothing happens.
+    await crossed_quietly(probe.service, connection.session.player_id, probe.walk(connection, (22, 14)))
     await probe.travel(connection,'vatside-clinics')
     await probe.travel(connection,'core-plaza')
     await probe.travel(connection,'sodium-row')

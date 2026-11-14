@@ -18,6 +18,7 @@ import time
 from typing import Any
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_hall import crossed_quietly
 from accept_s11_netbbs import approach
 from karst41.npc_presentation import channels
 from tests.presentation.snapshots import snapshot
@@ -89,9 +90,8 @@ async def accept(root: Path, door_python: Path, show: bool,
                 save(f'place-history-{width}x{height}-{tier}')
                 await caller.caller.write(b'\x1b')
                 await wait(lambda: 'Wake Hall' in screen.screen_text().splitlines()[0])
-                await probe.walk(caller, (21, 14))
-                await caller.caller.write(b'b')
-                await wait(lambda: probe.game.players[caller.session.player_id].progress.get('wake_combat') == 'skipped')
+                # S48c1b: a character crosses the drone's ring and nothing happens.
+                await crossed_quietly(probe.service, caller.session.player_id, probe.walk(caller, (21, 14)))
                 await probe.walk(caller, (34, 15))
                 await caller.caller.write(b'j')
                 lat = probe.service.core.lattice
