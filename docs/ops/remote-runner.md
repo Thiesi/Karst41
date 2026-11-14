@@ -65,9 +65,27 @@ system.
      comment or merge as the owner, and read his private repositories. Only
      the owner's account pushes branches to Thiesi/Karst41: every session
      works as him. So the gate is the sessions he runs, not forks.
-   - On 2026-11-14 the owner accepted the full login for now, on that basis.
-     The gist-only token below takes the `gh` token out of the exposure. The
-     Claude Code login stays exposed either way.
+   - **Windows is reachable too.** By default, WSL2 mounts the Windows
+     drives at `/mnt/c` and lets Linux run Windows programs (interop). So
+     branch code can also read the owner's Windows user folder, OneDrive
+     included, and run `powershell.exe`. That reaches the Windows-side `gh`
+     login, which is the owner's full login, and the Windows credential
+     store. A gist-only WSL token alone does not close that.
+   - On 2026-11-14 the owner accepted this exposure for now, on the basis
+     above. To close it, put this in `/etc/wsl.conf`, then run
+     `wsl --shutdown`:
+     ```
+     [interop]
+     enabled=false
+     appendWindowsPath=false
+     [automount]
+     enabled=false
+     ```
+     Then use the gist-only token below. Without interop, the runner can't
+     call `powershell.exe`, so the report's `host:` line uses
+     `/proc/loadavg`. That only sees load inside WSL, so the report says
+     so. Remove `Bash(powershell.exe *)` from the allow list too.
+   - Whatever is chosen, the runner's Claude Code login stays exposed.
    - Create a **fine-grained personal access token** with no repository
      access and only the account permission **Gists: read and write**. Both
      repositories are public, so cloning needs no token.
