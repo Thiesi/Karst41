@@ -115,10 +115,17 @@ class LogEntry:
     speaker_role: str = 'log_speaker'
     count: int = 1
     xp: int | None = None
+    script: str = ''
+    """The authored script line that emitted it; such an entry never merges."""
 
     @property
     def shown(self) -> str:
         return self.text + (f' (x{self.count})' if self.count > 1 else '')
+
+
+def join_merged(left: str, right: str) -> str:
+    """Terminal UI 2.5 (#251): a space after a sentence, `; ` after a fragment."""
+    return left + (' ' if left.rstrip().endswith(('.', '!', '?')) else '; ') + right
 
 
 def seconds(line: dict[str, Any]) -> float | None:
@@ -150,16 +157,17 @@ def digest(lines: list[dict[str, Any]]) -> list[LogEntry]:
         match = re.fullmatch(r'You gain (\d+) XP\.?', text) if kind == 'reward' else None
         xp = int(match[1]) if match else None
         prev = out[-1] if out else None
-        if prev and kind == prev.kind == 'reward' and at is not None and prev.at is not None and 0 <= at - prev.at <= REWARD_SECONDS:
+        script = str(line.get('script') or '')
+        if prev and kind == prev.kind == 'reward' and not script and not prev.script and at is not None and prev.at is not None and 0 <= at - prev.at <= REWARD_SECONDS:
             if xp is not None and prev.xp is not None:
                 prev.xp = prev.xp * prev.count + xp
                 prev.text = f'{prev.xp} XP'
             else:
-                prev.text = prev.shown + '; ' + text
+                prev.text = join_merged(prev.shown, text)
             prev.count = 1
             prev.at, prev.arrived = at, arrived
             continue
-        out.append(LogEntry(str(kind), text, at, arrived, who, role, xp=xp))
+        out.append(LogEntry(str(kind), text, at, arrived, who, role, xp=xp, script=script))
     return out
 
 

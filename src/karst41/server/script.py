@@ -192,12 +192,12 @@ class Opening:
         if ln.kind == "speech":
             name = ln.name or self.script.speakers.get(ln.speaker) or self.game.content.dialogue[ln.speaker].name
             session.emit(f"{name}: {self.text(ln)}", kind="speech", channel="zone", role="chan_zone", at=at,
-                         speaker=name, speaker_role="service")
+                         speaker=name, speaker_role="service", script=ln.id)
             session.voice_tick = self.core.clock.now_tick()  # P8 stays quiet behind it.
         else:
             role = {"danger": "warning", "reward": "chan_sys", "combat": "chan_sys"}.get(ln.kind, "chan_sys")
             channel = "combat" if ln.kind in ("danger", "combat") else "system"
-            session.emit(self.text(ln), kind=ln.kind, channel=channel, role=role, at=at)
+            session.emit(self.text(ln), kind=ln.kind, channel=channel, role=role, at=at, script=ln.id)
             if ln.kind == "danger":
                 session.danger_at = at
         state["spoken"].append(ln.id)

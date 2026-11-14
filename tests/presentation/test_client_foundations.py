@@ -166,6 +166,27 @@ def test_ui_2_5_declared_rewards_identical_kinds_and_ten_second_protection():
     assert not chrome.digest([line('notice', 'Maintenance', 0)])
 
 
+def test_ui_2_5_scripted_lines_never_merge_and_merged_sentences_join_with_a_space():
+    """#251: authored script lines stay their own entries; no merged entry shows `.;`."""
+    def line(text, second, script=None):
+        return {'kind': 'reward', 'text': text, 'at': f'2026-10-30T12:00:{second:02}+00:00',
+                **({'script': script} if script else {})}
+    kit = 'Issued: sidearm, 50 rounds, baton, two patches, two rations.'
+    vest = "Issued: a Kestrel Issue Vest. It's on you already."
+    card = '200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.'
+    # A scripted line merges with nothing, before or after it, scripted or not.
+    entries = chrome.digest([line('You found 5 chits.', 0), line(kit, 1, '9.10'), line(vest, 1, '9.10h'),
+                             line(card, 2, '9.11'), line('You found a patch.', 3)])
+    assert [(e.shown, e.script) for e in entries] == [
+        ('You found 5 chits.', ''), (kit, '9.10'), (vest, '9.10h'), (card, '9.11'), ('You found a patch.', '')]
+    # Ordinary reward lines still merge: a space after a sentence, `; ` after a fragment.
+    merged = chrome.digest([line('You found 5 chits.', 0), line('Ammo', 1), line('A patch!', 2), line('Rations', 3)])
+    assert [e.shown for e in merged] == ['You found 5 chits. Ammo; A patch! Rations']
+    assert '.;' not in merged[0].shown
+    assert chrome.join_merged('Ammo (x2)', 'A patch') == 'Ammo (x2); A patch'
+    assert chrome.join_merged('Really?', 'Yes') == 'Really? Yes'
+
+
 def test_p5_context_is_pure_map_only_and_keys_keep_their_meaning(content):
     bodies = [{}, {'me': {'zone': 'core-plaza'}, 'target': {'id': 'x'}, 'hazards': [{'tiles': [[1, 1]]}]},
               {'nearby': [{'relation': '!'}], 'place': {'places': ['ignored']}, 'me': {'walking': [1, 1]}}]

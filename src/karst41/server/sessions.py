@@ -104,13 +104,15 @@ class Session:
 
     def emit(self, text: str, *, kind: LogKind, channel: str, role: str,
              at: str, speaker: str | None = None,
-             speaker_role: str | None = None, price: bool = False, replay: bool = True) -> bool:
+             speaker_role: str | None = None, price: bool = False, replay: bool = True,
+             script: str | None = None) -> bool:
         """Architecture 5.5.3: the sole entry for newly authored log lines.
 
         Service notices reach the existing toast surface, outside world
         history. Replay and reliable delivery stay transport operations.
         `replay=False` (P8's barks and ambience) keeps a line out of the
-        ring, so reconnect never replays it.
+        ring, so reconnect never replays it. `script` names the authored
+        script line that emitted it; such a line never merges (terminal UI 2.5).
         """
         if kind not in get_args(LogKind):
             raise ValueError(f"unknown log kind: {kind}")
@@ -121,6 +123,8 @@ class Session:
                     "caller", "civilian", "warden", "security", "service", "hostile", "drone"):
                 raise ValueError("speech requires a speaker and presented class")
             line.update(speaker=speaker, speaker_role=speaker_role)
+        if script:
+            line["script"] = script
         if not replay:
             line["_transient"] = True
         if kind == "notice":
