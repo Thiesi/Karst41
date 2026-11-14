@@ -53,6 +53,15 @@ def _recorded_return_to(service: Any, session: Any, home: Any) -> None:
 
 accept_s10_netbbs.return_to = _recorded_return_to
 _probes: list['PresentationProbe'] = []
+WALK_KEYS = ['[A', '[B', '[C', '[D']
+# Technical lead (c2): a loop-driven step is compared as loops. Each step
+# is stored as segments: fixed `keys` (byte-identical on a rerun), and
+# loops, which match when their kind, goal and `may_press` set are equal
+# and the goal was reached. `presses` (the count, and a walk's detour) is
+# run variance.
+LOOP_RULE = ('per capture, `segments` in order: {"keys": [...]} must be byte-identical; a loop '
+             '{"loop", "goal", "may_press", "presses", "reached"} matches when loop, goal and may_press '
+             'are equal and reached is true; presses is run variance (technical lead, S48c2)')
 
 
 class PresentationProbe(NativeProbe):
@@ -60,7 +69,25 @@ class PresentationProbe(NativeProbe):
         super().__init__(*args, **kwargs)
         self.steps: dict[int, list[dict[str, Any]]] = {}
         self.cursor: dict[int, int] = {}
+        self.loops: dict[int, list[tuple[int, int, dict[str, Any]]]] = {}
         _probes.append(self)
+
+    def loop(self, caller: Any, start: int, meta: dict[str, Any]) -> None:
+        self.loops.setdefault(id(caller), []).append((start, len(caller.inputs), meta))
+
+    async def walk(self, connection: Connection, target: Any) -> None:
+        start, zone = len(connection.caller.inputs), connection.avatar.zone
+        await super().walk(connection, target)   # Returns only once the goal is reached.
+        goal = None if callable(target) else list(target)
+        self.loop(connection.caller, start, {'loop': 'walk', 'goal': {'zone': zone, 'tile': goal},
+                                             'may_press': WALK_KEYS})
+
+    async def target(self, connection: Connection, actor_id: str) -> None:
+        start = len(connection.caller.inputs)
+        actor = self.service.world.actors[actor_id]
+        await super().target(connection, actor_id)
+        self.loop(connection.caller, start, {'loop': 'press_until',
+            'goal': {'target': actor.behaviour.get('template') or actor.name}, 'may_press': ['	']})
 
     def save(self, connection: Connection, label: str) -> None:
         super().save(connection, label)
@@ -68,7 +95,19 @@ class PresentationProbe(NativeProbe):
             ensure_ascii=False, separators=(',', ':')) + '\n', encoding='utf-8', newline='\n')
         inputs = connection.caller.inputs
         start = self.cursor.get(id(connection.caller), 0)
-        self.steps.setdefault(id(connection.caller), []).append({'capture': label, 'inputs': inputs[start:]})
+        segments: list[dict[str, Any]] = []
+        at = start
+        for begin, end, meta in self.loops.get(id(connection.caller), []):
+            if begin < start:
+                continue
+            if begin > at:
+                segments.append({'keys': inputs[at:begin]})
+            segments.append({**meta, 'presses': end - begin, 'reached': True})
+            at = end
+        if at < len(inputs):
+            segments.append({'keys': inputs[at:]})
+        self.steps.setdefault(id(connection.caller), []).append(
+            {'capture': label, 'inputs': inputs[start:], 'segments': segments})
         self.cursor[id(connection.caller)] = len(inputs)
 
 
@@ -130,10 +169,13 @@ async def accept(root: Path, door_python: Path, show: bool,
                 await wait(lambda: caller.session.ack_revision > revision
                            and display.screen_text().count('Training drone') >= 2)
                 save('training-drone')
+                start = len(caller.caller.inputs)
                 async with asyncio.timeout(45):
                     while probe.game.players[caller.session.player_id].progress.get('wake_combat') != 'done':
                         await caller.caller.write(b'f')
                         await asyncio.sleep(.2)
+                probe.loop(caller.caller, start, {'loop': 'press_until',
+                    'goal': {'progress': {'wake_combat': 'done'}}, 'may_press': ['f']})
                 await settled()
                 save('training-complete')
                 await probe.create(caller, width, height, label, 0, tier == '16', capture_wake=True)
@@ -207,7 +249,8 @@ async def accept(root: Path, door_python: Path, show: bool,
         'inputs_record': {'script': 'scripts/accept_p5_netbbs.py', 'commit': head,
                           'form': 'per case: connect (Telnet NAWS/TERM/COLORTERM), then per capture every '
                                   'string the caller wrote since the previous capture, in order, plus '
-                                  'server-side moves as {"move": ...}'},
+                                  'server-side moves as {"move": ...}',
+                          'comparison': LOOP_RULE},
         'transport': 'NetBBS Telnet -> registered native stdio, DOOR_KARST41_PRESENTATION=1',
         'source_matched_wheel': json.loads((root / 'native-client.json').read_text()),
         'show': show, 'console': console, 'human_approval': False, 'fixtures': 'private node/world/accounts only; normal game rules',
