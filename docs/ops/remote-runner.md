@@ -260,6 +260,10 @@ evidence: <secret gist URL>       on any failure: failure-trace.txt,
 If the owner was using the machine during a timing job (`host: busy`), the
 timing numbers are reported but marked as non-evidence.
 
+When a request asks for captures, for example new or re-pinned frames for
+a packet, the runner also puts them in the gist, even on a pass: the
+`.txt` frames and `result.json`, unchanged apart from the scrub.
+
 Secret gists are unlisted, not private: anyone with the URL can read them.
 Before uploading, the runner replaces the home path with `~` and includes
 no environment dumps. If a file would carry anything else personal, it
