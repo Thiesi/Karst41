@@ -283,7 +283,8 @@ leaves the file out and says so.
 > - Run only what the request names, at the SHA it names, exactly as the
 >   workflow at that SHA runs it. Never edit repository files, never commit,
 >   push, comment, review, label or merge. Your output is the report
->   message and a secret gist of the failure evidence.
+>   message and a secret gist of the failure evidence, plus captures when
+>   a request asks for them (section 5).
 > - One job at a time, with `nice -n 10`. If a step can't run as written,
 >   or a command is refused (auto mode or a deny rule), stop and report it.
 >   Don't work around it, and never edit `.claude/settings.json`. Delete
