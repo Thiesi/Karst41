@@ -46,7 +46,7 @@ resolve the preflight differences without changing canon or server data.
 | Trial hint painter fits its own groups | P3 fits once; the new chrome draws its exact output, including prompt/channel priority. |
 | Actor shape from trial `kind`; jacked is reverse | P4 `glyph_id`, presented `class` and `jacked`; own registered shape, dim while jacked, never reverse while jacked, including hostile bodies. You and hostiles otherwise retain reverse. NEARBY/CREW name jacked state. |
 | Log classification from channel/text | P4's declared `kind`, `speaker` and `speaker_role`; canon gutters. Notices remain on P4's toast surface. |
-| Cross-kind identical text can merge | Only identical same-kind lines coalesce within ten seconds. Reward lines merge within five seconds, retaining XP totals and other reward text. |
+| Cross-kind identical text can merge | Only identical same-kind lines coalesce within ten seconds. Reward lines merge within five seconds, retaining XP totals and other reward text. Since S48c2, lines marked `script` never merge, and merged sentences join with a space (terminal UI 2.5). |
 | New log lines can displace immediate danger | Recent danger/combat rows retain visible capacity for ten seconds after delivery, measured by the injected client clock. When protected rows themselves exceed capacity, newest protected rows win. |
 | Auto infers threats and chooses other paradigms | Pure provisional map-only decider, no threat input, scene/look or clock read. Other Auto views need a later server contract. |
 | HERE scans objects and exits | Only P3 focus/jack-focus labels and adjacent cover classes in nonnegative, sight-masked view tiles. No memory lookup, object/exit scan or hidden-exit inference. |
