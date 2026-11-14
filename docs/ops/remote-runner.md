@@ -175,6 +175,13 @@ system.
    named path, checked to resolve inside `runs/` before it is removed. The
    runner never builds a deletion path from an unchecked variable.
 
+### Confirming delivery both ways
+
+Remote Control confirms delivery in neither direction. The runner
+acknowledges every request with `ACK <run-id>`, and the requester answers
+every runner message with `RECEIVED`. A message with no reply within 10
+minutes is treated as not delivered and sent again once.
+
 ### A stuck runner
 
 The requester (the technical lead or the engineer) treats the runner as
