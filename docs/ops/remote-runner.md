@@ -232,7 +232,9 @@ system.
      requests and answer `STATUS` while a job runs.
 6. **Full pytest** runs as the `test` job in `.github/workflows/ci.yml`
    does at that SHA: `pip install -e .[test]` in the run's venv, then CI's
-   `pytest` command. There's no deselect: the deselect used on the Windows
+   `pytest` command. That stands in for the job's `ubuntu-latest` entry
+   only. The `windows-latest` entry has no local stand-in, and CI is its
+   only evidence. There's no deselect: the deselect used on the Windows
    development host is not needed in Linux. The runner checks that
    `karst41.__file__` is in the run's worktree before trusting the result.
    Any failure, including `test_real_module_uses_native_stdio_pipes`, is
