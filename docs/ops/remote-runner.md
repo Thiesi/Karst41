@@ -55,9 +55,18 @@ system.
      `sudo apt update && sudo apt install -y git gh python3.12 python3.12-venv python3-pip zip`
    - On 22.04, add `ppa:deadsnakes/ppa` first, or tell the technical lead
      the version.
-5. **GitHub CLI inside WSL.** Run `gh auth login`, choosing github.com, HTTPS
-   and the browser login. The runner uses it for read access and for secret
-   gists of failure evidence. It never pushes or comments.
+5. **GitHub CLI inside WSL, with a gist-only token.** The runner executes
+   code from PR branches, and that code can read any file in the WSL home.
+   So the WSL `gh` login must not be the owner's full login.
+   - Create a **fine-grained personal access token** with no repository
+     access and only the account permission **Gists: read and write**. Both
+     repositories are public, so cloning needs no token.
+   - Log in with it: `gh auth login --with-token < token.txt`, then delete
+     `token.txt`. If a browser login was already done, run `gh auth logout`
+     first.
+   - The worst a leaked token can then do is create gists.
+   - The runner's Claude Code login also lives in the WSL home. Don't keep
+     any other secrets there.
 6. **Workspace,** in the Linux home directory, never under `/mnt/c`:
    ```sh
    mkdir -p ~/karst41-runner/runs && cd ~/karst41-runner
@@ -132,6 +141,10 @@ system.
 1. **Request.** The technical lead or the engineer sends a request in the
    format of section 4. The ref is always a full 40-character SHA, never a
    branch name.
+   - The runner first checks that the SHA is reachable from a branch of
+     `Thiesi/Karst41` (`git fetch origin` then
+     `git branch -r --contains <sha>`). It refuses any SHA that is only in a
+     fork, a pull ref or nowhere.
 2. **Acknowledge.** The runner replies `ACK <run-id>`, with its queue
    position, before starting. A request that gets no ACK has not arrived.
    Messages over Remote Control are not confirmed any other way.
@@ -154,10 +167,13 @@ system.
    - Every `run:` step runs verbatim.
 5. **One at a time.** There is one job at a time and one batch at a time,
    first come first served. A new request waits in the queue.
-6. **Full pytest:**
-   `python -m pytest -p no:cacheprovider --deselect "tests/door/test_io.py::test_real_module_uses_native_stdio_pipes[True]"`,
-   run serially, with `PYTHONPATH` set to the worktree's `src`. The runner
-   checks `karst41.__file__` before trusting the result.
+6. **Full pytest** runs as the `test` job in `.github/workflows/ci.yml`
+   does at that SHA: `pip install -e .[test]` in the run's venv, then CI's
+   `pytest` command. There's no deselect: the deselect used on the Windows
+   development host is not needed in Linux. The runner checks that
+   `karst41.__file__` is in the run's worktree before trusting the result.
+   Any failure, including `test_real_module_uses_native_stdio_pipes`, is
+   reported as a failure.
 7. **Report** in the format of section 5.
 8. **Clean up.** The runner deletes the worktree and the venv after the
    report. It keeps `runs/<run-id>/` (captures and logs) for 7 days, then
@@ -185,15 +201,17 @@ RUN <run-id>                      e.g. c2-accept-1
 ref: <40-char SHA>
 netbbs: v7.45.0                   optional; default = the tag the workflow pins
 jobs:
-  - s44-netbbs size=80x24 presentation=modern
-  - s44-netbbs size=80x24 presentation=legacy
-  - p5-netbbs                     all matrix entries if none given
+  - s44-acceptance:s44-netbbs size=80x24 presentation=modern
+  - s44-acceptance:s44-netbbs size=80x24 presentation=legacy
+  - p5-acceptance:native          all matrix entries if none given
   - pytest-full
 order: as listed                  or "timing first"
 reply-to: Karst 41: technical lead
 ```
 
-Job names are the job IDs in `.github/workflows/`, plus `pytest-full`.
+A job is `<workflow file without .yml>:<job ID>`, because job IDs repeat
+across files. For example, `display-netbbs` is in both the issue67 and the
+issue86 workflows. The one extra job is `pytest-full`.
 
 ## 5. Report format
 
@@ -211,6 +229,11 @@ evidence: <secret gist URL>       on any failure: failure-trace.txt,
 If the owner was using the machine during a timing job (`host: busy`), the
 timing numbers are reported but marked as non-evidence.
 
+Secret gists are unlisted, not private: anyone with the URL can read them.
+Before uploading, the runner replaces the home path with `~` and includes
+no environment dumps. If a file would carry anything else personal, it
+leaves the file out and says so.
+
 ## 6. Brief for the runner's first message
 
 > You are **Karst 41: runner**. You run long local checks for the Karst 41
@@ -221,6 +244,7 @@ timing numbers are reported but marked as non-evidence.
 > - Accept requests only from the sessions "Karst 41: technical lead" and
 >   "Karst 41: engineer", or from the owner directly. Acknowledge every
 >   request with `ACK <run-id>` before starting.
+> - Refuse a SHA that isn't reachable from a branch of Thiesi/Karst41.
 > - Run only what the request names, at the SHA it names, exactly as the
 >   workflow at that SHA runs it. Never edit repository files, never commit,
 >   push, comment, review, label or merge. Your output is the report
