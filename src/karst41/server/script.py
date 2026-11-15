@@ -94,11 +94,21 @@ class Opening:
             return
         state.setdefault("armed", [])  # States saved before the fix 1 amendment.
         state["deferred"] = []  # Resume drops what waited on owed anchors, like waiting lines.
+        # A saved state may name a beat or line the content no longer has: clamp
+        # the beat and drop unknown lines, so an old record never blocks login.
+        state["beat"] = max(0, min(int(state.get("beat", 0) or 0), len(self.script.beats) - 1))
         if state.get("queue"):  # Resume: waiting non-anchors are dropped (technical lead, ruling b).
-            state["queue"] = [q for q in state["queue"] if self.lines[q[0]][1].anchor]
+            # Saved ticks belong to the process that wrote them (RealClock counts
+            # from start-up), so a kept anchor is due now, not at an old tick.
+            state["queue"] = [[q[0], q[1], 0] for q in state["queue"]
+                              if q[0] in self.lines and self.lines[q[0]][1].anchor]
         if state.get("beat_tick") is None:
             state["beat_tick"] = self.core.clock.now_tick()
-            self.begin(session, state, state.get("beat", 0))
+            self.begin(session, state, state["beat"])
+        else:
+            # The same for the beat's own clock: a `seconds` trigger counts from
+            # this attach, never from a tick of an earlier process.
+            state["beat_tick"] = self.core.clock.now_tick()
         state["pos"] = None
         self.states[session.id] = state
 

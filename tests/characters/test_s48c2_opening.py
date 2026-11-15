@@ -594,3 +594,32 @@ def test_owed_lease_anchors_wait_under_the_record_and_follow_9_9(game: HeadlessS
     assert [lid for lid in heard if lid in order] == order  # Amendment 5: one Vantongeren block, then the kit.
     assert at["9.10"] - at["3.3"] == 25  # 2.5 s after the last of her lines.
     assert (at["9.10h"] - at["9.10"], at["9.11"] - at["9.10"]) == (25, 50)  # The kit keeps its spacing.
+
+
+# --- Resumed runner state (review of b53ade5, 6889042221) --------------------
+
+def test_a_resumed_state_counts_seconds_from_this_attach(game: HeadlessServer) -> None:
+    """Saved ticks belong to the process that wrote them: after a server
+    restart, beat 0's `seconds: 12` must still fire 12 s after the attach."""
+    client = game.connect()
+    game.step(1)
+    opening = game.core.opening
+    state = opening.stop(client.session)
+    state["beat"], state["beat_tick"] = 0, game.core.clock.now_tick() + 10**7  # An older, longer-running process.
+    state["queue"] = [["2.1", 1, game.core.clock.now_tick() + 10**7]]  # An anchor with an old due tick.
+    opening.start(client.session, state)
+    assert state["beat_tick"] == game.core.clock.now_tick() and state["queue"][0][2] == 0
+    game.step(12 * 10 + 2)
+    assert state["beat"] >= 1
+
+
+def test_a_resumed_state_naming_lines_or_beats_the_content_lacks_still_attaches(game: HeadlessServer) -> None:
+    client = game.connect()
+    game.step(1)
+    opening = game.core.opening
+    state = opening.stop(client.session)
+    state["beat"], state["queue"] = 999, [["gone.1", 3, 0], ["9.8", 8, 0]]
+    opening.start(client.session, state)  # Never raises on an old record.
+    assert state["beat"] == len(opening.script.beats) - 1
+    assert [q[0] for q in state["queue"]] == ["9.8"]
+    game.step(5)
