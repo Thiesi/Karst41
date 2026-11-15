@@ -797,8 +797,10 @@ When E and J select the same target with the same verb, show one `E/J`
 group (`E/Ctrl-O` in vi). Drop the J alias first if only E fits. Distinct
 targets or verbs keep separate groups.
 Do not append a generic `E act` group; Q keeps its job-panel help.
-Shorten E/J labels first, keeping at least the first word of each name
-and never cutting a key or verb. If that cannot fit, drop J, then E.
+Shorten E/J labels first, keeping at least one whole word of each name
+and never cutting a key or verb. The word kept is the name's last whole
+word before any trailing parenthetical: `Public terminal (Plaza 1)`
+becomes `terminal`, and `Dr. Vantongeren` becomes `Vantongeren`. If that cannot fit, drop J, then E.
 Only then shorten the objective's target text; keep `Next:`, its verb
 and the current cost. This uses the existing hint row, not a new panel.
 
