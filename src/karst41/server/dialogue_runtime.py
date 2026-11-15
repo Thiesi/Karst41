@@ -64,7 +64,8 @@ class Dialogue:
         self.season_facts: Callable[[Any], SeasonFacts] = lambda player: SeasonFacts()
         # P8: the one ambient emitter (architecture 5.5.3).
         self.ambience = Ambience(self.world, self.content, self.sim, self.clock,
-                                 threatened=self.threatened, talking=self.talking)
+                                 threatened=self.threatened, talking=self.talking,
+                                 drone_can_act=self.game.training_drone_can_act)
 
     def talking(self, actor_id: str) -> bool:
         """Game 13.4: a talker is silent while anyone is interacting with it."""

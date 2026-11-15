@@ -18,6 +18,8 @@ import accept_s10_netbbs
 from accept_s10_netbbs import Connection, NativeProbe, wait
 from karst41.door.palette import Palette
 from karst41.door.present.paint import Paint, light_distance
+from karst41.server.clock import TICK_HZ
+from karst41.server.script import GAP_SECONDS
 from tests.presentation.snapshots import snapshot
 
 
@@ -183,6 +185,20 @@ async def accept(root: Path, door_python: Path, show: bool,
                 player = probe.game.players[caller.session.player_id]
                 name = player.name
                 assert '界' in name and player.progress.get('wake_combat') == 'done'
+                # Technical lead (c2, runner contract amendment 3): hear the
+                # opening out before leaving the hall, so the record lines and
+                # beat 9 are on screen: the opening's queue empty and the
+                # speech gap over. A wait sends no keys, so the stored inputs
+                # and the loop rule are unchanged.
+                opening, session = probe.service.core.opening, caller.session
+                clock = probe.service.core.clock
+
+                def heard_out() -> bool:
+                    state = opening.states.get(session.id)
+                    voice = session.voice_tick
+                    return state is None or (not state['queue'] and (
+                        voice is None or clock.now_tick() - voice >= GAP_SECONDS * TICK_HZ))
+                await wait(heard_out, 60)
                 await settled()
                 assert display.cell(0, 0) == '╔'
                 save('wake-hall')

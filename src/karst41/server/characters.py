@@ -266,6 +266,14 @@ class Characters:
         return any(s.player_id == pid and not s.closed and (w := self.wakes.get(s.id)) is not None
                    and w.stage in MENU_STAGES for s in self.sessions.active.values())
 
+    def training_drone_can_act(self, pid: str) -> bool:
+        """Runner contract amendment 3: `pid`'s training drone can still act on
+        it. Not once it is down or skipped (gone), inert (a character's), or
+        holding fire under the open record or name prompt (S48c1b)."""
+        return not self.wake_menu_open(pid) and any(
+            actor.owner == pid and actor.behaviour.get("training") and not actor.behaviour.get("inert")
+            for actor in self.world.actors.values())
+
     def quiet_drone(self, pid: str, drone: Any | None) -> None:
         """A character's training drone: drawn as before, never in a fight (S48c1b)."""
         if hasattr(self, "combat"):

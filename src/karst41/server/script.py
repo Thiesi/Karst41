@@ -17,9 +17,11 @@ read and the hall left (only the errand, a per-character flag, goes on).
   earlier beats are dropped. An older anchor is spoken only when no line
   of the current beat is waiting, oldest first.
 - Quiet for speech: a target set, an ICE warned, a menu or text page open,
-  jacked in, or within P8's ten-second danger hold. `fight` lines may
-  speak during the drone fight; `record` lines while the record or the
-  name prompt is open.
+  jacked in, or within P8's ten-second danger hold. The drone lesson's
+  lines hold only while the drone can still act: down, skipped or inert
+  ends the hold (third amendment, 2026-11-15, owner-approved;
+  `karst41.server.danger`). `fight` lines may speak during the drone
+  fight; `record` lines while the record or the name prompt is open.
 - Leaving the hall drops every waiting line: nothing from the hall plays
   outside it.
 - P8's `admit()` is bypassed; each script line sets `session.voice_tick`,
@@ -32,19 +34,18 @@ read and the hall left (only the errand, a per-character flag, goes on).
 
 from __future__ import annotations
 
-from datetime import datetime
 import re
 from typing import Any
 
 from karst41.content import schema as s
 from karst41.hints import resolve_keys
 from karst41.server.clock import TICK_HZ
+from karst41.server.danger import TRAINING, holds
 from karst41.server.loop import TickContext
 from karst41.server.sessions import Session
 
 NAMED = re.compile(r"\{(item|hymn):([a-z_0-9]+)\}")
 GAP_SECONDS = 4
-DANGER_HOLD_SECONDS = 10  # Shared with P8 (terminal UI 2.5).
 SCRIPT_ID = "wake-opening"
 
 
@@ -222,9 +223,11 @@ class Opening:
         else:
             role = {"danger": "warning", "reward": "chan_sys", "combat": "chan_sys"}.get(ln.kind, "chan_sys")
             channel = "combat" if ln.kind in ("danger", "combat") else "system"
-            session.emit(self.text(ln), kind=ln.kind, channel=channel, role=role, at=at, script=ln.id)
-            if ln.kind == "danger":
-                session.danger_at = at
+            # The opening's danger and combat lines are the drone lesson's
+            # (6.1, 6.6), so their hold ends with the drone (amendment 3).
+            source = TRAINING + session.player_id if ln.kind in ("danger", "combat") and session.player_id else None
+            session.emit(self.text(ln), kind=ln.kind, channel=channel, role=role, at=at, script=ln.id,
+                         source=source)
         state["spoken"].append(ln.id)
         for follower in self.after.get(ln.id, ()):
             _, nxt = self.lines[follower]
@@ -244,8 +247,7 @@ class Opening:
         actor = avatar.actor if avatar else None
         fight = ln.fight and any(a.owner == session.player_id and a.behaviour.get("training")
                                  for a in self.core.world.actors.values())
-        if not fight and session.danger_at is not None and (
-                self.core.clock.now_utc() - datetime.fromisoformat(session.danger_at)).total_seconds() < DANGER_HOLD_SECONDS:
+        if not fight and holds(session, self.core.clock.now_utc(), self.game.training_drone_can_act):
             return True
         if actor is not None and actor.target and not fight:
             return True

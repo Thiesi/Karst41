@@ -51,6 +51,10 @@ class Session:
     log_serial: int = 0
     danger_at: str | None = None
     """Server-clock stamp of the newest danger or combat line (P8's 10 s hold)."""
+    danger_source: str | None = None
+    """What sent that line, when it can stop acting on the caller: `training:<pid>`
+    for the caller's training drone (runner contract amendment 3). None is any
+    other source, which holds the full ten seconds."""
     voice_tick: int | None = None
     """Tick of the newest bark or ambient line admitted (P8's budget)."""
     notify: Callable[[], None] = field(default=lambda: None, repr=False)
@@ -72,10 +76,11 @@ class Session:
             for original in frame.data["lines"]:
                 self.log_serial += 1
                 transient = original.get("_transient", False)
-                line = {key: value for key, value in original.items() if key != "_transient"}
+                line = {key: value for key, value in original.items() if key not in ("_transient", "_source")}
                 line["id"] = f"{self.log_token or self.id}:{self.log_serial}"
                 if line.get("kind") in ("danger", "combat"):
                     self.danger_at = line.get("at") or self.danger_at
+                    self.danger_source = original.get("_source")
                 if not transient:  # P8: barks and ambience are never replayed.
                     self.log_ring.append(line)
                 lines.append(line)
@@ -105,7 +110,7 @@ class Session:
     def emit(self, text: str, *, kind: LogKind, channel: str, role: str,
              at: str, speaker: str | None = None,
              speaker_role: str | None = None, price: bool = False, replay: bool = True,
-             script: str | None = None) -> bool:
+             script: str | None = None, source: str | None = None) -> bool:
         """Architecture 5.5.3: the sole entry for newly authored log lines.
 
         Service notices reach the existing toast surface, outside world
@@ -113,6 +118,8 @@ class Session:
         `replay=False` (P8's barks and ambience) keeps a line out of the
         ring, so reconnect never replays it. `script` names the authored
         script line that emitted it; such a line never merges (terminal UI 2.5).
+        `source` tags a danger or combat line whose sender can stop acting on
+        the caller (see `danger_source`); it never reaches the client.
         """
         if kind not in get_args(LogKind):
             raise ValueError(f"unknown log kind: {kind}")
@@ -127,6 +134,8 @@ class Session:
             line["script"] = script
         if not replay:
             line["_transient"] = True
+        if source:
+            line["_source"] = source
         if kind == "notice":
             # S44: a rule's price is flagged so the door holds it until seen.
             return self.send(Frame("toast", {"text": text, "role": role,
@@ -220,6 +229,7 @@ class Sessions:
             session.log_token, session.log_serial = previous.log_token, previous.log_serial
             # P8: the danger hold and the voice budget survive a reconnect.
             session.danger_at, session.voice_tick = previous.danger_at, previous.voice_tick
+            session.danger_source = previous.danger_source
         self.active[session.id] = session
         return session
 

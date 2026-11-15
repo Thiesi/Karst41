@@ -21,6 +21,7 @@ from karst41.server.players import Player
 from karst41.server.progression import Grant
 from karst41.server.protocol import Frame
 from karst41.server.rules import character, combat as rules
+from karst41.server.danger import TRAINING
 from karst41.server.sessions import Session
 from karst41.server.skills import Use
 from karst41.server.quality import value as quality_value, damage_multiplier
@@ -82,11 +83,16 @@ class Combat:
         av = self.sim.avatars.get(player.bbs_user_id)
         return av.actor if av and av.actor.id == player.id else self.world.actors.get(player.id)
 
-    def log(self, actor: Actor, text: str, warning: bool = False) -> None:
+    def log(self, actor: Actor, text: str, warning: bool = False, *, about: Actor | None = None) -> None:
+        """`about`: the other party. A training drone's lines are tagged, so the
+        danger hold ends once that drone can no longer act (amendment 3)."""
         session = self.session(actor.owner if actor.behaviour.get("player_drone") else actor.id)
         if session:
+            source = (TRAINING + about.owner if about is not None and about.behaviour.get("training")
+                      and about.owner else None)
             session.emit(text, kind="danger" if warning else "combat", channel="combat",
-                         role="warning" if warning else "chan_sys", at=self.clock.now_utc().isoformat())
+                         role="warning" if warning else "chan_sys", at=self.clock.now_utc().isoformat(),
+                         source=source)
 
     def relation(self, source: Actor, target: Actor) -> str:
         if self.crew_together(source.id, target.id):
@@ -259,8 +265,8 @@ class Combat:
         if key not in self.warnings or (not private_training and tick-self.warnings[key] > rules.ticks(rules.COMBAT_SECONDS)
                 and tick>=max(source.cooldowns.get("combat",0),target.cooldowns.get("combat",0))):
             self.warnings[key] = tick
-            self.log(source, "You raise your weapon. Fire again after two seconds; the target can move to safety.", True)
-            self.log(target, source.name + " raises a weapon at you. Move to cover or safety.", True)
+            self.log(source, "You raise your weapon. Fire again after two seconds; the target can move to safety.", True, about=target)
+            self.log(target, source.name + " raises a weapon at you. Move to cover or safety.", True, about=source)
             return False
         return tick >= self.warnings[key] + rules.ticks(rules.WARNING_SECONDS)
 
@@ -452,7 +458,7 @@ class Combat:
         hit = roll < chance
         viewer = self.world.actors.get(source.owner or '', source) if source.behaviour.get('player_drone') else source
         label = presentation.name(target, viewer, self.content)
-        self.log(source,f"{'Hit' if hit else 'Miss'}: {label}." + (f" Roll {roll:.1f}, hit {chance:.1f}%, cover {self.cover(source,target)}." if source.id in self.verbose else ""))
+        self.log(source,f"{'Hit' if hit else 'Miss'}: {label}." + (f" Roll {roll:.1f}, hit {chance:.1f}%, cover {self.cover(source,target)}." if source.id in self.verbose else ""), about=target)
         if not hit: return
         amount = rules.damage(weapon.damage*quality,skill,self.armour(target,weapon.damage_type),weapon.melee)
         progression = self.game.progression
@@ -542,7 +548,7 @@ class Combat:
         target.shock = min(100,target.shock+amount/2+shock)
         target.cooldowns["last_hit"] = self.clock.now_tick()
         target.behaviour["hit_serial"] = int(target.behaviour.get("hit_serial",0))+1
-        self.log(target,f"{source_name} hits you for {amount}.",True)
+        self.log(target,f"{source_name} hits you for {amount}.",True, about=source)
         self.casts.pop(target.id,None)
         if target.shock >= rules.SHOCK_KNOCK:
             if damage_type == "dissonance" and target.modifiers.get("dissonance_knockdown_immune"):
@@ -558,7 +564,7 @@ class Combat:
                     live = self.game.opening_live(player.id)
                     self.game.lesson(player, "drone", "done")  # 6.6 before 6.8 (#220 beat 6 order).
                     if not live:  # Technical lead, fix 1: the engine speaks when no script owns it.
-                        self.log(source,"The drone stops. It had been trying since Tuesday.")
+                        self.log(source,"The drone stops. It had been trying since Tuesday.", about=target)
                 if player:
                     self.disarm(player.id)  # Removal before remember (canon #238).
                 if player and source is not None:

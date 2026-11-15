@@ -319,3 +319,83 @@ def test_an_unread_body_is_present_to_talk_but_never_ready_to_write(game: Headle
     assert commerce.present(session) and not commerce.ready(session)
     create(game, client, name="Noor", card="none")
     assert commerce.present(client.session) and commerce.ready(client.session)
+
+
+# --- Runner contract amendment 3 (owner, 2026-11-15) -------------------------
+# A danger or combat line stops holding speech once its source can no longer
+# act on the caller: the training drone's lines hold during the lesson and
+# release at down, skipped or inert. Real combat holds the full ten seconds.
+
+def hold(game: HeadlessServer, client) -> bool:
+    from karst41.server.danger import holds
+    return holds(client.session, game.core.clock.now_utc(), game.core.characters.training_drone_can_act)
+
+
+def test_amendment_3_the_drone_fight_holds_speech_until_the_drone_is_down(game: HeadlessServer) -> None:
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, fight
+    client = game.connect()
+    pid, drone, actor = armed_and_warned(game, client)  # The drone has hit.
+    assert client.session.danger_source == f"training:{pid}"
+    assert hold(game, client)  # Reading combat is part of the lesson.
+    fight(game, client)
+    assert client.session.danger_at is not None and hold(game, client) is False  # Down: released at once.
+
+
+def test_amendment_3_the_hold_releases_when_the_drone_is_skipped(game: HeadlessServer) -> None:
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, drone_of
+    client = game.connect()
+    pid, drone, actor = armed_and_warned(game, client)
+    assert hold(game, client)
+    act(game, client, Frame("key", {"k": "b", "t": 0}))
+    assert drone_of(game, pid) is None and hold(game, client) is False
+
+
+def test_amendment_3_the_hold_releases_under_the_record_and_for_an_inert_drone(game: HeadlessServer) -> None:
+    from tests.characters.test_s48c1b_lessons import armed_and_warned
+    client = game.connect()
+    manager = game.core.characters
+    pid, drone, actor = armed_and_warned(game, client)
+    assert manager.open_record(client.session, "door")
+    assert hold(game, client) is False  # The drone holds fire under the record (S48c1b).
+    act(game, client, Frame("intent", {"name": "menu_close", "args": {}}))
+    assert hold(game, client)  # Esc: the fight resumes, so does the hold.
+    create(game, client, name="Noor", card="none")  # A character's drone is inert.
+    assert drone.behaviour["inert"] and hold(game, client) is False
+
+
+def test_amendment_3_real_combat_still_holds_ten_seconds(game: HeadlessServer) -> None:
+    from karst41.server.clock import TICK_HZ
+    client = game.connect()
+    create(game, client, name="Noor", card="none")
+    actor = game.core.world.actors[client.session.player_id]
+    game.core.combat.log(actor, "Someone hits you for 5.", True)  # Untagged: any other source.
+    game.frames_for(client)
+    assert client.session.danger_source is None and hold(game, client)
+    game.step(10 * TICK_HZ - 1)
+    assert hold(game, client)
+    game.step(1)
+    assert hold(game, client) is False
+
+
+def test_amendment_3_p5s_pace_now_hears_the_record_lines(game: HeadlessServer) -> None:
+    """The engineer's p5 diagnosis: the record opened about 5 s after the drone's
+    last hit, so the hold kept 9.2 back until kit_issued dropped it."""
+    from datetime import datetime
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, fight
+    client = game.connect()
+    pid, drone, actor = armed_and_warned(game, client)
+    fight(game, client)
+    session, clock = client.session, game.core.clock
+    hit = datetime.fromisoformat(session.danger_at)
+    said(game, client)
+    place(game, client, HALL, DOOR)
+    act(game, client, Frame("key", {"k": "e", "t": 0}))
+    assert game.core.characters.wakes[session.id].stage == "record"
+    assert (clock.now_utc() - hit).total_seconds() < 10  # Inside the old hold.
+    heard = []
+    for _ in range(60):  # At most a speech gap.
+        game.step()
+        heard += [line.get("script") for line in said(game, client)]
+        if "9.2" in heard:
+            break
+    assert "9.2" in heard
