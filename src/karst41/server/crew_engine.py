@@ -41,6 +41,7 @@ class Crews:
         self.menus: dict[str, CrewMenu] = {}
         self.requests: dict[str, list[str]] = {}
         self.announced: set[str] = set()
+        self.held: dict[str, str] = {}  # Session id -> BBS user, until a non-pocket zone (#254).
         self.guards: dict[tuple[str, str], tuple[int, int]] = {}
         self.guarded_at: dict[tuple[str, str], int] = {}
         self.actions: dict[str, int] = {}
@@ -67,11 +68,38 @@ class Crews:
         attached = self.game.attached
         def on_attach(session: Session, player: Any) -> None:
             attached(session, player)
-            if player.bbs_user_id not in self.announced:
-                self.announced.add(player.bbs_user_id)
-                session.emit(self.text('restart'), kind="notice", channel="system", role="ui_text",
-                             at=self.clock.now_utc().isoformat())
+            if player.bbs_user_id in self.announced:
+                return
+            if self.opening_in_pocket(session, player):
+                self.held[session.id] = player.bbs_user_id  # #254: told on the first street.
+                return
+            self.announce(session, player.bbs_user_id)
         self.game.attached = on_attach
+
+    def announce(self, session: Session, user: str) -> None:
+        """S19's once-per-run notice that crews end on a restart."""
+        self.announced.add(user)
+        self.held.pop(session.id, None)
+        session.emit(self.text('restart'), kind="notice", channel="system", role="ui_text",
+                     at=self.clock.now_utc().isoformat())
+
+    def opening_in_pocket(self, session: Session, player: Any) -> bool:
+        """A new player still in the opening, standing in a pocket zone (#254)."""
+        opening = player.progress.get("opening")
+        if not isinstance(opening, dict) or opening.get("done"):
+            return False
+        avatar = self.sim.avatars.get(session.user_id)
+        zone = self.world.zones.get(avatar.actor.zone if avatar else player.zone)
+        return zone is not None and zone.template.meta.safety == "pocket"
+
+    def release_held(self) -> None:
+        for sid, user in tuple(self.held.items()):
+            session = self.game.sessions.active.get(sid)
+            player = self.game.players.get(session.player_id) if session and not session.closed else None
+            if player is None or user in self.announced:
+                self.held.pop(sid, None)  # Gone, or told already: the next attach decides again.
+            elif not self.opening_in_pocket(session, player):
+                self.announce(session, user)
 
     def crew_id(self, player: str) -> str | None:
         return self.registry.memberships.get(player)
@@ -508,6 +536,7 @@ class Crews:
         return False
 
     def tick(self, ctx: TickContext) -> None:
+        self.release_held()
         for pid in tuple(self.registry.memberships):
             if pid not in self.game.players or not self.session(pid):
                 change = self.registry.remove(pid)

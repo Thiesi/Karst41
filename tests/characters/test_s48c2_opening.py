@@ -669,3 +669,17 @@ def test_the_speech_hold_keeps_real_combats_ten_seconds_after_a_drone_line(game:
     session = client.session
     assert session.danger_source.startswith("training:")
     assert holds(session, game.core.clock.now_utc(), game.core.characters.training_drone_can_act)
+
+
+def test_a_disconnect_clears_the_connections_hint_row_and_walked_steps(game: HeadlessServer) -> None:
+    """Review 6889691584: `showing` and `walked` are per connection; stop()
+    drops them with the runner state, so nothing outlives the session."""
+    client = game.connect()
+    game.step(1)
+    opening, sid = game.core.opening, client.session.id
+    opening.walked[sid] = [("vatside-wake-hall", (20, 14)), 3]
+    opening.showing[sid] = ("hint", game.core.clock.now_tick() + 80)
+    game.core.sessions.disconnect(client.session)
+    game.step(1)
+    assert sid not in opening.states
+    assert sid not in opening.walked and sid not in opening.showing

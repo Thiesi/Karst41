@@ -116,6 +116,10 @@ class Opening:
             self.push(session, "kit_issued", pending)
 
     def stop(self, session: Session) -> dict[str, Any] | None:
+        # The one-time row on screen and the steps walked toward one are this
+        # connection's only (review 6889691584); the flags live on the character.
+        self.showing.pop(session.id, None)
+        self.walked.pop(session.id, None)
         return self.states.pop(session.id, None)
 
     def live(self, pid: str) -> bool:
