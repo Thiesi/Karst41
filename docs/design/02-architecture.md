@@ -395,6 +395,8 @@ objects[]: {..., role}               role by kind, not `text`/`muted` (P4)
 me: {..., district, pvp}             district id; whether PvP can reach you here (P4)
 me: {..., truce?, truce_text?}       public keeper short name and peace text (S38)
 me: {..., hunted?}                   a truce keeper still answers you, any zone (S44)
+me: {..., danger_release?}           server-clock stamp: danger/combat lines at or before it are no longer
+                                     protected (terminal UI 2.5), sent once their source can't act (S48c2)
 charted: [[legend index | -1 | -3, ...], ...]  public layout without sight, see 5.5.5 (P6)
 looks: {theme, regions[], signs[], marks[], glints[], names{}}  place layer, masked, see 5.5.4 (P6)
 place: {places[{name, rect, at, text, view?}], here}   named places and the fixed camera (V3)
