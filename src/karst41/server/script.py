@@ -15,8 +15,9 @@ read and the hall left (only the errand, a per-character flag, goes on).
   line was already spoken, it is queued at once (second amendment).
 - When a beat begins, its own lines go first; waiting non-anchor lines of
   earlier beats are dropped. An older anchor is spoken only when no line
-  of the current beat is waiting, oldest first. Once the record opens, an
-  anchor still owed from before it plays first instead, and may speak
+  of the current beat is waiting, oldest first; a chained line goes ahead
+  of older anchors, as its lead did. Once the record opens, the drone
+  beat's anchor (6.2), if still owed, plays first instead and may speak
   under the record (fourth amendment, 2026-11-15, owner-approved), and a
   non-anchor follower of a line from before the record is stale and never
   queued (technical lead).
@@ -69,6 +70,7 @@ class Opening:
         self.lines: dict[str, tuple[int, s.ScriptLine]] = {}
         self.after: dict[str, list[str]] = {}
         self.record_beat = len(self.script.beats) if self.script else 0
+        self.drone_beat = -1
         if self.script:
             for index, beat in enumerate(self.script.beats):
                 for ln in beat.lines:
@@ -77,6 +79,7 @@ class Opening:
                         self.after.setdefault(ln.after, []).append(ln.id)
             self.record_beat = next((i for i, beat in enumerate(self.script.beats) if beat.id == "the-record"),
                                     self.record_beat)
+            self.drone_beat = next((i for i, beat in enumerate(self.script.beats) if beat.id == "the-drone"), -1)
         hook = self.game.lesson_hook
         self.game.lesson_hook = lambda player, key, value: (hook(player, key, value), self.push_player(player, key, value))
 
@@ -201,10 +204,12 @@ class Opening:
         return self.past_record(state, lid) and not self.lines[lid][1].anchor
 
     def owed(self, state: dict[str, Any], lid: str) -> bool:
-        """An earlier beat's anchor still owed once the record has opened: it
-        plays first, ahead of the record lines, and may speak under the record
-        (amendment 4, owner-approved 2026-11-15; 6.2)."""
-        return self.past_record(state, lid) and self.lines[lid][1].anchor
+        """The drone beat's anchor (6.2) still owed once the record has opened:
+        it plays first, ahead of the record lines, and may speak under the
+        record (amendment 4, owner-approved 2026-11-15). Any other owed anchor
+        (3.1, 3.3) waits and follows 9.8 and 9.9 (first-ten-minutes, Pacing)."""
+        index, ln = self.lines[lid]
+        return index == self.drone_beat and ln.anchor and self.past_record(state, lid)
 
     def begin(self, session: Session, state: dict[str, Any], index: int) -> None:
         state["beat"], state["beat_tick"], state["steps"] = index, self.core.clock.now_tick(), 0
@@ -272,7 +277,9 @@ class Opening:
             if follower not in state["fired"]:
                 state["fired"].append(follower)
                 if self.eligible(state, nxt) and not self.stale(state, follower):
-                    self.queue_line(session, state, follower,
+                    # Ahead of older anchors, as its lead was: 9.9 follows 9.8
+                    # before an owed 3.1/3.3 (first-ten-minutes, Pacing).
+                    self.queue_line(session, state, follower, front=True,
                                     due=self.core.clock.now_tick() + round(nxt.delay * TICK_HZ))
 
     def quiet(self, session: Session, ln: s.ScriptLine, tick: int) -> bool:

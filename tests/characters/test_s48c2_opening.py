@@ -551,3 +551,39 @@ def test_a_valueless_polled_trigger_fires_only_its_own_line(repo_root, name: str
             break
     assert "iso.here" in state["fired"]
     assert "iso.later" not in state["fired"] and state["beat"] == 0
+
+
+def test_owed_lease_anchors_wait_under_the_record_and_follow_9_9(game: HeadlessServer) -> None:
+    """First-ten-minutes, Pacing (worked example): 3.1 and 3.3, still owed
+    at the record, do not speak under it; they follow 9.8 and 9.9. Only 6.2
+    goes first (amendment 4)."""
+    client = game.connect()
+    session, clock = client.session, game.core.clock
+    state = game.core.opening.states[session.id]
+    game.step(2)
+    beats = [b.id for b in game.core.opening.script.beats]
+    state["beat"] = beats.index("the-shape")
+    place(game, client, HALL, (5, 9))  # Beat 1's region: the lease beat begins.
+    game.step(1)
+    assert state["beat"] == beats.index("the-lease")
+    session.voice_tick = clock.now_tick()  # A line was just spoken: 3.1/3.3 still owed.
+    place(game, client, HALL, DOOR)
+    act(game, client, Frame("key", {"k": "e", "t": 0}))
+    assert game.core.characters.wakes[session.id].stage == "record"
+    assert {"3.1", "3.3"} <= {q[0] for q in state["queue"]}
+    heard = []
+    for _ in range(120):
+        game.step()
+        heard += [line.get("script") for line in said(game, client)]
+        if "9.2" in heard:
+            break
+    assert "9.2" in heard and not {"3.1", "3.3"} & set(heard)  # Not under the record.
+    act(game, client, Frame("intent", {"name": "menu_select", "args": {}}))
+    wake = game.core.characters.wakes[session.id]
+    act(game, client, Frame("line", {"id": wake.prompt_id, "text": "Noor"}))
+    game.step(1)
+    game.commit_characters()
+    for _ in range(600):
+        game.step()
+        heard += [line.get("script") for line in said(game, client)]
+    assert heard.index("9.2") < heard.index("9.8") < heard.index("9.9") < heard.index("3.1") < heard.index("3.3")
