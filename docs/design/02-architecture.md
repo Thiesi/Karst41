@@ -285,7 +285,14 @@ forms. Cancelling a line prompt sends `intent {name: "prompt_cancel",
 args: {id}}`, never an empty line submission. Delta add/replace/remove
 operations use JSON pointers against the last `{kind, body}` view; an
 invalid patch or base mismatch requests `intent {name: "resync", args:
-{}}` without partially changing the displayed view.
+{}}` without partially changing the displayed view. The client reports
+the first spoken line it couldn't show whole with `intent {name:
+"log_missed", args: {}}`, at most once per connection (S48c3b): a speech
+entry that arrived on this connection and was cut as the newest entry, or
+left the visible log, without ever having been drawn whole. Replayed
+history on attach never counts. The server decides what, if anything, to
+show (today only the opening's Ctrl-P read-back hint, in the Wake Hall)
+and ignores the intent silently otherwise.
 
 S03 wire spellings: `line.id` identifies the prompt, `caps.tier` is
 `"16"`, `"256"` or `"truecolor"`, and `caps.unicode` is `true`.
