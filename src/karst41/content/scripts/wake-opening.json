@@ -1,0 +1,702 @@
+{
+  "schema": 1,
+  "id": "wake-opening",
+  "zone": "vatside-wake-hall",
+  "beats": [
+    {
+      "id": "eyes-open",
+      "lines": [
+        {
+          "id": "1.1",
+          "text": "Open your eyes slowly. The light's cheap and it stays on.",
+          "speaker": "vantongeren",
+          "anchor": true
+        },
+        {
+          "id": "1.2",
+          "text": "I'm Vantongeren. I run this hall. I was decanted here too, a long time ago, from a template like yours.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "1.3",
+          "text": "I'm telling you that first because it's the only thing I can say that you'll believe.",
+          "speaker": "vantongeren"
+        }
+      ],
+      "next": [
+        {
+          "name": "steps",
+          "count": 3
+        },
+        {
+          "name": "seconds",
+          "count": 12
+        }
+      ],
+      "hints": [
+        {
+          "text": "{move} walk. Follow the line on the floor.",
+          "key": "move"
+        }
+      ]
+    },
+    {
+      "id": "the-shape",
+      "lines": [
+        {
+          "id": "2.1",
+          "text": "You're a Wake. You came out of a vat this morning from a Sablier template that's older than the wall.",
+          "speaker": "vantongeren",
+          "anchor": true
+        },
+        {
+          "id": "2.2",
+          "text": "You don't remember anything because there's nothing to remember; the template doesn't carry memories, only a shape.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "2.3",
+          "text": "The shape is yours now. What you put in it is your business.",
+          "speaker": "vantongeren"
+        }
+      ],
+      "next": [
+        {
+          "name": "region",
+          "region": [
+            0,
+            8,
+            40,
+            12
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-lease",
+      "lines": [
+        {
+          "id": "3.1",
+          "text": "Here's the part they make me say and the part I'd say anyway. For ninety days you're Sablier property under lease.",
+          "speaker": "vantongeren",
+          "anchor": true
+        },
+        {
+          "id": "3.2",
+          "text": "You'll find that means less than it sounds like: you can go where you want, work for who you want, and nobody can sell you.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "3.3",
+          "text": "After ninety days you're a person, with a name on the civic roll. Nothing gets you there sooner. The days count without you.",
+          "speaker": "vantongeren",
+          "anchor": true
+        }
+      ],
+      "next": [
+        {
+          "name": "region",
+          "region": [
+            7,
+            9,
+            3,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-cards",
+      "lines": [
+        {
+          "id": "4.1",
+          "text": "The city's run by eight groups who'd each like you to think they're the only one that matters.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "4.2",
+          "text": "Every one of them has left a card on my desk. I hand them out without preference.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "4.3",
+          "text": "They all resent that and none of them can prove it. Take one, or don't. It's an introduction, not a contract.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "4.4",
+          "text": "Work registers your signature sooner: a flat in your own name, and a side, if one will have you. It isn't personhood. It's a pen.",
+          "speaker": "vantongeren"
+        }
+      ],
+      "next": [
+        {
+          "name": "region",
+          "region": [
+            12,
+            12,
+            28,
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-corridor-door",
+      "lines": [
+        {
+          "id": "5.1",
+          "text": "When you're ready, walk to the door. There's a drone in the corridor that's been malfunctioning since Tuesday.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "5.2",
+          "text": "Deal with it; consider it the first thing you've ever done.",
+          "speaker": "vantongeren"
+        },
+        {
+          "id": "5.3",
+          "text": "Then there's a terminal. Nurse Okafor will show you how to jack in. The door past it opens from the other side.",
+          "speaker": "vantongeren"
+        }
+      ],
+      "next": [
+        {
+          "name": "drone_woke"
+        },
+        {
+          "name": "region",
+          "region": [
+            21,
+            12,
+            5,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "the-drone",
+      "lines": [
+        {
+          "id": "6.0",
+          "text": "A pistol on a cable by the door. Your hand takes it before you decide.",
+          "kind": "system",
+          "when": [
+            {
+              "name": "drone_woke"
+            }
+          ]
+        },
+        {
+          "id": "6.1",
+          "text": "A drone turns in the corridor. It has seen you. Its shots can't kill.",
+          "kind": "danger",
+          "when": [
+            {
+              "name": "drone_woke"
+            }
+          ]
+        },
+        {
+          "id": "6.2",
+          "text": "If you die, you'll wake up here, or somewhere like here, with a bill. Sablier keeps a copy.",
+          "speaker": "vantongeren",
+          "anchor": true,
+          "fight": true,
+          "when": [
+            {
+              "name": "first_hit"
+            },
+            {
+              "name": "drone_down"
+            },
+            {
+              "name": "drone_skipped"
+            }
+          ]
+        },
+        {
+          "id": "6.3",
+          "text": "It's not free and it's not perfect and you'll lose a little of yourself each time. But it's a copy.",
+          "speaker": "vantongeren",
+          "after": "6.2",
+          "delay": 4
+        },
+        {
+          "id": "6.4",
+          "text": "It's more than the city outside the wall gets.",
+          "speaker": "vantongeren",
+          "after": "6.3",
+          "delay": 4
+        },
+        {
+          "id": "6.5",
+          "text": "That's her on the hall channel. She watches every first one.",
+          "speaker": "okafor",
+          "fight": true,
+          "after": "6.2"
+        },
+        {
+          "id": "6.6",
+          "text": "The drone stops. It had been trying since Tuesday.",
+          "kind": "combat",
+          "when": [
+            {
+              "name": "drone_down"
+            }
+          ]
+        },
+        {
+          "id": "6.7",
+          "text": "You walk past it. It keeps trying.",
+          "kind": "system",
+          "when": [
+            {
+              "name": "drone_skipped"
+            }
+          ]
+        },
+        {
+          "id": "6.8",
+          "text": "The cable reels the pistol back to the wall.",
+          "kind": "system",
+          "when": [
+            {
+              "name": "disarmed"
+            }
+          ]
+        }
+      ],
+      "next": [
+        {
+          "name": "drone_down"
+        },
+        {
+          "name": "drone_skipped"
+        }
+      ],
+      "hints": [
+        {
+          "text": "{target_next} picks the drone.  B walks past it",
+          "key": "target_next"
+        },
+        {
+          "text": "{fire} fires. Keep firing.  B walks past it",
+          "key": "fire"
+        }
+      ]
+    },
+    {
+      "id": "the-terminal",
+      "lines": [
+        {
+          "id": "7.1",
+          "text": "Up you get. Vantongeren does the speech; I do the walking.",
+          "speaker": "okafor",
+          "when": [
+            {
+              "name": "region",
+              "region": [
+                27,
+                13,
+                1,
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "id": "7.2",
+          "text": "Stand close and jack in. Your body stays up here with me.",
+          "speaker": "okafor",
+          "when": [
+            {
+              "name": "region",
+              "region": [
+                33,
+                13,
+                5,
+                5
+              ]
+            }
+          ]
+        }
+      ],
+      "next": [
+        {
+          "name": "jacked_in"
+        }
+      ]
+    },
+    {
+      "id": "down-and-back",
+      "next": [
+        {
+          "name": "jacked_out"
+        }
+      ],
+      "hints": [
+        {
+          "text": "{target_next} picks the Tripwire.  B leaves",
+          "key": "target_next"
+        },
+        {
+          "text": "{program_1} casts Pick. Let it land.  B leaves",
+          "until": "ice_down"
+        },
+        {
+          "text": "{interact} opens the room.  B leaves",
+          "key": "interact",
+          "after": "ice_down"
+        },
+        {
+          "text": "B takes you back up.",
+          "after": "lifted"
+        }
+      ]
+    },
+    {
+      "id": "the-record",
+      "lines": [
+        {
+          "id": "o.1",
+          "text": "Record first. Then I know what size.",
+          "name": "Wake Outfitter",
+          "record": true,
+          "when": [
+            {
+              "name": "record_opened",
+              "value": "outfitter"
+            }
+          ]
+        },
+        {
+          "id": "9.1",
+          "text": "Read me the template line. I have to hear you say it.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "record_opened"
+            }
+          ],
+          "requires": [
+            "lifted"
+          ]
+        },
+        {
+          "id": "9.2",
+          "text": "No record in hand? I keep a copy. Read me the template line.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "record_opened"
+            }
+          ],
+          "unless": [
+            "lifted"
+          ]
+        },
+        {
+          "id": "9.3",
+          "text": "Hardline. Thought so. You took that hit like furniture.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "template_read",
+              "value": "hardline"
+            }
+          ],
+          "requires": [
+            "first_hit"
+          ]
+        },
+        {
+          "id": "9.3s",
+          "text": "Hardline. Thought so.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "template_read",
+              "value": "hardline"
+            }
+          ],
+          "unless": [
+            "first_hit"
+          ]
+        },
+        {
+          "id": "9.4",
+          "text": "Ghost. You didn't make a sound on my floor. I mind that.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "template_read",
+              "value": "ghost"
+            }
+          ],
+          "unless": [
+            "fired"
+          ]
+        },
+        {
+          "id": "9.4s",
+          "text": "Ghost. Thought so.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "template_read",
+              "value": "ghost"
+            }
+          ],
+          "requires": [
+            "fired"
+          ]
+        },
+        {
+          "id": "9.5",
+          "text": "Cantor. Don't hum in here. The vats pick it up.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "template_read",
+              "value": "cantor"
+            }
+          ]
+        },
+        {
+          "id": "9.6",
+          "text": "Operator. You've been counting my staff since you came in.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "template_read",
+              "value": "operator"
+            }
+          ]
+        },
+        {
+          "id": "9.7",
+          "text": "And a name. The roll wants one.",
+          "speaker": "okafor",
+          "record": true,
+          "when": [
+            {
+              "name": "name_prompt"
+            }
+          ]
+        },
+        {
+          "id": "9.8",
+          "text": "Many names vanish from the lease rolls. Some leave the work; some disappear. The roll does not tell me which.",
+          "speaker": "vantongeren",
+          "anchor": true,
+          "when": [
+            {
+              "name": "name_entered"
+            }
+          ]
+        },
+        {
+          "id": "9.9",
+          "text": "Keep your own record.",
+          "speaker": "vantongeren",
+          "anchor": true,
+          "after": "9.8",
+          "delay": 4
+        },
+        {
+          "id": "9.10",
+          "text": "Issued: sidearm, 50 rounds, baton, two patches, two rations.",
+          "kind": "reward",
+          "after": "9.9",
+          "delay": 2.5,
+          "when": [
+            {
+              "name": "kit_issued"
+            }
+          ]
+        },
+        {
+          "id": "9.10h",
+          "kind": "reward",
+          "after": "9.10",
+          "delay": 2.5,
+          "text": "Issued: a {item:arm_kestrel_vest}. It's on you already.",
+          "when": [
+            {
+              "name": "kit_issued",
+              "value": "hardline"
+            }
+          ]
+        },
+        {
+          "id": "9.10c",
+          "kind": "reward",
+          "after": "9.10",
+          "delay": 2.5,
+          "text": "Already fitted: a {item:imp_res_first_ear}. It knows one hymn, {hymn:hymn_steady}.",
+          "when": [
+            {
+              "name": "kit_issued",
+              "value": "cantor"
+            }
+          ]
+        },
+        {
+          "id": "9.10o",
+          "kind": "reward",
+          "after": "9.10",
+          "delay": 2.5,
+          "text": "Issued: a {item:drn_kestrel_mule}. It carries the load. You give the orders.",
+          "when": [
+            {
+              "name": "kit_issued",
+              "value": "operator"
+            }
+          ]
+        },
+        {
+          "id": "9.11",
+          "text": "200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.",
+          "kind": "reward",
+          "after": "9.10",
+          "delay": 5,
+          "when": [
+            {
+              "name": "kit_issued"
+            }
+          ]
+        }
+      ],
+      "next": [
+        {
+          "name": "kit_issued"
+        }
+      ]
+    },
+    {
+      "id": "the-door",
+      "lines": [
+        {
+          "id": "10.1",
+          "text": "Vesper, at the Tin Halo on Sodium Row, pays on time. Her card's the one I put on top.",
+          "speaker": "vantongeren",
+          "anchor": true,
+          "after": "9.11",
+          "delay": 2.5,
+          "when": [
+            {
+              "name": "region",
+              "region": [
+                36,
+                14,
+                4,
+                5
+              ]
+            }
+          ]
+        },
+        {
+          "id": "10.2",
+          "text": "Past the step it's Clinic Row. Our name's on it, not our protection. Walk like you know that.",
+          "speaker": "okafor",
+          "after": "10.1",
+          "when": [
+            {
+              "name": "region",
+              "region": [
+                36,
+                14,
+                4,
+                5
+              ]
+            }
+          ]
+        }
+      ],
+      "next": [
+        {
+          "name": "talk_opened",
+          "value": "vesper"
+        }
+      ]
+    }
+  ],
+  "details": [
+    {
+      "archetype": "hardline",
+      "text": "That drone would have hurt you less.",
+      "requires": [
+        "first_hit"
+      ]
+    },
+    {
+      "archetype": "ghost",
+      "text": "You wouldn't have needed the terminal. You carry your own.",
+      "requires": [
+        "jacked_in"
+      ]
+    },
+    {
+      "archetype": "cantor",
+      "text": "The hum under the floor is louder for you. Some people will want to know what you hear."
+    },
+    {
+      "archetype": "operator",
+      "text": "You'd have sent something else down that corridor first.",
+      "requires": [
+        "drone_woke"
+      ]
+    }
+  ],
+  "errands": [
+    {
+      "zone": "vatside-clinics",
+      "text": "Card: Sodium Row. Follow MERIDIAN PLAZA, east.",
+      "short": "Card: Sodium Row"
+    },
+    {
+      "zone": "core-plaza",
+      "text": "Card: Sodium Row. Take the NEON STAIR.  {map} map",
+      "short": "Card: Sodium Row"
+    },
+    {
+      "zone": "sodium-row",
+      "text": "Card: Vesper, at the Tin Halo. Far end of the street.",
+      "short": "Card: Tin Halo"
+    },
+    {
+      "zone": "sodium-tin-halo",
+      "text": "Card: Vesper, at the Tin Halo. Far end of the street.",
+      "short": "Card: Tin Halo"
+    }
+  ],
+  "hints": [
+    {
+      "id": "shift-runs",
+      "text": "Shift with an arrow runs.",
+      "zone": "vatside-clinics",
+      "steps": 12,
+      "seconds": 8
+    },
+    {
+      "id": "read-back",
+      "text": "{scrollback} reads back what you missed.",
+      "zone": "vatside-clinics"
+    }
+  ],
+  "late_card": "The cards are still on the table. Nobody threw yours out.",
+  "speakers": {
+    "vantongeren": "Vantongeren",
+    "okafor": "Okafor"
+  }
+}

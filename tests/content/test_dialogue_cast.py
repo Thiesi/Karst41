@@ -26,6 +26,11 @@ HUB = {'achterberg', 'amsel', 'brann', 'dolf', 'ivey', 'lindgren', 'marsh', 'qua
 # return with their chains.
 HELD = {('brann', 'season_stage finale_done')}
 HELD_RECORDS = {'s19-war-s1-1-stairwell', 's19-war-s1-2-curfew', 's19-war-s1-3-book', 's19-war-s1-4-line'}
+# S48c2 holds Vantongeren's Season 1 record lines too (dialogue/vantongeren.json
+# at 81d754f); S48b had already held Vane's copies. They return with S26.
+HELD_RECORDS |= {'s19-sab-s1-1-retrieval', 's19-sab-s1-2-provenance', 's19-sab-s1-3-dreaming',
+                 's19-sab-s1-4-batch'}
+HALL = {'okafor', 'vantongeren'}  # S48c2: posted in the Wake Hall (bundle s48-wake-hall).
 
 
 @pytest.fixture(scope='module')
@@ -34,8 +39,8 @@ def cast() -> ContentTree:
 
 
 def test_game_13_4_complete_cast_loads_without_activating_placement(cast: ContentTree) -> None:
-    held_cast = FIXED | MINOR | RECRUITERS | {'machine-mind-encounter'}
-    assert set(cast.dialogue) == held_cast | {'row-street-regular', 'row-enforcer'}
+    held_cast = (FIXED | MINOR | RECRUITERS | {'machine-mind-encounter'}) - HALL
+    assert set(cast.dialogue) == held_cast | HALL | {'row-street-regular', 'row-enforcer'}
     assert validate(cast) == []
     assert set(cast.bundles['s27-cast'].members['dialogue']) == held_cast - HUB
     assert set(cast.bundles['s48-hub-cast'].members['dialogue']) == HUB
@@ -43,11 +48,13 @@ def test_game_13_4_complete_cast_loads_without_activating_placement(cast: Conten
     assert all(cast.active('dialogue', did) for did in HUB)
     assert cast.active('dialogue', 'row-street-regular')  # #147's explicit street binding.
     assert cast.active('dialogue', 'row-enforcer')  # S44: the Sable enforcers' set.
+    assert all(cast.active('dialogue', did) for did in HALL)
     assert not any(obj.params.get('dialogue') for zone in cast.zones.values() for obj in zone.meta.objects)
     assert not any(npc.dialogue in held_cast - HUB for npc in cast.npcs.values())
     assert {npc.id for npc in cast.npcs.values() if npc.dialogue} == {
         'npc-sodium-regular', 'npc-plainclothes-warden', 'npc-sable-enforcer',
         'npc-vendor-sodium-tin-halo-vesper', 'npc-vendor-core-precinct-warden-quartermaster',
+        'npc-cast-okafor', 'npc-cast-vantongeren',
         *(f'npc-cast-{did}' for did in HUB - {'vesper', 'lindgren'})}
     assert not any(cell.dialogue for sector in cast.sectors.values() for cell in sector.cells)
 
@@ -101,6 +108,9 @@ def test_game_13_4_authored_references_resolve_even_while_bundle_is_dormant(cast
         for offer in talker.offers:
             if offer.kind == 'ask':  # Entities 1.11 (S44): the talker's own answer line.
                 assert offer.ref in {line.id for line in talker.lines[:-1]}, (talker.id, offer)
+                continue
+            if offer.kind == 'read':  # S48c2: text assets <ref>-1, -2, ...
+                assert f"{offer.ref}-1" in cast.text, (talker.id, offer)
                 continue
             assert offer.ref in (cast.services | cast.vendors if offer.kind == 'service'
                                  else getattr(cast, offers[offer.kind])), (talker.id, offer)

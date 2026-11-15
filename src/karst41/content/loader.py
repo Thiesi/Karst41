@@ -101,6 +101,7 @@ class ContentTree:
     evidence: dict[str, s.EvidenceRecord] = field(default_factory=dict)
     services: dict[str, s.ServiceNodeTemplate] = field(default_factory=dict)
     dialogue: dict[str, s.DialogueNode] = field(default_factory=dict)
+    scripts: dict[str, s.Script] = field(default_factory=dict)
     seasons: dict[str, s.SeasonDefinition] = field(default_factory=dict)
     """Keyed by the season number as a string, the file name."""
     bundles: dict[str, s.Bundle] = field(default_factory=dict)

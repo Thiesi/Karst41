@@ -11,14 +11,14 @@
 ║    │                                                                    │    ║
 ║    │                                                                    │    ║
 ║    │ You hold the heavy end. You can use heavy weapons and armour. Your │    ║
-║    │ frame takes the load. Your implant tolerance gains two points.     │    ║
+║    │ frame takes the load. Your body takes two more implants than most. │    ║
 ║    │                                                                    │    ║
 ║    │                                                                    │    ║
 ║    │ enter read this line  Esc/B put the record down                    │    ║
 ║    └────────────────────────────────────────────────────────────────────┘    ║
 ╟──────────────────────────────────────────────────────────────────────────────╢
-║* Miss: Training drone.                                                       ║
-║* Hit: Training drone. (x2)                                                   ║
-║* The training drone falls silent. The tutorial terminal is ahead.            ║
+║+ The cable reels the pistol back to the wall.                                ║
+║" Okafor: Up you get. Vantongeren does the speech; I do the walking.          ║
+║" Okafor: No record in hand? I keep a copy. Read me the template line.        ║
 ║? help  Enter read this line  Esc/B put the record down                       ║
 ╚══════════════════════════════════════════════════════════════════════════════ 

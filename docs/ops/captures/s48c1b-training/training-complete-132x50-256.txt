@@ -1,4 +1,4 @@
-╔═VATSIDE═Wake Hall═POCKET══════════════════════════════════════════════════════════════════════════════════╤════════════16:00═════╗
+╔═VATSIDE═Wake Hall═POCKET══════════════════════════════════════════════════════════════════════════════════╤════════════04:05═════╗
 ║                                                                                                           │─ HERE ───────────────║
 ║                                                                                                           │ + Corridor door      ║
 ║                                                                                                           │─ TARGET ─────────────║
@@ -33,18 +33,18 @@
 ║                                                                                                           │                      ║
 ║                                                                                                           │                      ║
 ║                                                                                                           │──────────────────────║
-║                                                                                                           │ No. 0005 · S1...     ║
+║                                                                                                           │ No. 0002 · S1...     ║
 ║                                                                                                           │ HP  █████████▌ 53    ║
 ║                                                                                                           │ STA ██████████ 36    ║
-║                                                                                                           │ SHK ▌░░░░░░░░░ 0.5   ║
+║                                                                                                           │ SHK ▌░░░░░░░░░ 2.5   ║
 ╟───────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────╢
-║» You wake on a gurney under a number. White light, warm plastic, a floor drain. Past the cards, a corridor. Past the corridor, a ║
-║  terminal.                                                                                                                       ║
-║‼ Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.                                                ║
+║‼ A drone turns in the corridor. It has seen you. Its shots can't kill.                                                           ║
 ║‼ You raise your weapon. Fire again after two seconds; the target can move to safety.                                             ║
-║‼ Training drone hits you for 5.                                                                                                  ║
 ║* Miss: Training drone. (x2)                                                                                                      ║
+║‼ Training drone hits you for 5.                                                                                                  ║
+║" Vantongeren: If you die, you'll wake up here, or somewhere like here, with a bill. Sablier keeps a copy.                        ║
 ║* Hit: Training drone. (x2)                                                                                                       ║
-║* The training drone falls silent. The tutorial terminal is ahead.                                                                ║
-║E use Corridor door  ? help  Weapon 0.5s  Tab target  F fire  X weapon  1-5 quick  V abilities  I inventory                       ║
+║* The drone stops. It had been trying since Tuesday.                                                                              ║
+║+ The cable reels the pistol back to the wall.                                                                                    ║
+║E use Corridor door  ? help  Weapon 0.7s  Tab target  F fire  X weapon  1-5 quick  V abilities  I inventory                       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 

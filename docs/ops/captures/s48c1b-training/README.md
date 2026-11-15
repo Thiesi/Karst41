@@ -1,30 +1,98 @@
-# S48c1b training packet
+# S48c1b training packet (re-pinned by S48c2)
 
-Execution head: `3ee2f70e4f466ded5b1316cdcf9861430d3c9b19` (PR #245).
+Execution head: `4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722` (PR #252).
 Driver: `scripts/accept_p5_netbbs.py`, all sizes and tiers (no `--size`
 or `--tier`). Transport: real NetBBS v7.45.0 Telnet to a registered native
-stdio door, source-matched wheel, `DOOR_KARST41_PRESENTATION=1`, run
-locally on Windows. The node, world and accounts are private; NPCs, rules,
-funds and clock are normal. Human and presentation acceptance are not
-granted. The presentation lead accepts these frames as new captures.
+stdio door, source-matched wheel, `DOOR_KARST41_PRESENTATION=1`.
 
-## Why a new packet
+The run was made on the runner (`docs/ops/remote-runner.md`: WSL2 Ubuntu
+24.04 on the owner's second workstation), as job
+`p5-acceptance:native`, run ID `c2-p5-7`, both matrix entries. The node,
+world and accounts are private; NPCs, rules, funds and clock are normal.
+Human and presentation acceptance are not granted.
 
-S48c1b (#220 item 6, #217 ruling, creative lead beat (a)): the training
-drone wakes only for an unread body. P5 therefore fights the drone first,
-as the unread body, then reads the decant record and names the character.
-That changes the input sequence behind every P5 capture, so under S43 none
-of the old captures can be re-pinned. They are retired, not overwritten.
-`capture-retirements.json` lists each one with its reason, this PR and the
-file that supersedes it. The old files stay where they were.
+The frames stay valid for the commits after the run (`ce6ca7a`, `a18558f`
+and `7ada989`, PR #252). They add #253's guards: short forms skip digit-only
+words, and two short forms that would read the same stay whole. The release
+waits while another danger source is live and starts empty per connection.
+None of those cases occurs in P5, and the packet files are as committed. An
+earlier merge of `origin/main` (`550d9aaa6bba2634f22f59fe6e096933e681955f`,
+#251 and #248, no change under `src/`) precedes the run.
 
-| Retired from | Captures |
-|---|---|
-| `../p5-client-foundations/` | `training-drone`, `training-complete`, `meridian-plaza`, `inventory`, `contracts` and `help` at both sizes and all tiers; `wake-hall` at 132x50 (39 files) |
-| `../s48c1a-creation/` | `wake-record` and `wake-hall` at 80x24 (6 files) |
+## History
 
-`issue67-recruiters-*` in `../s48c1a-creation/` is unchanged: it is taken
-in the hall before any input this slice changed.
+- **PR #245 (S48c1b)** made this packet at `3ee2f70`, run locally on Windows.
+  It replaced the earlier P5 and S48c1a captures, which are listed in
+  `capture-retirements.json`, because c1b changed the input sequence
+  behind every P5 capture: the unread body now fights the drone before the
+  record. Those old files stay where they were.
+- **PR #252 (S48c2)** re-pins 39 of the 48 frames from `c2-p5-7`. Each one is
+  listed in `capture-repins.json` with its reason and PR. The nine
+  unchanged frames (inventory, contracts and help at 80x24, all tiers) are
+  byte-identical. The previous frames stay in git history.
+
+## Why these are re-pins, not retirements
+
+The technical lead's loop rule (S48c2, recorded in `result.json` as
+`inputs_record.comparison`) decides whether a rerun has the same inputs.
+Each capture's inputs are stored as `segments`:
+- a `{"keys": [...]}` segment must be byte-identical;
+- a loop segment (`{"loop", "goal", "may_press", "presses", "reached"}`)
+  matches when the loop kind, the goal and the `may_press` set are equal
+  and the goal was reached. `presses` (the count, and a walk's detour) is
+  run variance.
+
+The c1b packet predates segments, so it was compared step by step, with
+each old step matched against the new segments. Fixed keys were found
+byte-identical. Each loop's stretch held only that loop's `may_press`
+keys. The connect was equal. Between `3ee2f70` and `558ea36` the driver
+changed only its recording, and its walk goals are literal or exit tiles
+that S48c2 does not move, so the goals are equal by construction. All six
+cases match on all nine steps, so the frames are re-pinned.
+
+What changed on screen is S48c2's own work:
+- the opening's script lines, in the runner contract's order, with the
+  five owner-approved amendments listed in #252;
+- the two runner bug fixes listed in #252. Before them, beats 2-5 never
+  ran, so earlier c2 hall captures predate them;
+- canon #251's rule that a script line never merges;
+- the hall talkers;
+- #220 4.12 text.
+
+Live variance (the clock, hits and misses, NPC positions) also differs, as
+in any rerun.
+
+## Two waits, no keys
+
+`c2-p5-7`'s driver waits twice. It never sends a key while waiting, so the
+stored inputs and the loop rule are unaffected.
+- **At the decant record**, before the `wake-record` capture, it waits
+  until no record line is waiting and the speech gap is over. It does this
+  only when it captures the record (`capture_wake`). The frame shows 9.2
+  as a player who pauses at the record sees it.
+- **Before the `wake-hall` capture**, it waits until the opening's queue is
+  empty and the speech gap is over. The frame shows beat 9 in the creative
+  lead's order: 9.8, 9.9, Vantongeren's lease lines, the kit, then 9.11
+  last.
+
+Both waits then hold until the last spoken line is on screen, because log
+lines are not views. P5 otherwise names at once, which is a real path, so
+9.3 to 9.7 can be skipped (an approved drop).
+
+## Whole frames only
+
+Every capture waits until the last frame has arrived whole, not just until
+the door has acknowledged it. The stream must end with the cursor sequence
+that every rendered frame ends with. The door's ack reaches the server
+before its bytes reach the caller through NetBBS, so an ack alone can
+snapshot a frame mid-write (#255).
+
+Earlier runner runs (`c2-p5-5`, `c2-p5-6`) had torn menu frames that way. The
+runner's raw bytes showed the terminal's final state was clean. None of those
+frames were committed. For this packet, a scan of all 54 `.txt` frames of
+`c2-p5-7` found no torn frame. 18 of them have an overlay box, and the scan
+checks two things: a box row whose right edge is not the box border, and a
+zone `┴` separator under a box.
 
 ## Captures
 
@@ -34,18 +102,15 @@ eight frames per case, in input order:
 1. `training-drone`: the unread body has walked to the ring, targeted the drone with Tab and fired once.
 2. `training-complete`: F until `wake_combat` is `done`.
 3. `wake-record`: the decant record, opened with E beside the street door.
-4. `wake-hall`: after the name. The character keeps `done` from the fight.
+4. `wake-hall`: after the name, once the opening's lines are said. The character keeps `done` from the fight.
 5. `meridian-plaza`: Clinic, then Plaza, walking to (31, 5).
 6. `inventory`, 7. `contracts`, 8. `help`: I, Q and ?, each closed with Esc.
 
-Only the `.txt` frames are committed, as in the earlier packets. The
-`.ans` and `.json` files that `result.json`'s manifest hashes are run
-artifacts. The manifest hashes the files as the Windows run wrote them,
-with CRLF in the `.txt` files. The committed `.txt` frames are normalised
-to LF like the earlier packets. Each `.txt` manifest entry therefore also
-has `committed_lf` (bytes and sha256 of the committed file, added after the
-run), so a plain checkout can be verified directly. Converting a committed
-frame back to CRLF reproduces the run hash (checked for all 48).
+Only the `.txt` frames are committed. `result.json`'s manifest hashes every
+file the run wrote; the `.ans` and `.json` files are run artifacts kept on
+the runner. The run wrote LF frames, so each `.txt` hash in the manifest is
+also the committed file's hash. `result.json` also records the platform,
+the run ID and the SHA.
 
 The character names (`P界80`, `Q界132` and so on) are deliberate: P5 names
 each character with a wide CJK glyph (U+754C, UTF-8 `e7 95 8c`) to prove
@@ -56,17 +121,11 @@ wide-cell handling in the live name field, as in the earlier P5 packet.
 `result.json` records its own inputs, so a later change can be checked
 against them instead of being reconstructed from the script:
 
-- `inputs_record`: the script path, the commit it ran at, and the format.
+- `inputs_record`: the script path, the commit it ran at, the format and
+  the comparison rule.
 - Per case, `inputs.connect`: the Telnet NAWS size, TERM, COLORTERM and
   whether the account is 16-colour.
-- Per case, `inputs.steps`: one entry per capture, listing every string
-  the caller wrote since the previous capture, in order. The first entry
-  starts at the door menu selection right after connect. Server-side moves
-  appear in the same sequence as `{"move": ...}` (create()'s disclosed
-  `return_to` to the arrival tile).
-
-The number of `F` presses and the walk keys are the real ones from this
-run. The drone fight and pathing are live, so a rerun of the same script
-may record a different count. That count is recorded, so a later comparison
-can tell this run variance apart from a changed sequence (keys added,
-removed or reordered, a different connect, a new move).
+- Per case, `inputs.steps`: one entry per capture, with every string the
+  caller wrote since the previous capture (`inputs`) and the same keys
+  split into `segments`. Server-side moves appear as `{"move": ...}`
+  (create()'s disclosed `return_to` to the arrival tile).

@@ -287,19 +287,29 @@ class Lattice:
         session.subscribed = sector
         self.transitions[session.id] = "in", self.clock.now_tick()
         state = self.saved(player)
-        if not state.get("initiated"):
-            ritual = self.content.text.get("lattice-jackin")
-            if ritual:
-                for line in ritual.body.splitlines():
-                    if line:
-                        self.log(session, line)
-            state["initiated"] = True
-        self.log(session, "You enter "+self.sectors.records[sector].district+". "+self.sectors.cells[sector][presence.cell].label+" resolves.")
+        training = bool(terminal and terminal.spec.params.get("training_core"))
+        if training:
+            # S48c2 (#220 beat 8): 8.1, 8.2 and the B line only. The ritual's link line and
+            # the district line belong to the first real jack-in.
+            ritual = self.content.text.get("lattice-training-jackin")
+            for line in (ritual.body.splitlines() if ritual else ()):
+                if line:
+                    self.log(session, line)
+        else:
+            if not state.get("initiated"):
+                ritual = self.content.text.get("lattice-jackin")
+                if ritual:
+                    for line in ritual.body.splitlines():
+                        if line:
+                            self.log(session, line)
+                state["initiated"] = True
+            self.log(session, "You enter "+self.sectors.records[sector].district+". "+self.sectors.cells[sector][presence.cell].label+" resolves.")
         if presence.jack_source:
             self.log(session,"Your Relay holds still. Its destruction forces you out with shock.",True)
         self.notify(presence, player.name+" arrives.", exclude=player.id)
         self.game.snapshot(player, avatar)
         self.game.queue("save", session.user_id, player, immediate=True)
+        self.game.lesson(player, "jacked_in", True)
         if not (terminal and terminal.spec.params.get("training_core")):
             self.game.progression.record_discovery(player.id, "cell", sector+"/"+presence.cell)
             self.sense_hidden(presence)

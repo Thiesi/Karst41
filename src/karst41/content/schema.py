@@ -1296,7 +1296,8 @@ BALANCES = ("CUST", "TEN", "EVEN")
 SERVICE_STATES = ("normal", "fault", "repairing", "allocated")
 ARCHETYPES = ("hardline", "ghost", "cantor", "operator")
 
-OfferKind = Literal["contract", "vendor", "service", "recruit", "travel", "ask"]
+OfferKind = Literal["contract", "vendor", "service", "recruit", "travel", "ask", "read"]
+"""`read` (S48c2): `ref` names text assets `<ref>-1`, `<ref>-2`, ...; they open as text pages."""
 
 
 @dataclass(frozen=True)
@@ -1342,6 +1343,145 @@ class DialogueNode:
     terminal: bool = False
     machine_mind: bool = False
     """Scripted machine-mind encounters need a line in each voice."""
+    schema: int = CONTENT_SCHEMA
+
+
+# --- scripts: the opening's beats (S48c2, #220 section 4) -------------------
+
+ScriptLineKind = Literal["speech", "system", "danger", "combat", "reward"]
+
+# The closed trigger set (technical lead, S48c2). Polled: the runner reads
+# them each tick, only while the current beat waits on one. Pushed: lesson
+# facts and hooks, through `Characters.lesson`.
+SCRIPT_POLLED = frozenset({"region", "steps", "seconds", "target_set", "zone_entered"})
+SCRIPT_PUSHED = frozenset({
+    "drone_woke", "first_hit", "fired", "drone_down", "drone_skipped", "disarmed",
+    "jacked_in", "ice_warned", "ice_down", "lifted", "jacked_out",
+    "record_opened", "template_read", "name_prompt", "name_entered", "kit_issued", "talk_opened",
+})
+SCRIPT_TRIGGERS = SCRIPT_POLLED | SCRIPT_PUSHED
+# Facts kept as lesson progress in the wake record (for `requires`/`unless`
+# and the record's conditional lines, #220 beat 9).
+LESSON_HINT_MAX = 70  # Presentation lead: 78 minus "  ? help"; a lesson hint is never cut.
+HINT_ROW_MAX = 78     # The hint row at 80x24.
+LESSON_FACTS = frozenset({"drone_woke", "first_hit", "fired", "jacked_in", "ice_down", "lifted"})
+
+
+@dataclass(frozen=True)
+class ScriptTrigger:
+    """One trigger from the closed set (`server/script.TRIGGERS`).
+
+    `region` is x, y, w, h in the script's zone; `count` is steps or
+    seconds; `value` narrows a pushed fact (an archetype for
+    `template_read`, a zone id for `zone_entered`).
+    """
+
+    name: str
+    region: tuple[int, int, int, int] | None = None
+    count: int = 0
+    value: str = ""
+
+
+@dataclass(frozen=True)
+class ScriptLine:
+    """One line. Speech is queued and paced; every other kind is said at once.
+
+    With no `when`, a line is queued when its beat begins; otherwise it is
+    queued when any of its triggers fires (once). `after` chains it `delay`
+    seconds after another line is spoken; a line with both `when` and
+    `after` is armed by its trigger and follows only once armed (runner
+    contract fix 1, amended 2026-11-14). `requires` and
+    `unless` name lesson facts (`first_hit`, `fired`, `jacked_in`,
+    `drone_woke`, `lifted`) that must, or must not, have happened.
+    """
+
+    id: str
+    text: str
+    speaker: str = ""
+    name: str = ""
+    """The log name for a speaker who is not a talker (the Wake Outfitter)."""
+    kind: ScriptLineKind = "speech"
+    when: tuple[ScriptTrigger, ...] = ()
+    after: str = ""
+    delay: float = 0
+    anchor: bool = False
+    """Never dropped while the caller is in the hall (#220 section 4, marked with a dagger)."""
+    fight: bool = False
+    """May be spoken during the drone fight (6.2, 6.5)."""
+    record: bool = False
+    """May be spoken while the record or the name prompt is open (9.1-9.7)."""
+    requires: tuple[str, ...] = ()
+    unless: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class ScriptHint:
+    """A lesson hint for the objective slot (terminal UI 11, at most 70 cells).
+
+    Shown, in order, once `after` (a lesson fact) holds, until `key` (a
+    keymap action) has been used once, or `until` (a fact) holds; then
+    never again for that character. `{action}` names a key from the
+    caller's keymap.
+    """
+
+    text: str
+    key: str = ""
+    after: str = ""
+    until: str = ""
+
+
+@dataclass(frozen=True)
+class ScriptBeat:
+    id: str
+    lines: tuple[ScriptLine, ...] = ()
+    next: tuple[ScriptTrigger, ...] = ()
+    """The beat ends when any of these fires; the next beat begins."""
+    hints: tuple[ScriptHint, ...] = ()
+
+
+@dataclass(frozen=True)
+class RecordDetail:
+    """The decant record's conditional last line per template (#220 beat 9)."""
+
+    archetype: str
+    text: str
+    requires: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class Errand:
+    """The errand line in the hint row's objective slot, per zone (#220 beat 10)."""
+
+    zone: str
+    text: str
+    short: str
+
+
+@dataclass(frozen=True)
+class OnceHint:
+    """A one-time hint row, kept as a per-character flag, not runner state."""
+
+    id: str
+    text: str
+    zone: str = ""
+    steps: int = 0
+    seconds: int = 0
+
+
+@dataclass(frozen=True)
+class Script:
+    """`scripts/<id>.json`: the opening's beats (#220 section 4)."""
+
+    id: str
+    zone: str
+    beats: tuple[ScriptBeat, ...]
+    details: tuple[RecordDetail, ...] = ()
+    errands: tuple[Errand, ...] = ()
+    hints: tuple[OnceHint, ...] = ()
+    late_card: str = ""
+    """Caller-only narration when a card is taken after the record."""
+    speakers: dict[str, str] = field(default_factory=dict)
+    """A talker id to the name the log shows (#220's mocks use the short form)."""
     schema: int = CONTENT_SCHEMA
 
 

@@ -1,8 +1,8 @@
-╔═DECANT RECORD - No. 0005 - Template═POCKET══════════════════════════════════════════════════════════════════════════S10Q132══════╗
-║          ┌─ DECANT RECORD - No. 0005 - Template ──────────────────────────────────────────────────────────────────────┐          ║
+╔═DECANT RECORD - No. 0002 - Template═POCKET══════════════════════════════════════════════════════════════════════════S10Q132══════╗
+║          ┌─ DECANT RECORD - No. 0002 - Template ──────────────────────────────────────────────────────────────────────┐          ║
 ║          │ Choice                                               You hold the heavy end. You can use heavy weapons     │          ║
-║          │ Hardline                                             and armour. Your frame takes the load. Your implant   │          ║
-║          │ Ghost                                                tolerance gains two points.                           │          ║
+║          │ Hardline                                             and armour. Your frame takes the load. Your body      │          ║
+║          │ Ghost                                                takes two more implants than most.                    │          ║
 ║          │ Cantor                                                                                                     │          ║
 ║          │ Operator                                                                                                   │          ║
 ║          │                                                                                                            │          ║
@@ -38,13 +38,13 @@
 ║          │ enter read this line  Esc/B put the record down                                                            │          ║
 ║          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          ║
 ╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
-║» You wake on a gurney under a number. White light, warm plastic, a floor drain. Past the cards, a corridor. Past the corridor, a ║
-║  terminal.                                                                                                                       ║
-║‼ Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.                                                ║
-║‼ You raise your weapon. Fire again after two seconds; the target can move to safety.                                             ║
-║‼ Training drone hits you for 5.                                                                                                  ║
 ║* Miss: Training drone. (x2)                                                                                                      ║
+║‼ Training drone hits you for 5.                                                                                                  ║
+║" Vantongeren: If you die, you'll wake up here, or somewhere like here, with a bill. Sablier keeps a copy.                        ║
 ║* Hit: Training drone. (x2)                                                                                                       ║
-║* The training drone falls silent. The tutorial terminal is ahead.                                                                ║
+║* The drone stops. It had been trying since Tuesday.                                                                              ║
+║+ The cable reels the pistol back to the wall.                                                                                    ║
+║" Okafor: Up you get. Vantongeren does the speech; I do the walking.                                                              ║
+║" Okafor: No record in hand? I keep a copy. Read me the template line.                                                            ║
 ║? help  Enter read this line  Esc/B put the record down                                                                           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 

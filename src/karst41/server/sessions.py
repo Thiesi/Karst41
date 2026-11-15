@@ -51,6 +51,16 @@ class Session:
     log_serial: int = 0
     danger_at: str | None = None
     """Server-clock stamp of the newest danger or combat line (P8's 10 s hold)."""
+    danger_source: str | None = None
+    """What sent that line, when it can stop acting on the caller: `training:<pid>`
+    for the caller's training drone (runner contract amendment 3). None is any
+    other source, which holds the full ten seconds."""
+    danger_other_at: str | None = None
+    """Server-clock stamp of the newest danger or combat line from any untagged
+    source, which can never be shown to have stopped acting (#253)."""
+    danger_release: str | None = None
+    """The newest `me.danger_release` sent to this caller (terminal UI 2.5,
+    #253): it only moves forward, and survives a reconnect."""
     voice_tick: int | None = None
     """Tick of the newest bark or ambient line admitted (P8's budget)."""
     notify: Callable[[], None] = field(default=lambda: None, repr=False)
@@ -72,10 +82,13 @@ class Session:
             for original in frame.data["lines"]:
                 self.log_serial += 1
                 transient = original.get("_transient", False)
-                line = {key: value for key, value in original.items() if key != "_transient"}
+                line = {key: value for key, value in original.items() if key not in ("_transient", "_source")}
                 line["id"] = f"{self.log_token or self.id}:{self.log_serial}"
                 if line.get("kind") in ("danger", "combat"):
                     self.danger_at = line.get("at") or self.danger_at
+                    self.danger_source = original.get("_source")
+                    if not self.danger_source:
+                        self.danger_other_at = line.get("at") or self.danger_other_at
                 if not transient:  # P8: barks and ambience are never replayed.
                     self.log_ring.append(line)
                 lines.append(line)
@@ -104,13 +117,17 @@ class Session:
 
     def emit(self, text: str, *, kind: LogKind, channel: str, role: str,
              at: str, speaker: str | None = None,
-             speaker_role: str | None = None, price: bool = False, replay: bool = True) -> bool:
+             speaker_role: str | None = None, price: bool = False, replay: bool = True,
+             script: str | None = None, source: str | None = None) -> bool:
         """Architecture 5.5.3: the sole entry for newly authored log lines.
 
         Service notices reach the existing toast surface, outside world
         history. Replay and reliable delivery stay transport operations.
         `replay=False` (P8's barks and ambience) keeps a line out of the
-        ring, so reconnect never replays it.
+        ring, so reconnect never replays it. `script` names the authored
+        script line that emitted it; such a line never merges (terminal UI 2.5).
+        `source` tags a danger or combat line whose sender can stop acting on
+        the caller (see `danger_source`); it never reaches the client.
         """
         if kind not in get_args(LogKind):
             raise ValueError(f"unknown log kind: {kind}")
@@ -121,8 +138,12 @@ class Session:
                     "caller", "civilian", "warden", "security", "service", "hostile", "drone"):
                 raise ValueError("speech requires a speaker and presented class")
             line.update(speaker=speaker, speaker_role=speaker_role)
+        if script:
+            line["script"] = script
         if not replay:
             line["_transient"] = True
+        if source:
+            line["_source"] = source
         if kind == "notice":
             # S44: a rule's price is flagged so the door holds it until seen.
             return self.send(Frame("toast", {"text": text, "role": role,
@@ -216,6 +237,8 @@ class Sessions:
             session.log_token, session.log_serial = previous.log_token, previous.log_serial
             # P8: the danger hold and the voice budget survive a reconnect.
             session.danger_at, session.voice_tick = previous.danger_at, previous.voice_tick
+            session.danger_source, session.danger_release = previous.danger_source, previous.danger_release
+            session.danger_other_at = previous.danger_other_at
         self.active[session.id] = session
         return session
 

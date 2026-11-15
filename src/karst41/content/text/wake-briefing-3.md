@@ -3,8 +3,9 @@ only one that matters. Every one of them has left a card on my desk.
 I hand them out without preference; they all resent that and none of
 them can prove it.
 
-Take one, or don't. It's an introduction, not a contract. No recruiter owns
-your choice.
+Take one, or don't. It's an introduction, not a contract. Work registers
+your signature sooner: a flat in your own name, and a side, if one will
+have you. It isn't personhood. It's a pen.
 
 When you're ready, walk to the door. There's a drone in the corridor
 that's been malfunctioning since Tuesday. Deal with it; consider it the

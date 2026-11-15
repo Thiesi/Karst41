@@ -1,4 +1,4 @@
-╔═VATSIDE═Wake Hall═POCKET══════════════════════════════════════════════════════════════════════════════════╤════════════15:59═════╗
+╔═VATSIDE═Wake Hall═POCKET══════════════════════════════════════════════════════════════════════════════════╤════════════04:03═════╗
 ║                                                                                                           │─ HERE ───────────────║
 ║                                                                                                           │ + Corridor door      ║
 ║                                                                                                           │─ TARGET ─────────────║
@@ -33,17 +33,17 @@
 ║                                                                                                           │                      ║
 ║                                                                                                           │                      ║
 ║                                                                                                           │──────────────────────║
-║                                                                                                           │ No. 0004 · S1...     ║
-║                                                                                                           │ HP  █████████▌ 53    ║
+║                                                                                                           │ No. 0001 · S1...     ║
+║                                                                                                           │ HP  ██████████ 58    ║
 ║                                                                                                           │ STA ██████████ 36    ║
-║                                                                                                           │ SHK ▌░░░░░░░░░ 2.5   ║
+║                                                                                                           │ SHK ░░░░░░░░░░ 0     ║
 ╟───────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────╢
-║» You wake on a gurney under a number. White light, warm plastic, a floor drain. Past the cards, a corridor. Past the corridor, a ║
-║  terminal.                                                                                                                       ║
-║‼ Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.                                                ║
+║» You wake on a gurney under a number.                                                                                            ║
+║" Vantongeren: Open your eyes slowly. The light's cheap and it stays on.                                                          ║
+║" Vantongeren: You're a Wake. You came out of a vat this morning from a Sablier template that's older than the wall.              ║
+║+ A pistol on a cable by the door. Your hand takes it before you decide.                                                          ║
+║‼ A drone turns in the corridor. It has seen you. Its shots can't kill.                                                           ║
 ║‼ You raise your weapon. Fire again after two seconds; the target can move to safety.                                             ║
-║‼ Training drone hits you for 5.                                                                                                  ║
-║                                                                                                                                  ║
 ║                                                                                                                                  ║
 ║                                                                                                                                  ║
 ║E use Corridor door  ? help  Tab target  F fire  X weapon  1-5 quick  V abilities  I inventory                                    ║

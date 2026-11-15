@@ -146,6 +146,27 @@ class Core:
         self.truce = Truce(self) if self.dialogue else None
         if self.truce:
             self.loop.subsystems.append(self.truce)
+        # S48c2: the opening's beats runner (#220 section 4).
+        from karst41.server.script import Opening
+        self.opening = Opening(self) if self.characters is not None else None
+        if self.opening:
+            self.characters.opening_start = self.opening.start
+            self.characters.opening_stop = self.opening.stop
+            self.characters.opening_live = self.opening.live
+            self.loop.subsystems.append(self.opening)
+            decorate = self.characters.sim.crew_view
+            def opening_view(session: Session, body: dict[str, Any], _previous=decorate) -> None:
+                _previous(session, body)
+                self.opening.decorate(session, body)
+            self.characters.sim.crew_view = opening_view
+            if self.lattice is not None:
+                lattice_view = self.lattice.encounters.view
+                def opening_network(session: Session, presence: Any, body: dict[str, Any], _previous=lattice_view):
+                    kind, document = _previous(session, presence, body)
+                    if kind == 'lattice':
+                        self.opening.decorate(session, document)
+                    return kind, document
+                self.lattice.encounters.view = opening_network
 
     def _disconnect_character(self, session: Session) -> None:
         if self.dialogue:
@@ -315,6 +336,8 @@ class Core:
             session.replay_log()
         routes = self.routes_for(session)
         action = key_action(self.keymap, session, frame)
+        if self.opening is not None and action:
+            self.opening.key_used(session, action)
         selected = self.resolve_interaction(session, frame, routes) if interact(frame) or action in ('interact', 'jack') else None
         if selected is not None:
             selected.route.handler(session, frame, event.data['tick'], interaction=selected.choice)

@@ -218,7 +218,8 @@ class Encounters:
         presence.target = ""
         if risk and black and spec.owner_kind not in ("private", "relay"):
             presence.risk_consent.add(iid)
-        self.log(presence, "You enter "+spec.name+". B returns along the entry; J starts escape.")
+        if not spec.training:  # The training core enters with 8.1 and 8.2 alone (creative lead).
+            self.log(presence, "You enter "+spec.name+". B returns along the entry; J starts escape.")
         if black:
             self.log(presence, "BLACK ICE / NPC BODY RISK remains active for this run.", True)
         self.trace(presence, 0, entered=True)
@@ -648,6 +649,8 @@ class Encounters:
                 ice.hit(amount, player.id, tick)
                 self.activate(ice, presence, "attack")
                 self.log(presence, f"{program.name} hits {ice.template.name}: {display_number(amount)}. Integrity {display_number(ice.integrity)}.", kind="combat")
+                if not ice.alive:
+                    self.game.lesson(player, "ice_down", ice.id)
         elif kind == "open_gate" and params.get("private_vestibule"):
             deferred_learning = True
             self.lat.interlock.open_vestibule(presence,
@@ -950,6 +953,7 @@ class Encounters:
         presence = self.lat.presences.get(event.target)
         if event.kind == "warning" and presence:
             self.log(presence, f"{ice.template.name}: {ice.template.role}, {event.amount:g}s warning. {ice.template.counter_label}.", True)
+            self.game.lesson(self.game.players[presence.player_id], "ice_warned", ice.id)
         elif event.kind == "hit" and presence:
             if not self.receive(presence, event, name=ice.template.name):
                 self.delayed.append(event)

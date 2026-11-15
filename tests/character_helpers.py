@@ -23,8 +23,17 @@ def read_record(game: HeadlessServer, client: FakeClient) -> None:
 def create(game: HeadlessServer, client: FakeClient, archetype: int = 1, name: str = "", card: str = "unmoored", commit: bool = True) -> list[dict[str, Any]]:
     """The S48 opening's direct path: take a card at the table, open the
     decant record (as E at the door would), choose a template and a name."""
-    game.step()
     manager = game.core.characters
+    # The direct creation path (#220 section 7): the opening's script is
+    # finished first, so a test's character carries no scripted lines,
+    # errand or one-time hints, and no voice budget spent. The scene has
+    # its own tests.
+    opening = getattr(game.core, "opening", None)
+    state = opening.states.get(client.session.id) if opening else None
+    if state is not None:
+        opening.finish(state)
+        client.session.voice_tick = None
+    game.step()
     manager.take_card(client.session, card)
     assert (manager.open_record(client.session, "door")
             or manager.wakes[client.session.id].stage == "record"), "no unread body to read a record for"
@@ -41,6 +50,9 @@ def create(game: HeadlessServer, client: FakeClient, archetype: int = 1, name: s
     effects = game.commit_characters()
     game.step()
     game.commit_characters()
+    player = manager.players.get(client.session.player_id)
+    if player is not None:
+        player.progress.pop("opening", None)
     return effects
 
 

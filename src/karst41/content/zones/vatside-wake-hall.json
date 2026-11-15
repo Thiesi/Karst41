@@ -110,7 +110,7 @@
       "kind": "terminal",
       "essential": true,
       "params": {
-        "name": "Tutorial terminal",
+        "name": "Hall terminal",
         "training_core": "lat-wake-hall"
       }
     },
@@ -155,7 +155,7 @@
       "essential": true,
       "params": {
         "vendor": "wake-outfitter",
-        "name": "Sablier Wake Outfitter"
+        "name": "Wake Outfitter"
       }
     }
   ],
@@ -164,6 +164,32 @@
   ],
   "pockets": [],
   "spawners": [
+    {
+      "id": "cast-okafor",
+      "npc": "npc-cast-okafor",
+      "count": 1,
+      "respawn_seconds": 60,
+      "condition": "always",
+      "region": {
+        "x": 35,
+        "y": 18,
+        "w": 1,
+        "h": 1
+      }
+    },
+    {
+      "id": "cast-vantongeren",
+      "npc": "npc-cast-vantongeren",
+      "count": 1,
+      "respawn_seconds": 60,
+      "condition": "always",
+      "region": {
+        "x": 13,
+        "y": 6,
+        "w": 1,
+        "h": 1
+      }
+    },
     {
       "id": "sablier-orderly",
       "npc": "npc-sablier-orderly",

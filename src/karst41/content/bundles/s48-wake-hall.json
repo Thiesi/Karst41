@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "id": "s48-wake-hall",
+  "status": "active",
+  "depends": [],
+  "members": {
+    "dialogue": [
+      "okafor",
+      "vantongeren"
+    ]
+  }
+}

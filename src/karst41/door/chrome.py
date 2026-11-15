@@ -4,6 +4,7 @@ P2 preserves the existing draw order and glyph/style output. Content
 renderers receive Layout and draw only inside their content rectangles.
 """
 
+import re
 from typing import Any
 
 from karst41.layout import Layout, Rect
@@ -35,6 +36,49 @@ def _objective_hint(objective: dict[str, Any], width: int | None = None) -> str:
     if target and width is not None:
         target = truncate(target, max(0, width-display_width(prefix+' '+suffix)))
     return prefix + (' '+target if target else '') + suffix
+
+
+TRAILING_PAREN = re.compile(r'\s*\([^()]*\)\s*$')
+
+
+def short_name(label: str) -> str:
+    """Terminal UI 11 (#253): a shortened E/J name keeps its last whole word
+    before any trailing parenthetical, skipping words that are only digits or
+    punctuation: `Public terminal (Plaza 1)` becomes `terminal`, `Locker 7`
+    becomes `Locker`, `Dr. Ilse Vantongeren` becomes `Vantongeren`. With no
+    such word left, the label stays whole and the normal drop order applies."""
+    words = [word for word in TRAILING_PAREN.sub('', clean_text(label)).split() if any(ch.isalpha() for ch in word)]
+    return words[-1] if words else clean_text(label).strip()
+
+
+def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str]]) -> str:
+    """Terminal UI 11 (presentation lead's build for S48c2).
+
+    The lesson hint (or errand), then the E/J context, then `? help`, two
+    spaces apart; no other key group. Too wide: the errand's short form
+    first, then the context's short form, then no context, then no `? help`.
+    The lesson hint itself is never cut.
+    """
+    full_ctx = [(prefix + ' ' + clean_text(label)).rstrip() for prefix, label in context]
+    # Short form (terminal UI 11, #253): the key and verb, then the name's
+    # last whole word before any trailing parenthetical, never an ellipsis:
+    # `E talk to Vantongeren`, `E jack in at terminal`, `E use door`.
+    # Two short forms that would read the same both stay whole (#253).
+    shorts = [short_name(label) for _, label in context]
+    short_ctx = [(prefix + ' ' + (clean_text(label).strip() if shorts.count(short) > 1 else short)).rstrip()
+                 for (prefix, label), short in zip(context, shorts)]
+    text, short = clean_text(str(lesson.get('text', ''))), clean_text(str(lesson.get('short', '')))
+    heads = [text] + ([short] if short and short != text else [])
+    for head in heads:
+        for groups in (full_ctx, short_ctx):
+            row = '  '.join([head, *groups, '? help'])
+            if display_width(row) <= width:
+                return row
+    head = heads[-1]
+    for row in ('  '.join([head, '? help']), head):
+        if display_width(row) <= width:
+            return row
+    return head
 
 
 def focus_hint(hint: str, width: int, context: list[tuple[str, str]],

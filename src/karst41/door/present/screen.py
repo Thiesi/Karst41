@@ -80,7 +80,8 @@ def talker(buffer: CellBuffer, body: dict[str, Any], area: Rect, paint: Paint) -
 def render(buffer: CellBuffer, layout: Layout, paint: Paint, kind: str, body: dict[str, Any],
            logs: list[dict[str, Any]], hint: str, now: float, *, flash: bool = False,
            toast: tuple[str, str, float] | None = None, handle: str = '',
-           body_safety: str | None = None, notice_in_header: bool = False) -> None:
+           body_safety: str | None = None, notice_in_header: bool = False,
+           danger_release: float | None = None) -> None:
     """Compose all kinds, including nested Wake and talker menus."""
     word = safety(body, body_safety)
     chrome.frame(buffer, layout, paint, word, side=kind in ('zone', 'lattice'), flash=flash)
@@ -112,5 +113,5 @@ def render(buffer: CellBuffer, layout: Layout, paint: Paint, kind: str, body: di
                       [(str(body.get('title', 'Karst')), 'head_zone'), (word.upper(), 'word_' + word)],
                       [(truncate(handle, layout.header_slots.handle_width), 'panel_label'),
                        (str(me.get('clock', '')), 'head_info')], notice=header_notice)
-    chrome.log(buffer, layout, paint, logs, now)
+    chrome.log(buffer, layout, paint, logs, now, danger_release)
     chrome.hints(buffer, layout, paint, hint, toast[1] if toast and not notice_in_header else 'key_text')

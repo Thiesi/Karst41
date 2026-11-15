@@ -1,6 +1,13 @@
 {
-  "head": "3ee2f70e4f466ded5b1316cdcf9861430d3c9b19",
+  "head": "4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722",
   "passed": true,
+  "platform": {
+    "host": "Karst 41 runner (docs/ops/remote-runner.md): WSL2 Ubuntu 24.04 on the owner's second workstation",
+    "run": "c2-p5-7",
+    "sha": "4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722",
+    "netbbs": "v7.45.0",
+    "line_endings": "LF: each .txt manifest hash is also the committed frame's hash (no committed_lf needed)"
+  },
   "cases": [
     {
       "size": [
@@ -67,6 +74,47 @@
               "\u001b[C",
               "\t",
               "f"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b[B\r"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    21,
+                    14
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 24,
+                "reached": true
+              },
+              {
+                "loop": "press_until",
+                "goal": {
+                  "target": "npc-wake-drone"
+                },
+                "may_press": [
+                  "\t"
+                ],
+                "presses": 1,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "f"
+                ]
+              }
             ]
           },
           {
@@ -81,7 +129,26 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
+              "f",
               "f"
+            ],
+            "segments": [
+              {
+                "loop": "press_until",
+                "goal": {
+                  "progress": {
+                    "wake_combat": "done"
+                  }
+                },
+                "may_press": [
+                  "f"
+                ],
+                "presses": 14,
+                "reached": true
+              }
             ]
           },
           {
@@ -106,6 +173,31 @@
               "\u001b[B",
               "\u001b[B",
               "e"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    37,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 18,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              }
             ]
           },
           {
@@ -118,6 +210,21 @@
                 "tile": [
                   6,
                   5
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\r",
+                  "P界80\r",
+                  {
+                    "move": "return_to",
+                    "tile": [
+                      6,
+                      5
+                    ]
+                  }
                 ]
               }
             ]
@@ -186,6 +293,12 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[B",
+              "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -229,11 +342,6 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[A",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -304,12 +412,80 @@
               "\u001b[D",
               "\u001b[D",
               "\u001b[D"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    38,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 43,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-clinics",
+                  "tile": [
+                    77,
+                    2
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 78,
+                "reached": true
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "core-plaza",
+                  "tile": [
+                    31,
+                    5
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 58,
+                "reached": true
+              }
             ]
           },
           {
             "capture": "inventory-80x24-16",
             "inputs": [
               "i"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "i"
+                ]
+              }
             ]
           },
           {
@@ -317,6 +493,14 @@
             "inputs": [
               "\u001b",
               "q"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "q"
+                ]
+              }
             ]
           },
           {
@@ -324,6 +508,14 @@
             "inputs": [
               "\u001b",
               "?"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "?"
+                ]
+              }
             ]
           },
           {
@@ -333,6 +525,16 @@
               "\u0018y",
               " ",
               "b"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "\u0018y",
+                  " ",
+                  "b"
+                ]
+              }
             ]
           }
         ]
@@ -403,6 +605,47 @@
               "\u001b[C",
               "\t",
               "f"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b[B\r"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    21,
+                    14
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 24,
+                "reached": true
+              },
+              {
+                "loop": "press_until",
+                "goal": {
+                  "target": "npc-wake-drone"
+                },
+                "may_press": [
+                  "\t"
+                ],
+                "presses": 1,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "f"
+                ]
+              }
             ]
           },
           {
@@ -425,12 +668,22 @@
               "f",
               "f",
               "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
               "f"
+            ],
+            "segments": [
+              {
+                "loop": "press_until",
+                "goal": {
+                  "progress": {
+                    "wake_combat": "done"
+                  }
+                },
+                "may_press": [
+                  "f"
+                ],
+                "presses": 18,
+                "reached": true
+              }
             ]
           },
           {
@@ -455,6 +708,31 @@
               "\u001b[B",
               "\u001b[B",
               "e"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    37,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 18,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              }
             ]
           },
           {
@@ -467,6 +745,21 @@
                 "tile": [
                   6,
                   5
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\r",
+                  "Q界80\r",
+                  {
+                    "move": "return_to",
+                    "tile": [
+                      6,
+                      5
+                    ]
+                  }
                 ]
               }
             ]
@@ -519,6 +812,17 @@
               "\u001b[B",
               "e",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
+              "\u001b[C",
+              "\u001b[A",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -585,15 +889,6 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[A",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "\u001b[B",
               "\u001b[D",
@@ -652,12 +947,80 @@
               "\u001b[D",
               "\u001b[D",
               "\u001b[D"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    38,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 43,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-clinics",
+                  "tile": [
+                    77,
+                    2
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 78,
+                "reached": true
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "core-plaza",
+                  "tile": [
+                    31,
+                    5
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 58,
+                "reached": true
+              }
             ]
           },
           {
             "capture": "inventory-80x24-256",
             "inputs": [
               "i"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "i"
+                ]
+              }
             ]
           },
           {
@@ -665,6 +1028,14 @@
             "inputs": [
               "\u001b",
               "q"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "q"
+                ]
+              }
             ]
           },
           {
@@ -672,6 +1043,14 @@
             "inputs": [
               "\u001b",
               "?"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "?"
+                ]
+              }
             ]
           },
           {
@@ -681,6 +1060,16 @@
               "\u0018y",
               " ",
               "b"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "\u0018y",
+                  " ",
+                  "b"
+                ]
+              }
             ]
           }
         ]
@@ -715,8 +1104,8 @@
         "people_floor": 63.38528726606927,
         "terminal_cells": [
           [
-            4,
-            4
+            8,
+            5
           ],
           [
             58,
@@ -780,6 +1169,47 @@
               "\u001b[C",
               "\t",
               "f"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b[B\r"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    21,
+                    14
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 24,
+                "reached": true
+              },
+              {
+                "loop": "press_until",
+                "goal": {
+                  "target": "npc-wake-drone"
+                },
+                "may_press": [
+                  "\t"
+                ],
+                "presses": 1,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "f"
+                ]
+              }
             ]
           },
           {
@@ -806,7 +1236,35 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
               "f"
+            ],
+            "segments": [
+              {
+                "loop": "press_until",
+                "goal": {
+                  "progress": {
+                    "wake_combat": "done"
+                  }
+                },
+                "may_press": [
+                  "f"
+                ],
+                "presses": 35,
+                "reached": true
+              }
             ]
           },
           {
@@ -831,6 +1289,31 @@
               "\u001b[B",
               "\u001b[B",
               "e"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    37,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 18,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              }
             ]
           },
           {
@@ -843,6 +1326,21 @@
                 "tile": [
                   6,
                   5
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\r",
+                  "R界80\r",
+                  {
+                    "move": "return_to",
+                    "tile": [
+                      6,
+                      5
+                    ]
+                  }
                 ]
               }
             ]
@@ -894,7 +1392,6 @@
               "\u001b[B",
               "\u001b[B",
               "e",
-              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -955,6 +1452,7 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[B",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -970,6 +1468,8 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
               "\u001b[B",
               "\u001b[B",
               "\u001b[D",
@@ -1028,12 +1528,80 @@
               "\u001b[D",
               "\u001b[D",
               "\u001b[D"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    38,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 43,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-clinics",
+                  "tile": [
+                    77,
+                    2
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 78,
+                "reached": true
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "core-plaza",
+                  "tile": [
+                    31,
+                    5
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 58,
+                "reached": true
+              }
             ]
           },
           {
             "capture": "inventory-80x24-truecolor",
             "inputs": [
               "i"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "i"
+                ]
+              }
             ]
           },
           {
@@ -1041,6 +1609,14 @@
             "inputs": [
               "\u001b",
               "q"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "q"
+                ]
+              }
             ]
           },
           {
@@ -1048,6 +1624,14 @@
             "inputs": [
               "\u001b",
               "?"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "?"
+                ]
+              }
             ]
           },
           {
@@ -1057,6 +1641,16 @@
               "\u0018y",
               " ",
               "b"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "\u0018y",
+                  " ",
+                  "b"
+                ]
+              }
             ]
           }
         ]
@@ -1127,6 +1721,47 @@
               "\u001b[C",
               "\t",
               "f"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b[B\r"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    21,
+                    14
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 24,
+                "reached": true
+              },
+              {
+                "loop": "press_until",
+                "goal": {
+                  "target": "npc-wake-drone"
+                },
+                "may_press": [
+                  "\t"
+                ],
+                "presses": 1,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "f"
+                ]
+              }
             ]
           },
           {
@@ -1145,7 +1780,35 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
               "f"
+            ],
+            "segments": [
+              {
+                "loop": "press_until",
+                "goal": {
+                  "progress": {
+                    "wake_combat": "done"
+                  }
+                },
+                "may_press": [
+                  "f"
+                ],
+                "presses": 27,
+                "reached": true
+              }
             ]
           },
           {
@@ -1163,13 +1826,38 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
               "e"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    37,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 18,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              }
             ]
           },
           {
@@ -1182,6 +1870,21 @@
                 "tile": [
                   6,
                   5
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\r",
+                  "P界132\r",
+                  {
+                    "move": "return_to",
+                    "tile": [
+                      6,
+                      5
+                    ]
+                  }
                 ]
               }
             ]
@@ -1225,79 +1928,16 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
               "e",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[B",
-              "\u001b[A",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -1311,19 +1951,81 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
               "\u001b[B",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
               "\u001b[D",
               "\u001b[D",
               "\u001b[D",
@@ -1369,12 +2071,80 @@
               "\u001b[D",
               "\u001b[D",
               "\u001b[D"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    38,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 43,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-clinics",
+                  "tile": [
+                    77,
+                    2
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 77,
+                "reached": true
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "core-plaza",
+                  "tile": [
+                    31,
+                    5
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 58,
+                "reached": true
+              }
             ]
           },
           {
             "capture": "inventory-132x50-16",
             "inputs": [
               "i"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "i"
+                ]
+              }
             ]
           },
           {
@@ -1382,6 +2152,14 @@
             "inputs": [
               "\u001b",
               "q"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "q"
+                ]
+              }
             ]
           },
           {
@@ -1389,6 +2167,14 @@
             "inputs": [
               "\u001b",
               "?"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "?"
+                ]
+              }
             ]
           },
           {
@@ -1398,6 +2184,16 @@
               "\u0018y",
               " ",
               "b"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "\u0018y",
+                  " ",
+                  "b"
+                ]
+              }
             ]
           }
         ]
@@ -1468,6 +2264,47 @@
               "\u001b[C",
               "\t",
               "f"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b[B\r"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    21,
+                    14
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 24,
+                "reached": true
+              },
+              {
+                "loop": "press_until",
+                "goal": {
+                  "target": "npc-wake-drone"
+                },
+                "may_press": [
+                  "\t"
+                ],
+                "presses": 1,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "f"
+                ]
+              }
             ]
           },
           {
@@ -1487,7 +2324,29 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
               "f"
+            ],
+            "segments": [
+              {
+                "loop": "press_until",
+                "goal": {
+                  "progress": {
+                    "wake_combat": "done"
+                  }
+                },
+                "may_press": [
+                  "f"
+                ],
+                "presses": 22,
+                "reached": true
+              }
             ]
           },
           {
@@ -1505,13 +2364,38 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
               "e"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    37,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 18,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              }
             ]
           },
           {
@@ -1524,6 +2408,21 @@
                 "tile": [
                   6,
                   5
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\r",
+                  "Q界132\r",
+                  {
+                    "move": "return_to",
+                    "tile": [
+                      6,
+                      5
+                    ]
+                  }
                 ]
               }
             ]
@@ -1567,111 +2466,107 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
               "e",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[A",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[A",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
               "\u001b[B",
-              "\u001b[B",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
               "\u001b[D",
               "\u001b[D",
               "\u001b[D",
@@ -1713,12 +2608,80 @@
               "\u001b[D",
               "\u001b[D",
               "\u001b[D"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    38,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 43,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-clinics",
+                  "tile": [
+                    77,
+                    2
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 76,
+                "reached": true
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "core-plaza",
+                  "tile": [
+                    31,
+                    5
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 58,
+                "reached": true
+              }
             ]
           },
           {
             "capture": "inventory-132x50-256",
             "inputs": [
               "i"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "i"
+                ]
+              }
             ]
           },
           {
@@ -1726,6 +2689,14 @@
             "inputs": [
               "\u001b",
               "q"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "q"
+                ]
+              }
             ]
           },
           {
@@ -1733,6 +2704,14 @@
             "inputs": [
               "\u001b",
               "?"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "?"
+                ]
+              }
             ]
           },
           {
@@ -1742,6 +2721,16 @@
               "\u0018y",
               " ",
               "b"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "\u0018y",
+                  " ",
+                  "b"
+                ]
+              }
             ]
           }
         ]
@@ -1776,16 +2765,16 @@
         "people_floor": 63.38528726606927,
         "terminal_cells": [
           [
-            36,
-            5
+            37,
+            4
           ],
           [
-            49,
-            5
+            45,
+            4
           ],
           [
             110,
-            7
+            6
           ],
           [
             110,
@@ -1845,6 +2834,47 @@
               "\u001b[C",
               "\t",
               "f"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b[B\r"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    21,
+                    14
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 24,
+                "reached": true
+              },
+              {
+                "loop": "press_until",
+                "goal": {
+                  "target": "npc-wake-drone"
+                },
+                "may_press": [
+                  "\t"
+                ],
+                "presses": 1,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "f"
+                ]
+              }
             ]
           },
           {
@@ -1860,7 +2890,41 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
               "f"
+            ],
+            "segments": [
+              {
+                "loop": "press_until",
+                "goal": {
+                  "progress": {
+                    "wake_combat": "done"
+                  }
+                },
+                "may_press": [
+                  "f"
+                ],
+                "presses": 30,
+                "reached": true
+              }
             ]
           },
           {
@@ -1878,13 +2942,38 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
               "e"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    37,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 18,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              }
             ]
           },
           {
@@ -1897,6 +2986,21 @@
                 "tile": [
                   6,
                   5
+                ]
+              }
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\r",
+                  "R界132\r",
+                  {
+                    "move": "return_to",
+                    "tile": [
+                      6,
+                      5
+                    ]
+                  }
                 ]
               }
             ]
@@ -1940,12 +3044,12 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
               "e",
               "\u001b[C",
@@ -1955,6 +3059,7 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[A",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -1996,6 +3101,8 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -2025,6 +3132,19 @@
               "\u001b[C",
               "\u001b[A",
               "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[B",
+              "\u001b[D",
               "\u001b[B",
               "\u001b[D",
               "\u001b[D",
@@ -2070,24 +3190,81 @@
               "\u001b[D",
               "\u001b[D",
               "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D"
+              "\u001b[A"
+            ],
+            "segments": [
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-wake-hall",
+                  "tile": [
+                    38,
+                    16
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 43,
+                "reached": true
+              },
+              {
+                "keys": [
+                  "e"
+                ]
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "vatside-clinics",
+                  "tile": [
+                    77,
+                    2
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 79,
+                "reached": true
+              },
+              {
+                "loop": "walk",
+                "goal": {
+                  "zone": "core-plaza",
+                  "tile": [
+                    31,
+                    5
+                  ]
+                },
+                "may_press": [
+                  "\u001b[A",
+                  "\u001b[B",
+                  "\u001b[C",
+                  "\u001b[D"
+                ],
+                "presses": 60,
+                "reached": true
+              }
             ]
           },
           {
             "capture": "inventory-132x50-truecolor",
             "inputs": [
               "i"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "i"
+                ]
+              }
             ]
           },
           {
@@ -2095,6 +3272,14 @@
             "inputs": [
               "\u001b",
               "q"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "q"
+                ]
+              }
             ]
           },
           {
@@ -2102,6 +3287,14 @@
             "inputs": [
               "\u001b",
               "?"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "?"
+                ]
+              }
             ]
           },
           {
@@ -2111,6 +3304,16 @@
               "\u0018y",
               " ",
               "b"
+            ],
+            "segments": [
+              {
+                "keys": [
+                  "\u001b",
+                  "\u0018y",
+                  " ",
+                  "b"
+                ]
+              }
             ]
           }
         ]
@@ -2119,792 +3322,621 @@
   ],
   "inputs_record": {
     "script": "scripts/accept_p5_netbbs.py",
-    "commit": "3ee2f70e4f466ded5b1316cdcf9861430d3c9b19",
-    "form": "per case: connect (Telnet NAWS/TERM/COLORTERM), then per capture every string the caller wrote since the previous capture, in order, plus server-side moves as {\"move\": ...}"
+    "commit": "4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722",
+    "form": "per case: connect (Telnet NAWS/TERM/COLORTERM), then per capture every string the caller wrote since the previous capture, in order, plus server-side moves as {\"move\": ...}",
+    "comparison": "per capture, `segments` in order: {\"keys\": [...]} must be byte-identical; a loop {\"loop\", \"goal\", \"may_press\", \"presses\", \"reached\"} matches when loop, goal and may_press are equal and reached is true; presses is run variance (technical lead, S48c2)"
   },
   "transport": "NetBBS Telnet -> registered native stdio, DOOR_KARST41_PRESENTATION=1",
   "source_matched_wheel": {
-    "version": "0.0.20",
-    "file": "C:\\Users\\Thiesi\\AppData\\Local\\Temp\\claude\\670f1e8759e85af8\\fc3cddc2-1ba6-4dd9-ad64-6af894bc4b24\\scratchpad\\accept-env\\door\\Lib\\site-packages\\karst41\\__init__.py",
-    "python_tree_sha256": "1d6f838e463625ff082f215bf04e639742399db33f8b819095e6f14f68fe787a",
-    "renderer": "present"
+    "80x24": {
+      "version": "0.0.20",
+      "file": "~/karst41-runner/runs/c2-p5-7/01-p5-acceptance-native-80x24/temp/p5-venv/lib/python3.12/site-packages/karst41/__init__.py",
+      "python_tree_sha256": "eb29e483ebac7f95c594e3e4095c442015db92d09c2e49dfbdf3538087ade361",
+      "renderer": "present"
+    },
+    "132x50": {
+      "version": "0.0.20",
+      "file": "~/karst41-runner/runs/c2-p5-7/02-p5-acceptance-native-132x50/temp/p5-venv/lib/python3.12/site-packages/karst41/__init__.py",
+      "python_tree_sha256": "eb29e483ebac7f95c594e3e4095c442015db92d09c2e49dfbdf3538087ade361",
+      "renderer": "present"
+    }
   },
-  "show": false,
+  "show": true,
   "console": {
-    "isatty": false,
-    "size": null
+    "80x24": {
+      "isatty": true,
+      "size": [
+        80,
+        24
+      ]
+    },
+    "132x50": {
+      "isatty": true,
+      "size": [
+        132,
+        50
+      ]
+    }
   },
   "human_approval": false,
   "fixtures": "private node/world/accounts only; normal game rules",
   "manifest": {
     "training-drone-80x24-16.ans": {
-      "bytes": 24805,
-      "sha256": "81b26020e6e9258b42283ccb69eec2cc29c5d94883e4d97f2f67dc7344c43564"
+      "bytes": 25057,
+      "sha256": "d23e8a7923aae26b0c0352987bbc2bfac5840fe4fc4a21d84a5af287a5017a23"
     },
     "training-drone-80x24-16.txt": {
-      "bytes": 3007,
-      "sha256": "e91ac6596f89927e5ad14a53f3fdd03bb20ed71ae8264de87051628f82cdbb46",
-      "committed_lf": {
-        "bytes": 2984,
-        "sha256": "3e74303db22dd7bf50ef62e1bd95fb98aadc7cdd7ee45af0bace5067d1394bd1"
-      }
+      "bytes": 2984,
+      "sha256": "b94c5774c6ffce14715fa39c59d0178a3fe262612b56fea9a5090248f6a7f8b1"
     },
     "training-drone-80x24-16.json": {
-      "bytes": 5024,
-      "sha256": "0ab481d0826310ca41aa2f78e4a7015ac6850b7e9d9375e2d0c931b8fb0b282f"
+      "bytes": 4887,
+      "sha256": "75f8c19698ee9188dc965c7b36e9d62104d7f21d30ad1d23ddce08a23efbed94"
     },
     "training-complete-80x24-16.ans": {
-      "bytes": 30192,
-      "sha256": "7228b0bb0b0521560e903afe83e095442f3b16ddd4b540a23fd7c6303c4aa450"
+      "bytes": 29533,
+      "sha256": "8a6e90fdb1fcc5d118023eebc4b92b04d5aeb46d8d0e237a9003495f5df7dc4d"
     },
     "training-complete-80x24-16.txt": {
-      "bytes": 2954,
-      "sha256": "a2775d243035a3a2d9e620a34696fb18d69cce96d56e09489bf8af2ad25f4a49",
-      "committed_lf": {
-        "bytes": 2931,
-        "sha256": "403a3f3365f19d494da1382afbfa7734d5cee1d065e5a3a10a73873b99a06c48"
-      }
+      "bytes": 2931,
+      "sha256": "bcf2dfa7e20e58ba518186d84a6892064f3bf46d7f023958095404798f212d67"
     },
     "training-complete-80x24-16.json": {
-      "bytes": 4618,
-      "sha256": "97a22281233e9dadcf3c183b340c66bac3d1049b5064d8864fc1f9082d954819"
+      "bytes": 4632,
+      "sha256": "956e6b75b28106dd58e07e93a8b42a312ec3ab580c3ad6cb86e352850d1e632e"
     },
     "wake-record-80x24-16.ans": {
-      "bytes": 43944,
-      "sha256": "4723ba0d4e1da95a8059f5179eb335b6c5ad142c40adfaee7840e22c4fdceb69"
+      "bytes": 44159,
+      "sha256": "b883b2b8634bd5eaafd16669514e854f51e6733fc7b4ef46908139dffd896963"
     },
     "wake-record-80x24-16.txt": {
-      "bytes": 2700,
-      "sha256": "96edf462977bf098ddcc71cbd2f3a9efbfe73ca4a3504966a19e76ef6d21b14d",
-      "committed_lf": {
-        "bytes": 2677,
-        "sha256": "2f0196e0e1beaf24ce5714d5fc39817aba86acf4c158b3a986360b6c84ea9f8b"
-      }
+      "bytes": 2677,
+      "sha256": "cd37e0fae89bc082115f9716bf0ee7879eafed4a9cb7739fccf256150f8de591"
     },
     "wake-record-80x24-16.json": {
-      "bytes": 4095,
-      "sha256": "44e9cae015d2eebcb33fc2d45d182e55b7a80ef212c0e5c0bfe530093e62d081"
+      "bytes": 4165,
+      "sha256": "45987e598d3681956a3349fc2188630f2b9cce7693e3027bee8d67be0b72d998"
     },
     "wake-hall-80x24-16.ans": {
-      "bytes": 54994,
-      "sha256": "6a905214294bef90d5ab26ffe5cdfafee1e2dae7f1aa54d9c0074fa624d9792f"
+      "bytes": 58372,
+      "sha256": "a669972bac7a198b29e4138caa7490ee55a0b4aef883459f68b4df690e08caf6"
     },
     "wake-hall-80x24-16.txt": {
-      "bytes": 3026,
-      "sha256": "e0555db55c35d9ecb167058fc02e231bf43c851c51a783724993e48d1e4c182e",
-      "committed_lf": {
-        "bytes": 3003,
-        "sha256": "a50336913b483fa94a2297224ca9868a5053a2d7822d96cd237be84d23ea9c51"
-      }
+      "bytes": 3084,
+      "sha256": "4487bd2f81847a14d2768ab8a6c0303b99e377d42f8d75e5061497c42b04b2e0"
     },
     "wake-hall-80x24-16.json": {
-      "bytes": 4822,
-      "sha256": "047b801a5897b31f31378d8066d1aa4e45ae27b3899cceb6d8bc721b3e8250db"
+      "bytes": 4990,
+      "sha256": "34ccf6b43919d71ff84f74412aafcd0898e81ff5224e135533114a3e26f2219b"
     },
     "meridian-plaza-80x24-16.ans": {
-      "bytes": 270851,
-      "sha256": "b6468235f39a6ba691c67ffe887621e00db7d0fc079dad2d90e72f36b0cb5c58"
+      "bytes": 273381,
+      "sha256": "52d55e72ac4d2a45d4f46168f3a82962789efedd4bae643bfad0d18bb8a28f9f"
     },
     "meridian-plaza-80x24-16.txt": {
-      "bytes": 3342,
-      "sha256": "29ce5b9ba35200abfcc96717ba0440141ccc505c855e6c12fd998fc72f07baf7",
-      "committed_lf": {
-        "bytes": 3319,
-        "sha256": "fba3a6d71edf87cdc1cd3c51e14406a323cbd3993f0197859e81cc72d0882c53"
-      }
+      "bytes": 3317,
+      "sha256": "fff99c956e0471123a94dfe92a8846476d5f91ad656a19cda491e4bf0b28c5ef"
     },
     "meridian-plaza-80x24-16.json": {
-      "bytes": 4874,
-      "sha256": "ccecc4561ada765d697bb472f576d45c7ab72a8ab704677205992566344ac25c"
+      "bytes": 4848,
+      "sha256": "a843029533ce8e2e5c8250a9c448b93f883214b8ab3410d3d7e1175496f51449"
     },
     "inventory-80x24-16.ans": {
-      "bytes": 275122,
-      "sha256": "028bcb4c3a20951fbaab5f6884d40e510ac36c44b525217b9bc4b57e7c3b7a5e"
+      "bytes": 277652,
+      "sha256": "2ec1055236a3a52b1bb7ea678dd7922938dccdd164a65b4a98fd900b0428f5cb"
     },
     "inventory-80x24-16.txt": {
-      "bytes": 2811,
-      "sha256": "4891cc1c85da652d633ea8847d4a794a6c0074a3dd875946c626a83f3bc3af61",
-      "committed_lf": {
-        "bytes": 2788,
-        "sha256": "c590b6d94aa988d079d390e930d87fe2b567e5dde3b79237603574a5a77baec9"
-      }
+      "bytes": 2788,
+      "sha256": "c590b6d94aa988d079d390e930d87fe2b567e5dde3b79237603574a5a77baec9"
     },
     "inventory-80x24-16.json": {
       "bytes": 4223,
       "sha256": "e7d4159b9bad4d69e5cff2669cab27896ea26e543d4346844135e18274a646f0"
     },
     "contracts-80x24-16.ans": {
-      "bytes": 284249,
-      "sha256": "981cc492bdbd870f860cacd2f9ee0acf0fc68b972a757ec93929fbce6d953533"
+      "bytes": 286730,
+      "sha256": "7d11da2fa99dd6be3d8d165902b63411c320d4aa7a0f9672b867e3c073a8d373"
     },
     "contracts-80x24-16.txt": {
-      "bytes": 2783,
-      "sha256": "2d8d4a5bf337ea126f150781fdd30317f818c60f6c8345cab0be33ecbe3a4eda",
-      "committed_lf": {
-        "bytes": 2760,
-        "sha256": "1f7ecae0e9742c278c8d5a95b4dc92acf37213142ff8b7887589840ecf90ae32"
-      }
+      "bytes": 2760,
+      "sha256": "1f7ecae0e9742c278c8d5a95b4dc92acf37213142ff8b7887589840ecf90ae32"
     },
     "contracts-80x24-16.json": {
       "bytes": 4198,
       "sha256": "2801f5afe16dbe12226227149a9f089b68142fb8aad147dbad61b984cc6b21c7"
     },
     "help-80x24-16.ans": {
-      "bytes": 291002,
-      "sha256": "7b979f4b78b94b6e76617ac6b672a8d4a4d44efc74c606566d1e823d8edc0968"
+      "bytes": 293438,
+      "sha256": "587dea8d8434e51cef3218145ed97dab7236e278ef4d2fff7a65583e0d1776cb"
     },
     "help-80x24-16.txt": {
-      "bytes": 2503,
-      "sha256": "ec049ec82a3ca69cc7fba2c22bc11c58681b856d0329cbc862acc0cc223ed0b8",
-      "committed_lf": {
-        "bytes": 2480,
-        "sha256": "6bb424d7aa070c4034f9d952db8a9e284da761807ac4f88c4867ff644152edb8"
-      }
+      "bytes": 2480,
+      "sha256": "6bb424d7aa070c4034f9d952db8a9e284da761807ac4f88c4867ff644152edb8"
     },
     "help-80x24-16.json": {
       "bytes": 3443,
       "sha256": "c64aeb1d4795d6894357c574edf11d7d5f8242fdc8599bca303282fdd6ec81b0"
     },
     "training-drone-80x24-256.ans": {
-      "bytes": 44144,
-      "sha256": "4ec366f6d0e60c5eb3a299e037a5b873c55781e1cf429f7bc74a287a8850faea"
+      "bytes": 44876,
+      "sha256": "92817437a512272027176f31f115212985f4dc8e469d77ce187d62ea40248064"
     },
     "training-drone-80x24-256.txt": {
-      "bytes": 3083,
-      "sha256": "72a3c1c22d1123bb85e9f1893c74f4ab56915077d994a66f7cf6c48fbd79f47e",
-      "committed_lf": {
-        "bytes": 3060,
-        "sha256": "1298cb94326b3887dc060899b23da3cf44620e31ff7657499156b0e5cd88f3c1"
-      }
+      "bytes": 3060,
+      "sha256": "0a109dee5772c93ca74d981f45b2deb1c1f94feffb22255e57553fdbc03ec3db"
     },
     "training-drone-80x24-256.json": {
-      "bytes": 6563,
-      "sha256": "3ce37b80b453f43f31e2529aa48212032d05993c7cb6ee11deb64266299a90cd"
+      "bytes": 6561,
+      "sha256": "ff5d918b794258b44d6b9e9382d9bcd600298ffa851a75cb6d253786e8c76d9f"
     },
     "training-complete-80x24-256.ans": {
-      "bytes": 53961,
-      "sha256": "f51a37f562cccdad2a2e1d7a68428f52c3fb31d4a001f9cb59ccedb83ab72bc2"
+      "bytes": 52909,
+      "sha256": "ad0dcece393c04cc03be7fa31290e31d291d8722187bd0c8534a7c64dd3a2a9a"
     },
     "training-complete-80x24-256.txt": {
-      "bytes": 3030,
-      "sha256": "b5b8e57e12395fef5bfbfecde466f4e1eb038dbba1427b158e7c3c8aec638a79",
-      "committed_lf": {
-        "bytes": 3007,
-        "sha256": "53dc40059a690264d7e472f841f344875d425e30e621d179139c8fecaa80cb1a"
-      }
+      "bytes": 3007,
+      "sha256": "101b60ceead42a670542355f2c180a20cdb8cc3e0e7c5194eb90ed68f6e886d2"
     },
     "training-complete-80x24-256.json": {
-      "bytes": 6205,
-      "sha256": "602133758f45cb069b43530717728ed2b1299740bb208f356a570ee0e2c9a9d9"
+      "bytes": 6267,
+      "sha256": "664602c3475ee134b5ba7f7063c65abc8663a7141035b74406e293ac079b09f9"
     },
     "wake-record-80x24-256.ans": {
-      "bytes": 76426,
-      "sha256": "dd8127da6d26efbe897fe445e47f96a2c59e0a3aa504834d0999325c96d54d26"
+      "bytes": 76579,
+      "sha256": "f23d305851902f5aa66b9a89cc65c13dfabaf633d307ce80df7af7030cb34ec9"
     },
     "wake-record-80x24-256.txt": {
-      "bytes": 2700,
-      "sha256": "4b4d7a26ba7469aa0302a4f594200ba9bd0b3e71144fb05f6c8bd290da025d06",
-      "committed_lf": {
-        "bytes": 2677,
-        "sha256": "73348f08c9ba2fe53a9e2dfa8969cbd930bddb65a884579786a0bfd2b0179c72"
-      }
+      "bytes": 2677,
+      "sha256": "8fd2aa806831d109573b4eacba7d7f6b81544265bea005708531be43b4ba0b99"
     },
     "wake-record-80x24-256.json": {
-      "bytes": 4333,
-      "sha256": "4a7eb2f3d01e5bc23a753c70ac5cbeaa7cd00a384210ece8b285f0782db05c7a"
+      "bytes": 4609,
+      "sha256": "9010adb5c073f20cf454e7782fef29959d62d71ed1f3deca1cf172a4779e1f4b"
     },
     "wake-hall-80x24-256.ans": {
-      "bytes": 92040,
-      "sha256": "0fa9f57c2fa9e14d31198c0adb6a9174e327cdd489e348ba20ed68665a69912f"
+      "bytes": 95288,
+      "sha256": "1b4a66cf24f0d351cbd83c0709f1f0f4fefe5535fb259447e55c47201f253dcd"
     },
     "wake-hall-80x24-256.txt": {
-      "bytes": 2978,
-      "sha256": "d419ff36c80b82e0dd7c9b24f317f067c191df16ffa9f22b855047410f5fbbd5",
-      "committed_lf": {
-        "bytes": 2955,
-        "sha256": "86fecb0c6d11a89adf2a8476e5c3f04181e67261f888d6afaaf92443c1f7787f"
-      }
+      "bytes": 3036,
+      "sha256": "14ea7a72a5003beea10c2a1fd8c127bc91e818cb500457b23f546ed939b8261d"
     },
     "wake-hall-80x24-256.json": {
-      "bytes": 6354,
-      "sha256": "734ceac17e3358df65d2813d700dd4e296e8760d6bd8d2c5202865471cce65e9"
+      "bytes": 6591,
+      "sha256": "179f41243a9f0df3dce7f9ffc6602c13651b541564c5d2f11c1b106b1c091e33"
     },
     "meridian-plaza-80x24-256.ans": {
-      "bytes": 480929,
-      "sha256": "2860948c943fd53de3058df35631e03be9a5b11322032fcfe0d460235f474373"
+      "bytes": 482736,
+      "sha256": "70e606d36c71730586ad67a81e06ae676ff3b64d304ffa26d4bd8c011ba015b1"
     },
     "meridian-plaza-80x24-256.txt": {
-      "bytes": 3353,
-      "sha256": "fd23b6f3c4907e3a10a74c49c13d6380c16610ccf9479557ed8900d0820bc595",
-      "committed_lf": {
-        "bytes": 3330,
-        "sha256": "cf0a4251499978e5f4a0553709c9c485542b22f9e03d3a81f305f86f606135aa"
-      }
+      "bytes": 3326,
+      "sha256": "e3db9f8b9a33303dd12112642dd320d1efbb31b53747adcc242510e11355febd"
     },
     "meridian-plaza-80x24-256.json": {
-      "bytes": 7838,
-      "sha256": "291c70eb08320e476f7a69b564fa349687c2631c939f95104234fe57cf9a12b5"
+      "bytes": 7655,
+      "sha256": "bf42e1aa2d0d342c91aabaed1247f96d3795292328951764dc2ab1316954a37f"
     },
     "inventory-80x24-256.ans": {
-      "bytes": 486567,
-      "sha256": "d6652eb135d9f2b0dc07a8ea547e0b375f92595b5c0bbf5a2861e5b55a50bbbf"
+      "bytes": 488247,
+      "sha256": "6fd1dd62de4b11b66d6be9e6dff9b7beedba08692dce4f5e1b56dfbe46b53e46"
     },
     "inventory-80x24-256.txt": {
-      "bytes": 2811,
-      "sha256": "35a7bd47cb7176f404aa6021f13e3d349a1ade8454849b46ba5068a93a65c4cc",
-      "committed_lf": {
-        "bytes": 2788,
-        "sha256": "3c72342cdfe1e220cecea128ce3ff08cc3eadb3fe6874f1a65b2af92b095ee42"
-      }
+      "bytes": 2788,
+      "sha256": "3c72342cdfe1e220cecea128ce3ff08cc3eadb3fe6874f1a65b2af92b095ee42"
     },
     "inventory-80x24-256.json": {
       "bytes": 4599,
       "sha256": "71073399d74f3f35a27bacead3c1708fd8c3c672a6f40230a094f9751a115abe"
     },
     "contracts-80x24-256.ans": {
-      "bytes": 500420,
-      "sha256": "f0ab03c4ec27368644040e28f630fffd8f4c2b11bbd8b2aa1732f6f548f8c751"
+      "bytes": 501613,
+      "sha256": "fbc47b7e1058a1e49a11729b030a01e622d9ccb653696da6e22a90ac5220bcc5"
     },
     "contracts-80x24-256.txt": {
-      "bytes": 2783,
-      "sha256": "63ce5e8a448d5949a4b04e0586ed97488f23e334a30a5528cd8ca9154d8b0209",
-      "committed_lf": {
-        "bytes": 2760,
-        "sha256": "7128d52bb0a5b5e5432ae26a4580ff8d9ed99c3b896410899ba310a123573c4f"
-      }
+      "bytes": 2760,
+      "sha256": "7128d52bb0a5b5e5432ae26a4580ff8d9ed99c3b896410899ba310a123573c4f"
     },
     "contracts-80x24-256.json": {
       "bytes": 4574,
       "sha256": "6f75402a5a4007fb530f125bc96dcd2895567a4532d14466b314433c7300f0a9"
     },
     "help-80x24-256.ans": {
-      "bytes": 510174,
-      "sha256": "536f46751f29bc5ab8dc0a334c8bab4405017fb343f2fc9ef69f3cefa6f96eb6"
+      "bytes": 511582,
+      "sha256": "702ebc458ab113d293b04fd309c35891e4f53f8297855d0630780d8a2106357e"
     },
     "help-80x24-256.txt": {
-      "bytes": 2503,
-      "sha256": "511722469082520025c187686fd929fc4f0cad60b3552ba33da60988f59e299a",
-      "committed_lf": {
-        "bytes": 2480,
-        "sha256": "3eb7ca49db8d628d6f2ee6b18d9fcec2b0bf05bd91919d44fd2557a289523939"
-      }
+      "bytes": 2480,
+      "sha256": "3eb7ca49db8d628d6f2ee6b18d9fcec2b0bf05bd91919d44fd2557a289523939"
     },
     "help-80x24-256.json": {
       "bytes": 3711,
       "sha256": "1cdf3d0d5be35e3f409dab8fa424af9ef8cbca9382c2bccb440ea6566fc8a342"
     },
     "training-drone-80x24-truecolor.ans": {
-      "bytes": 52106,
-      "sha256": "b302aef5cf87f11e2cd222fbb8dce1715e59ffbee5118100c975744dd8aa7366"
+      "bytes": 53295,
+      "sha256": "e4879854d0e838ade5b33d5dcb8bf65e2194bc4e1e4ae9e1796ad2f7958781fb"
     },
     "training-drone-80x24-truecolor.txt": {
-      "bytes": 3083,
-      "sha256": "a3131d7275cc953d88f902a4431caf8856d85de6d16460e28660b8f715010723",
-      "committed_lf": {
-        "bytes": 3060,
-        "sha256": "af3189f130829b846e9da6588a74a7b44705b9058f09eafc73e8cf07c20b720d"
-      }
+      "bytes": 3060,
+      "sha256": "961c4d227c003d1b75ea249b13f16e643f0a39a0b0bf72b87fc740a9c580fc8d"
     },
     "training-drone-80x24-truecolor.json": {
-      "bytes": 6818,
-      "sha256": "f71f678cf3399c74d48922986e6d86d8bcb5d1c1f10360ea4582c4ba614675c4"
+      "bytes": 6802,
+      "sha256": "b686cc49be13adbbd972b2814dacbae2bd8e25b3ead6c4183242340e681969b9"
     },
     "training-complete-80x24-truecolor.ans": {
-      "bytes": 62288,
-      "sha256": "a296e6e085d7d23f4ee0f5c3bb0130df73826d9010cee9b973a0ec37ac9e6149"
+      "bytes": 67113,
+      "sha256": "756bf1a366b612a4d6b57be815f5b7292ee57e80a767b5f1a0ef7dbb412cda24"
     },
     "training-complete-80x24-truecolor.txt": {
-      "bytes": 3030,
-      "sha256": "42db5283809bb2cf35408711f4a81659d9be9a43d52dbc662681d1a10e92c952",
-      "committed_lf": {
-        "bytes": 3007,
-        "sha256": "c749eb4fbb491ce3444db1fec6a067a5d3a9fd88e77eb66051ab3ac44e30ac09"
-      }
+      "bytes": 3007,
+      "sha256": "db31ed8137330fca0810b68ac170a8eff1bea85cfb097369e033a72cdf1f4e77"
     },
     "training-complete-80x24-truecolor.json": {
-      "bytes": 6446,
-      "sha256": "08833fe5c1d2a4e1aff2183504c79f5e40080d7c9f807df1dc1d0d3e94e3f9ec"
+      "bytes": 6657,
+      "sha256": "23bd8d2c371f12443b74af96f49e9b16198906ca37530b1fee0e9a919bdedcbe"
     },
     "wake-record-80x24-truecolor.ans": {
-      "bytes": 89410,
-      "sha256": "17d581b78d700d46ff5072f402527909b4ec600c6569c0204dbfdda1b5b7b314"
+      "bytes": 95537,
+      "sha256": "f9196051c3d287d4263be8f9db631cada8d60ed8c1dd7cfb1f495efc5803f457"
     },
     "wake-record-80x24-truecolor.txt": {
-      "bytes": 2700,
-      "sha256": "1bb7b46411f6b7d9d77b4a14ed06a02d2693b80bf51b13d23e675a59318caeda",
-      "committed_lf": {
-        "bytes": 2677,
-        "sha256": "5bf5c4c6b55ea5fdb8429e6a3df1060bac3c39383fa2aec124c61a42c9cc6f9c"
-      }
+      "bytes": 2677,
+      "sha256": "04a1cf0aa6d24d62a48f4d67ce76c9303e9df20084b0f2c31fb9476ae34f08c8"
     },
     "wake-record-80x24-truecolor.json": {
-      "bytes": 4394,
-      "sha256": "af8307f261a86357593bdc57e6c6256dc175c24c3e559448dc16e0c793d647ed"
+      "bytes": 4637,
+      "sha256": "efc4c46ab0335416c68d1400a0653563a84c2151767515bc1ed165d2ac9f0f1e"
     },
     "wake-hall-80x24-truecolor.ans": {
-      "bytes": 107937,
-      "sha256": "4985e861d7a2b5b5cfbdd2f81a197a5399c82c8cd72dd6889e4b2fc7e9c34eb0"
+      "bytes": 117564,
+      "sha256": "f0ebaf712580a0876d48bbb635ef5b6dd0b6b3210ab0cb5c75341de7bc8fe39f"
     },
     "wake-hall-80x24-truecolor.txt": {
-      "bytes": 2978,
-      "sha256": "5b8d7d64f48dbc63f4b8ad8c802188199d7b15689a536e05444d031510624e28",
-      "committed_lf": {
-        "bytes": 2955,
-        "sha256": "e71bf21638a517b399602f0737ee06a5ea41706d3f63320dd047cf7314619903"
-      }
+      "bytes": 3036,
+      "sha256": "3958b5c1cfdf2b8381a9986b4f0e9c79cc0f7b54167b9656879a8445eba34874"
     },
     "wake-hall-80x24-truecolor.json": {
-      "bytes": 6601,
-      "sha256": "cdd8e3fa7fe81bf68b6d33f797e1abe67fc30883880e5702451653687b8c63ad"
+      "bytes": 6867,
+      "sha256": "597f0c2fb1f173b1f55daebec0879e05ddfb46c699f89d3c8ac03616378c1750"
     },
     "meridian-plaza-80x24-truecolor.ans": {
-      "bytes": 589828,
-      "sha256": "0b0f7c70c2f0f8f663415a4af14dd6f677eb9ccecc916b3c64927dfc40e08e43"
+      "bytes": 606538,
+      "sha256": "8c813bcedbab8d8091c89046a95ac9f582f9efc7e7dd0847c0a510ba914981e3"
     },
     "meridian-plaza-80x24-truecolor.txt": {
-      "bytes": 3365,
-      "sha256": "6f53f798e6a02f38003728228e916c4d496fde4fb88cd50bb3076944724a33c4",
-      "committed_lf": {
-        "bytes": 3342,
-        "sha256": "eb9a529fa335b15aace2e6da4b228250262cb0a974c4181f501b85423932e34b"
-      }
+      "bytes": 3326,
+      "sha256": "c17505355252017098907926a535710361148ce1d5e2b592281b7d50a1c66133"
     },
     "meridian-plaza-80x24-truecolor.json": {
-      "bytes": 8664,
-      "sha256": "a5e5f51e100175516057655cf5e641085f346f87ee088e4d7a619cf6b248921c"
+      "bytes": 8300,
+      "sha256": "ebaa0be1f1b70b088bf2d636ef0b844de5b1d862ac23fa3536b849c6aa8a9b81"
     },
     "inventory-80x24-truecolor.ans": {
-      "bytes": 606785,
-      "sha256": "6e529177edeeea8814d796c7cdce625f84c49ab979a77ef82399527236ea6237"
+      "bytes": 612965,
+      "sha256": "a1317aa2b8f96b9f806f3f1a02f804cec866cf3f10fe2e85908983abcf0b3a93"
     },
     "inventory-80x24-truecolor.txt": {
-      "bytes": 2811,
-      "sha256": "622ef51e9e31fce3d4790003e63659956b9dc1e19b5f275b4d595c68b39dd329",
-      "committed_lf": {
-        "bytes": 2788,
-        "sha256": "08d3bd8baf455bc531fc46feb0e84caf84719c030f09d35c5590e11c854778c1"
-      }
+      "bytes": 2788,
+      "sha256": "08d3bd8baf455bc531fc46feb0e84caf84719c030f09d35c5590e11c854778c1"
     },
     "inventory-80x24-truecolor.json": {
       "bytes": 4660,
       "sha256": "70eeb322b471dd182db67f539d2c480268d571bdfa69e6fdb81fde6fa891a26e"
     },
     "contracts-80x24-truecolor.ans": {
-      "bytes": 623523,
-      "sha256": "6c208270b0ff83e79ed3c1f7d7afefd6acb3b7f565618642c6643f88a1abfa16"
+      "bytes": 629575,
+      "sha256": "c7afbabbd07a39e36139ca23c3914d11c501252f323ce0eb38c147f2db9b6879"
     },
     "contracts-80x24-truecolor.txt": {
-      "bytes": 2783,
-      "sha256": "4f60bfb3c2231040420b6dfe8390f587024e0ea74886cc53e137210f466395d3",
-      "committed_lf": {
-        "bytes": 2760,
-        "sha256": "a75139c19bffc20d0d42622502f0f5effee0ad18fc80504a196a31fe7fd45c8a"
-      }
+      "bytes": 2760,
+      "sha256": "a75139c19bffc20d0d42622502f0f5effee0ad18fc80504a196a31fe7fd45c8a"
     },
     "contracts-80x24-truecolor.json": {
       "bytes": 4635,
       "sha256": "afca47e04218c909cc72095df553c59f784872e0d167c2e3855037ba2a43f549"
     },
     "help-80x24-truecolor.ans": {
-      "bytes": 635859,
-      "sha256": "6523133ec4e20f18a4f9b15f6abf46d605b2226d778aeca198268ce65202bb50"
+      "bytes": 641809,
+      "sha256": "8c14976c1a0ce99664e72e6d035d2a1e6e955ec2a0f3048eda473456a166eca9"
     },
     "help-80x24-truecolor.txt": {
-      "bytes": 2503,
-      "sha256": "3239e6da1f66fdc7a4254f06c95b43dc1e4d1512523343e527a2ab8cc301929d",
-      "committed_lf": {
-        "bytes": 2480,
-        "sha256": "b58e672c5e7d2499d32e67f963f382252918d630eb2dc6040ff6d573c7fcccee"
-      }
+      "bytes": 2480,
+      "sha256": "b58e672c5e7d2499d32e67f963f382252918d630eb2dc6040ff6d573c7fcccee"
     },
     "help-80x24-truecolor.json": {
       "bytes": 3774,
       "sha256": "c73dc3cdb3ece117973689c3dd2f219eac06beb436c6d6631a0763bb63fc1f42"
     },
     "training-drone-132x50-16.ans": {
-      "bytes": 38458,
-      "sha256": "4c76262ff9704fdd0aeb359f698c0db687bc32ffd4a8c2f9b9f5ffbaa4d01e06"
+      "bytes": 27794,
+      "sha256": "e121690713d87148dc56e0cd3b3e3d70409ca1fbd7f6fcaec3a4bf9f33ecbddd"
     },
     "training-drone-132x50-16.txt": {
-      "bytes": 8303,
-      "sha256": "a8bd03a67af46df210191aa19b85f684b6c981ffcfdd56762a482d5f0af01d6a",
-      "committed_lf": {
-        "bytes": 8254,
-        "sha256": "d574c4d4c17f47b00a41bfed335cc90d8fd70a497fc46c98413eaff81c649591"
-      }
+      "bytes": 8252,
+      "sha256": "8e01d2ca1a7322a8346455b89df139586c7f6c308c2affecb92fa6b1637e6e6e"
     },
     "training-drone-132x50-16.json": {
-      "bytes": 11316,
-      "sha256": "58ebcbc91054df95fd7ab4e8c130688a6799104e60ba355ed9a6a646aefa2a88"
+      "bytes": 11180,
+      "sha256": "b74aededd96e5eaff790556136d760b063c2e3f64d488b365947ffb795e443f1"
     },
     "training-complete-132x50-16.ans": {
-      "bytes": 48141,
-      "sha256": "414cc568dd6059f7922dafe4b0405fe45af3e3ae9f2b2333a6464cce6b2699c1"
+      "bytes": 48637,
+      "sha256": "2142b7752c4fa0df29fb777f404fc10a7f3f4eade790eeb0fbb93da0cbc9c0af"
     },
     "training-complete-132x50-16.txt": {
-      "bytes": 8254,
-      "sha256": "e8e31ba8f5197cdb851cd560fa45e412a53dcd1a20bd6a8a78291882706e1865",
-      "committed_lf": {
-        "bytes": 8205,
-        "sha256": "d257a0cd552e1b82a8a25cc2b98d3b44189e8df7378778c0780678fc5933da20"
-      }
+      "bytes": 8204,
+      "sha256": "1457d082b15172037849a2197ea3ed785af7b102102f30db356eaacb946fa076"
     },
     "training-complete-132x50-16.json": {
-      "bytes": 10971,
-      "sha256": "1cd5bfe840eae75ea66a27242fb98315269f413f4c632a6de466d3bddbde7439"
+      "bytes": 11013,
+      "sha256": "79362b1c5c8ca30ec2b0595f7ca589574ab2ee31a5104a000c9a69952cf9342a"
     },
     "wake-record-132x50-16.ans": {
-      "bytes": 65114,
-      "sha256": "8fb7b8cbd5e4bba9dcf552eb28bd3df8c4c1d7ee8f4bb5ee26f31ba5add7a38f"
+      "bytes": 67254,
+      "sha256": "6ec1c1ccd673dc78051ba6125b9d0db0f3154c99a6a7aac864c0ddef0f9dc176"
     },
     "wake-record-132x50-16.txt": {
-      "bytes": 8097,
-      "sha256": "c368a5ea650252a7541dd05b638c5b969af7fe4deb7bd07c32cf81300b0d25b9",
-      "committed_lf": {
-        "bytes": 8048,
-        "sha256": "6d2c8057b0135865716283ac6a6ab334bfa50f52206f8fc6180d3e0e6c46f2f8"
-      }
+      "bytes": 8043,
+      "sha256": "8646b1637a4479b7d08e935eb72779fd3515a22a7e9131c657f0ec6cc754aa1c"
     },
     "wake-record-132x50-16.json": {
-      "bytes": 10802,
-      "sha256": "4a3221b71962aabb12a0d3639e915f5c1fdf1ef21ebdef68b8de40a034e472c5"
+      "bytes": 10856,
+      "sha256": "66bd103370355a490b81ecacad747ddbd755eec2609db5036b06b8da0f56b08c"
     },
     "wake-hall-132x50-16.ans": {
-      "bytes": 94537,
-      "sha256": "4adfc99a8ff38c1de65ff5b7e2d08f01e6bb1db7d73094c291cc7a21840cde95"
+      "bytes": 103882,
+      "sha256": "200e4e1f485ca9742af3ff36e86bc8810bfd666220e2d1838e6ffc16427acc64"
     },
     "wake-hall-132x50-16.txt": {
-      "bytes": 8311,
-      "sha256": "d4e051b6a589a264e4a36c26d747e8dee88d542afbb26441a9678a8b29437c5c",
-      "committed_lf": {
-        "bytes": 8262,
-        "sha256": "1b338d4c2d809621b5d1880902b1b29ec13b831bd8513d4f113a4fa029c00745"
-      }
+      "bytes": 8350,
+      "sha256": "b974759899fe875ce4734ae94eef6ca31a5f2543f1b762c20318c7a0a2b69363"
     },
     "wake-hall-132x50-16.json": {
-      "bytes": 11124,
-      "sha256": "72e6e79f65a1a68876846fffa89a3c92c42fa4e99d60a2f07d40b35254ed1f45"
+      "bytes": 11334,
+      "sha256": "e4708bad9bff232e7cc8fed5855f1efe7d45f5bbc7881d3ff56c22ed8cc25e85"
     },
     "meridian-plaza-132x50-16.ans": {
-      "bytes": 172372,
-      "sha256": "4af3eee6106e7a19de22ce23af8e2d8056f59055fab3b378f3a8a54983dc8653"
+      "bytes": 177796,
+      "sha256": "7649691054e878b4170144b0cad28cd42c2475555354f054a14e9101d16777bd"
     },
     "meridian-plaza-132x50-16.txt": {
-      "bytes": 9807,
-      "sha256": "4767fb57fd08349007190bd898dd847b1b359664e551734c02a7a8f6c0e5174a",
-      "committed_lf": {
-        "bytes": 9758,
-        "sha256": "59fd15a9b909845f14e468884ccd2153795d00da380519ab76dcc2f13bf8d8af"
-      }
+      "bytes": 9760,
+      "sha256": "7776803a2db5c634b4b8a5b395a9469d7cbd1ffc3cab97c71f7aefa68fc551bf"
     },
     "meridian-plaza-132x50-16.json": {
-      "bytes": 12744,
-      "sha256": "b7a80923f2718995ede43de0a5eb7f296f40d9ef5fe66951f89c40bf37f70115"
+      "bytes": 12828,
+      "sha256": "1422c9eb0eaa9c232831506424a37c4786113780dd129ae039fdf67fb768c7c4"
     },
     "inventory-132x50-16.ans": {
-      "bytes": 183747,
-      "sha256": "2f580ec865814b5f49d1e1bd0ef86850b986049f376bcd04281b22301b68601e"
+      "bytes": 189212,
+      "sha256": "e08cf8e02d74d1546ede4cf14ad7837ba15240ae55e1d2f9d6be53e7809802f7"
     },
     "inventory-132x50-16.txt": {
-      "bytes": 8205,
-      "sha256": "b07a0071efbea1e1fb7566f3ccc53218519a15a5d4b5f1a9e9c2b148a1b0dbca",
-      "committed_lf": {
-        "bytes": 8156,
-        "sha256": "e9d184ccb1271e42c28e03f39e8d96f348504cba8f3c16043aeb7934267de137"
-      }
+      "bytes": 8157,
+      "sha256": "98ebbe36b2029038bf8daa7ef920f9cd65ac647d7a662517187b48a035ef43d9"
     },
     "inventory-132x50-16.json": {
-      "bytes": 10893,
-      "sha256": "d07c771b5e9268cebe37aaa92769577d414111deae7ed63d0e73ef2ef1d539ff"
+      "bytes": 10977,
+      "sha256": "192d57f7a59eff271c591b5800a845c7a7fae189a82930545953648f55489e36"
     },
     "contracts-132x50-16.ans": {
-      "bytes": 208381,
-      "sha256": "2ced4f4f6c2cb642ffacf39643472866fe5158ee3fdcb9d25dc87b75563e185d"
+      "bytes": 214224,
+      "sha256": "ebbb9db898f127f79b6f8a213617bf7f3759251628a0d028159079ddbfbf9d0a"
     },
     "contracts-132x50-16.txt": {
-      "bytes": 8177,
-      "sha256": "f4623110a16154135601afbae69a2e2af911f1908081f5d16d393fe4aa0af3cc",
-      "committed_lf": {
-        "bytes": 8128,
-        "sha256": "408802c969dd086fa725b373207f2373628b1711da559f376dd8a7e5a7c43e60"
-      }
+      "bytes": 8129,
+      "sha256": "f6f2b161715f92302c2e813e5f369c38e6f3b520d51386c0f23cfa11d6cf7cd9"
     },
     "contracts-132x50-16.json": {
-      "bytes": 10864,
-      "sha256": "2b5c999d40939f58f44d5f79a5a141f4ca538ca0e86ea3fb3dd6842018687d2f"
+      "bytes": 10948,
+      "sha256": "32e42f500a42ca3dfe08daf75a9266a500fb54e393adb542ea4e2266078a4fa5"
     },
     "help-132x50-16.ans": {
-      "bytes": 226955,
-      "sha256": "71aa120cf6c1d52b2b80b2c07dd37c3b52269e9ea06bccf191bc470f676606bb"
+      "bytes": 232965,
+      "sha256": "a0697c5d4a9fced304f57ab1195675e9881dfbcb120984d4e5549ac232ff1c0d"
     },
     "help-132x50-16.txt": {
-      "bytes": 7653,
-      "sha256": "4147dfc5b0d0d8ee7c1211afcde68b67d0b1d81b32d9d1ec8ff937eb2013be80",
-      "committed_lf": {
-        "bytes": 7604,
-        "sha256": "0276834c0d8d44179e14a968d1cbab8000644c13d3d3d4a634c1ce7eb1e02412"
-      }
+      "bytes": 7605,
+      "sha256": "fa5419b90dcd51e98fc73e44d88dd01d0ca2a520ba797e3faa7126fd598ace8c"
     },
     "help-132x50-16.json": {
-      "bytes": 9296,
-      "sha256": "2ab274e6fbbbad95177aa869bb8952163efd4a36800f2a3529a499200eba16c1"
+      "bytes": 9380,
+      "sha256": "f9de062254bd0be4b2878b60d835f6ffc14444dcd3de0b7c6b7971a53ffe4fd0"
     },
     "training-drone-132x50-256.ans": {
-      "bytes": 51333,
-      "sha256": "5031d94c61c5028e86cdd418bae0d2298c1398cac74123e6bb80b0ca563701e1"
+      "bytes": 49535,
+      "sha256": "c4f52464fc53b8993e308eb3d1312d3f39fad7edce3f3f623e214260e8ef95e7"
     },
     "training-drone-132x50-256.txt": {
-      "bytes": 8296,
-      "sha256": "8b127d137d89c4399c76575cc808903ed7da1f6e306362ad281bce920a79d5c9",
-      "committed_lf": {
-        "bytes": 8247,
-        "sha256": "37498da72d25f56adcb6da8e414d98f3deb4b14fccbf274c0e8812a4a115b28f"
-      }
+      "bytes": 8245,
+      "sha256": "b2658587e16ad22c7d812c258536cbc498b35585d7cb98bb4af0d25bf95f5948"
     },
     "training-drone-132x50-256.json": {
-      "bytes": 12956,
-      "sha256": "f052a59c9b562f0f679a4985d0ae59795a49167765ff8329bc818d336f029eb2"
+      "bytes": 13248,
+      "sha256": "25eb230f7689e67b8002607d153029fd2528d4c602407dcaa6be959f2451af42"
     },
     "training-complete-132x50-256.ans": {
-      "bytes": 56258,
-      "sha256": "27d9f99bde505f4290b46b870d37889c5fd49a547a4a5094c5c9f5a296667eb1"
+      "bytes": 59918,
+      "sha256": "dbe737582678658c3ed7b52599bd1ebce7d8e52ef9664918721f18a86d2753a9"
     },
     "training-complete-132x50-256.txt": {
-      "bytes": 8247,
-      "sha256": "030f78224e28a7242f0e51e554ec904a7f9dc3941268d7f86c00e0415a7d3891",
-      "committed_lf": {
-        "bytes": 8198,
-        "sha256": "030d6bca89d8a8522486400cf9455865ad18cc549c9c35ead0ea26234603c944"
-      }
+      "bytes": 8197,
+      "sha256": "7ba062eff0e03842964e2a2574d850258cde4f7b8f342afc79a1d78409042ab1"
     },
     "training-complete-132x50-256.json": {
-      "bytes": 12786,
-      "sha256": "dde69c84b140c3a3c448c1251c5bbf68848864430f3b7ff80ff22e07b27e0f22"
+      "bytes": 12919,
+      "sha256": "8ef31c8350fb4e1f7250722670bce783148cc76e4217fea2f9fec12436989cf0"
     },
     "wake-record-132x50-256.ans": {
-      "bytes": 80573,
-      "sha256": "3f10cce6400a7a95a1841c4bfea3a12d05b77b19191c37a442b0f95a3ec0627a"
+      "bytes": 86099,
+      "sha256": "35fcbf12911f668ce987a1586d46bbe81da588b988dd5f8aad7fe2ef7217853f"
     },
     "wake-record-132x50-256.txt": {
-      "bytes": 8097,
-      "sha256": "f5be3a468ee7d24c21df94462692a7d73edc1c004d4193a0401a9fdd6272dfcd",
-      "committed_lf": {
-        "bytes": 8048,
-        "sha256": "abeebbbc7d0e8f4aea9acb7b814b98cc06830d5ae126f70d4dc7582ae4469729"
-      }
+      "bytes": 8043,
+      "sha256": "2ccde7549f7c22fdbd5c140647aa9917c1e892d22b25756aa877cbd26dbc5004"
     },
     "wake-record-132x50-256.json": {
-      "bytes": 11229,
-      "sha256": "4a4c7e90fe29c004e241e7d2be2c7104056a0c018e499f30f265f871cb72aeed"
+      "bytes": 11467,
+      "sha256": "6f5b689aa235132a0e6000eca1011eccea2a988f89e2c47d91789eb100995bf7"
     },
     "wake-hall-132x50-256.ans": {
-      "bytes": 117179,
-      "sha256": "1aeb7308d15f4eb2634107b609ae0d6a9c912687d6980a640310ad9ddd5a84b0"
+      "bytes": 131035,
+      "sha256": "b3253fc1255153327568a49c2077c50d1bfafeca374e930ec65dd970be48a719"
     },
     "wake-hall-132x50-256.txt": {
-      "bytes": 8218,
-      "sha256": "bae38a1d3c74803c2ca373c659f03f29f8f23aa3a7f0c5f1df6202520d2a1452",
-      "committed_lf": {
-        "bytes": 8169,
-        "sha256": "448178ba83628a82281abf0e6b7d32c3a6feb94b148e232725ba8b479bcd5639"
-      }
+      "bytes": 8257,
+      "sha256": "7974fe41277dc7d25d1b884e738866e007650e22d9d54290b3b603d2d13297c1"
     },
     "wake-hall-132x50-256.json": {
-      "bytes": 13021,
-      "sha256": "9a548ab00f90d42e3ab6fbfc4df8edd2c3b053588d107917759c62207563ca98"
+      "bytes": 13220,
+      "sha256": "ea71df78997d090588e8d9f696678c339cfff699b876b9d3bfa9cb473d19cb19"
     },
     "meridian-plaza-132x50-256.ans": {
-      "bytes": 298327,
-      "sha256": "afb9cf53c0c85a902d5eb3d2ea38418a7dce8a95e412c40508537544852ccc24"
+      "bytes": 308771,
+      "sha256": "beed476d4a600fa07497ff46c1fa7456fe699a6c27957201952c786a698dd7f0"
     },
     "meridian-plaza-132x50-256.txt": {
-      "bytes": 9887,
-      "sha256": "3323b85412423c8eca4125c26cbe0d1243298021b9e52aada2cb1ee0d55f6576",
-      "committed_lf": {
-        "bytes": 9838,
-        "sha256": "e38a2ed4d5532d1b9bd88c1ce6b7ea66335e20a998d46ddb9a5e906007d6650e"
-      }
+      "bytes": 9838,
+      "sha256": "2362221e3309989e104e95ec8782002b5011a0e8395b76153851eb326721bd8a"
     },
     "meridian-plaza-132x50-256.json": {
-      "bytes": 17521,
-      "sha256": "0b7ee597b40a702b78bf83a1464a837786d87d29f169dfdd89a6a7dc24b7fd48"
+      "bytes": 17496,
+      "sha256": "d40e5ff78a3347636ff0ba9c050f1590e9f3ae6dac907a4e53792518bec0b4dd"
     },
     "inventory-132x50-256.ans": {
-      "bytes": 312382,
-      "sha256": "af61228a6b1848cf76d3bdd6293ae474a6c974d3b27fa7b2c4ae4a15fcf618cd"
+      "bytes": 322847,
+      "sha256": "f731ce42bcf5878476f3b9a3af7f79bc8f79445b034e5fe532753f4796c63f47"
     },
     "inventory-132x50-256.txt": {
-      "bytes": 8205,
-      "sha256": "30be2a6cfc45ec20211434651563bfc4813fe0693f4ae0be8eafbd4355f797dd",
-      "committed_lf": {
-        "bytes": 8156,
-        "sha256": "c41bd7647be14b08d813a3899d3f3c2a329316d24f4f16ddc4dcb2d981bbcab2"
-      }
+      "bytes": 8157,
+      "sha256": "bbf32326af64ce19af656c63faf35c50186b2548096947b62a37937f1a38a08a"
     },
     "inventory-132x50-256.json": {
-      "bytes": 11595,
-      "sha256": "dd651730ff082629ead38917c6475a0424ba771cdcb911147924e46e363f3b79"
+      "bytes": 11662,
+      "sha256": "f5370d164b7987bd04e1071ad43d5ec5becdad33b1026250ff5d107435b91aa5"
     },
     "contracts-132x50-256.ans": {
-      "bytes": 348204,
-      "sha256": "d8543a02dab43199bf255c48a6d0fcc93842fc170e1efb61c17132fda759b7de"
+      "bytes": 358476,
+      "sha256": "e3172120914dac1528e3206a37da5b9b304e8aea36f49142342bd363334d1cd2"
     },
     "contracts-132x50-256.txt": {
-      "bytes": 8177,
-      "sha256": "4c490692cd1de023d0b1e2a973fe88d624e1cf7333d2af23703581181376f801",
-      "committed_lf": {
-        "bytes": 8128,
-        "sha256": "bc2b60b74d5e947f26cec7fcc896e1ad9e047a7656dc31588fd2ee948b069c5c"
-      }
+      "bytes": 8129,
+      "sha256": "bcc9c3e9c75d33659448020726c6697cacdef3ceec9db7b26c54e3f251246b4d"
     },
     "contracts-132x50-256.json": {
-      "bytes": 11566,
-      "sha256": "ee5922db38d0759e80415cce5311b8b8015eec590c2dace5d1a2edfb9fca4d13"
+      "bytes": 11633,
+      "sha256": "271eaf232cee4f68fd53715e8b591c78da305e4e24e690b29e34c59e3d088e56"
     },
     "help-132x50-256.ans": {
-      "bytes": 375281,
-      "sha256": "eb663c451b501ef589ac2080bf5162419cd5c4fe068e01f7866c2309ab87e6f8"
+      "bytes": 385411,
+      "sha256": "6b053c1e50af7ea53b344baa36541f534c8b9a679435703e5bc36db263d7050b"
     },
     "help-132x50-256.txt": {
-      "bytes": 7653,
-      "sha256": "6420231862f252d1170cda5cc732dfc421f2e17fcddf637d0c1d7b86c0f712fe",
-      "committed_lf": {
-        "bytes": 7604,
-        "sha256": "e78614dff12d6911bc9e0d028d0a4b5e9ed427fe0c46d2811cb6a445ec443e00"
-      }
+      "bytes": 7605,
+      "sha256": "56e7ce34b741b89239cebde97a95631c1a14cc50bfe472b2270c6f53f75bffa5"
     },
     "help-132x50-256.json": {
-      "bytes": 9919,
-      "sha256": "5fd26029022dd2e5d1ed7645026d20a5e09778f5951afec90fa3540edbe83436"
+      "bytes": 9928,
+      "sha256": "3095fc39b4e20f7c186b0cde5fbc6bf26610bda731277f0b60c9c4e4517f1dd8"
     },
     "training-drone-132x50-truecolor.ans": {
-      "bytes": 46504,
-      "sha256": "0799556aefbba2d76db2f2e29d478bd7f327a3fbf15938994216f1ed4e0962e8"
+      "bytes": 56065,
+      "sha256": "86efc74c9a40d223f83847300e32261c2bdef395d40cb4bafd0347451a99ed94"
     },
     "training-drone-132x50-truecolor.txt": {
-      "bytes": 8296,
-      "sha256": "f136e76f0c9ccfad809c36d7fae1197a59ba35fa636afec344b3714eda46b0d3",
-      "committed_lf": {
-        "bytes": 8247,
-        "sha256": "186b4680acae275657b90003bd31b58cb99a2090ca0033d4a27c411e64f0be5e"
-      }
+      "bytes": 8245,
+      "sha256": "ddd8ada8533687f35cc548bf7c43f0d61d3d48883116a52ae815cf8dfc587694"
     },
     "training-drone-132x50-truecolor.json": {
-      "bytes": 13227,
-      "sha256": "e4f1746aad661a1d09a7520722eb2435678d98a201d6689e00e7f104aa770952"
+      "bytes": 13527,
+      "sha256": "34187172cf8e86cad7ca871645f0c104de45b1bcd07a23dbeb2c289eed8d32b6"
     },
     "training-complete-132x50-truecolor.ans": {
-      "bytes": 56822,
-      "sha256": "16274bc063b93a68a795826f8728f0ab447cbf0617f636d1cfd8b488fd686eb5"
+      "bytes": 73480,
+      "sha256": "fb8d6afb2f7b3b6c4ee0eb6ef5654e03e7ee34791eb72376812e8a125e3dce2c"
     },
     "training-complete-132x50-truecolor.txt": {
-      "bytes": 8247,
-      "sha256": "12aaa36aa4046ab4a32ddef24c8a6e40733b88048365ac307ee2d979ad02c29b",
-      "committed_lf": {
-        "bytes": 8198,
-        "sha256": "c69db6f4df846bacfe1df5a2e35d8b4e9361e6e1a480ab2b53af63d8dd3cf41d"
-      }
+      "bytes": 8197,
+      "sha256": "63cb1df93771dcb32fbb3d1746777323dc0772c6baeaef2771a445807cbc6d68"
     },
     "training-complete-132x50-truecolor.json": {
-      "bytes": 13060,
-      "sha256": "d6f47ee12fa5ed1f163373dbbf4eff9169b28db49a1f86013b3d7dbf3b19051e"
+      "bytes": 13204,
+      "sha256": "4b01c8c3fb437bf410454f02a352e2c6807c2f6964d25f70f4c6428bf7e0e2fc"
     },
     "wake-record-132x50-truecolor.ans": {
-      "bytes": 85649,
-      "sha256": "e7015141e82438a0e276009d74e388a487084e76508d569f805f793c8e978873"
+      "bytes": 104397,
+      "sha256": "1e6de2db04eebc76f9c65ee1872a71d154177e53e0d2a1444caa30ce65632e83"
     },
     "wake-record-132x50-truecolor.txt": {
-      "bytes": 8097,
-      "sha256": "6ff398493bc7fe36dd3316a38b87b4af5b65bd5acc9213f40b4903edab6259b3",
-      "committed_lf": {
-        "bytes": 8048,
-        "sha256": "1a4c532d50936049fef68cc23e4c563a414a1d68365807c781983bcf28f741e1"
-      }
+      "bytes": 8043,
+      "sha256": "9295bc97552703675611c4ae542ce65f640d875d34e6ce175a5c955fb328a166"
     },
     "wake-record-132x50-truecolor.json": {
-      "bytes": 11279,
-      "sha256": "ffa940fabc893260db10eca669fb505ad0bf1e0eeb50bb6e8d130420cd43b173"
+      "bytes": 11534,
+      "sha256": "a7874a8a4210529152e16edb5512f96d450d7c182f05b40d4541ae9cb904336a"
     },
     "wake-hall-132x50-truecolor.ans": {
-      "bytes": 127296,
-      "sha256": "41392435cf4ec2ec36099ceaeecde9a96190ae635dbd6b4d6d598aafc2ee55b3"
+      "bytes": 155100,
+      "sha256": "31ef5996bba5dabb5d5a1394e133f4b1c18ca292b141d3ac64c88c89f162592c"
     },
     "wake-hall-132x50-truecolor.txt": {
-      "bytes": 8218,
-      "sha256": "e6919b2e6e8b81cac688fe9457e540c3566e64a2c51efe952deeea9e4c02342d",
-      "committed_lf": {
-        "bytes": 8169,
-        "sha256": "9defd62e0a14da75b76bf5bd03d15f1e7b658c360f1858f9e66bf8cb5fda3c67"
-      }
+      "bytes": 8257,
+      "sha256": "6c147b02d94e0998ce8d6fa6eda9148f2ab2ca7862aae484d2cd43c9c3844bf0"
     },
     "wake-hall-132x50-truecolor.json": {
-      "bytes": 13298,
-      "sha256": "a148599f051c70acfe33fb8d94248669b1ec596ae84fd4f961cb3a72173ef736"
+      "bytes": 13503,
+      "sha256": "3a28a2f87e694358178563b7906b6e4619e0b56a2c6fcc3fc976033c38f79c3f"
     },
     "meridian-plaza-132x50-truecolor.ans": {
-      "bytes": 355595,
-      "sha256": "7e00bc3d87a8aca6356144cd4970eaa3de09724f137c759d05c7b5aa2793554f"
+      "bytes": 390814,
+      "sha256": "bcbe91fa494d34147db2dd4710f469c62cc5c97334d4b199b6b32f4f04923fcf"
     },
     "meridian-plaza-132x50-truecolor.txt": {
-      "bytes": 9882,
-      "sha256": "ce4a7b67195ff85e03cb635b505d30133964ddc05c7e550e6ac799a9173b4503",
-      "committed_lf": {
-        "bytes": 9833,
-        "sha256": "4478d923e87666a196a8e013de2bbfd29dbb95c601bcffafe3b18b7d078f624a"
-      }
+      "bytes": 9837,
+      "sha256": "a8d42f61ffb55123de55f3b5a3f2adad8115c922de7414be7bee12626c8765f3"
     },
     "meridian-plaza-132x50-truecolor.json": {
-      "bytes": 18069,
-      "sha256": "fb108badd960a5c4159efdfadf4000ba9d859e0571a67f42450e14c127c8aafe"
+      "bytes": 18214,
+      "sha256": "ab664cb35067ee44b50822be9d5c668345fbcbd5d7a378d5d2d23d8b5f3a5a26"
     },
     "inventory-132x50-truecolor.ans": {
-      "bytes": 371618,
-      "sha256": "712029622fa544280657f0732df5184b66b497d10e22f9793da3b2bc5a2409ac"
+      "bytes": 406859,
+      "sha256": "c3472f4cd0d5f6f09b4481b21fcba1dec9472da1b89f8b7ad6c57e0223410d5b"
     },
     "inventory-132x50-truecolor.txt": {
-      "bytes": 8205,
-      "sha256": "11b5e84ef9968670766e84b72bb6d41c3ecb74d070cb8c1115b2883cf14fbb5e",
-      "committed_lf": {
-        "bytes": 8156,
-        "sha256": "8d3e4c54fab5471892edff77c7d744eb5e706af321b1aa71cff78e9020b8a90f"
-      }
+      "bytes": 8156,
+      "sha256": "c9aa9e6a8880086284885a5bc60403bb533ff713ce380acb162bd97c2b5d76cd"
     },
     "inventory-132x50-truecolor.json": {
-      "bytes": 11629,
-      "sha256": "89aa223f8b4080c3f9e6e96298609cb756c5606946e04b3f4a963712431f8449"
+      "bytes": 11865,
+      "sha256": "64395ddc1e7ac48fdd49873335b40521a93d4ff138be82a64623587aa05bce9d"
     },
     "contracts-132x50-truecolor.ans": {
-      "bytes": 414606,
-      "sha256": "a57b1757f7016cbfd95f61d7f7888f9570aed195a5c91634b001a591f394d784"
+      "bytes": 449744,
+      "sha256": "9b2032f191d46f0f8c58aa38e95842e34a42815292ca83f7decef6b71f9b43c7"
     },
     "contracts-132x50-truecolor.txt": {
-      "bytes": 8177,
-      "sha256": "d9ceed32634d7206f68a59f3c16d7a60fed330f7a994eb54665bd7f3e8e38bc1",
-      "committed_lf": {
-        "bytes": 8128,
-        "sha256": "562b3bd3201bbdb35a0f502c2d8aba31756a8bc0a31c695d2242d4e15197923d"
-      }
+      "bytes": 8128,
+      "sha256": "1316c3fb4581142a76aa23b579ede12f2ee1a320f9661dd1c9cf7a18c572ed80"
     },
     "contracts-132x50-truecolor.json": {
-      "bytes": 11600,
-      "sha256": "77d65f305024f4f29c673ad0e6a05f2d2f48d4042e1e66e99f8a211ff9d339d3"
+      "bytes": 11836,
+      "sha256": "bef92f49178a1e8123aabb8ce97cc3ede30f0c1d21563964c22b2d4927155593"
     },
     "help-132x50-truecolor.ans": {
-      "bytes": 446972,
-      "sha256": "5f03019fe5edb681b530ac1e4fb4b825cf6c6be12e93f957cdfc3277babf20ae"
+      "bytes": 482066,
+      "sha256": "11f6dc550fa66009eefe39efdb1c8967cd9c8f634069d52b2910aa325b278c13"
     },
     "help-132x50-truecolor.txt": {
-      "bytes": 7653,
-      "sha256": "69a0b5b54af1a28357c6fd7697361e6e954b5191cc9cb7c9904126a72fb226e6",
-      "committed_lf": {
-        "bytes": 7604,
-        "sha256": "2e2972ed8b76ea313d2cb87d74c1da4e030d3e1485854674fa9c9fe2e7660be2"
-      }
+      "bytes": 7604,
+      "sha256": "4350d219543839d78b284d8016478312ed92966e8c6b5d16ebb494345e059c65"
     },
     "help-132x50-truecolor.json": {
-      "bytes": 9950,
-      "sha256": "0cda2bc3934be77afd236b11c3d8f710bd76816b580b302c2c0728a22f4566f6"
+      "bytes": 10027,
+      "sha256": "08225a281eef1a9121947f3c747bf46ae700a6243f5dc484bd5f5cde30b193c7"
     }
   },
-  "committed_note": "manifest sha256/bytes are the files as the Windows run wrote them (CRLF in .txt); committed_lf is the committed LF .txt frame, added after the run; .ans/.json are run artifacts"
+  "committed_note": "manifest sha256/bytes are the files as the runner wrote them; the .txt frames are LF and committed byte for byte; .ans/.json are run artifacts kept on the runner"
 }

@@ -15,12 +15,12 @@ thins out instead of bursting when the budget reopens.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
 from hashlib import sha256
 from random import Random
 from typing import Any, Callable, Iterable
 
 from karst41.server.clock import TICK_HZ
+from karst41.server.danger import DANGER_HOLD_SECONDS, holds  # noqa: F401 (DANGER_HOLD_SECONDS: P8 tests)
 from karst41.server.dialogue import BARK_RADIUS, BarkScheduler
 from karst41.server.sessions import Session
 from karst41.server.world.actors import Actor
@@ -29,7 +29,6 @@ STREAM_SALT = b"karst41/P8/ambience/1"
 LINE_BUDGET_SECONDS = 20  # N: at most one bark or ambient line per caller per 20 s.
 AMBIENT_SECONDS = 60      # A zone's ambience fires at most once a minute...
 AMBIENT_JITTER_SECONDS = 30  # ...plus up to 30 s, from the zone's own stream.
-DANGER_HOLD_SECONDS = 10  # Terminal UI 2.5: never push danger or combat out of view.
 STRIDE = TICK_HZ  # The emitter runs once a second; every number above is whole seconds.
 
 
@@ -50,9 +49,11 @@ class ZoneVoice:
 class Ambience:
     def __init__(self, world: Any, content: Any, sim: Any, clock: Any, *,
                  threatened: Callable[[Session, Actor], bool],
-                 talking: Callable[[str], bool]) -> None:
+                 talking: Callable[[str], bool],
+                 drone_can_act: Callable[[str], bool] = lambda pid: True) -> None:
         self.world, self.content, self.sim, self.clock = world, content, sim, clock
         self.threatened, self.talking = threatened, talking
+        self.drone_can_act = drone_can_act  # Runner contract amendment 3 (danger.holds).
         self.zones: dict[str, ZoneVoice] = {}
 
     # --- the shared per-caller gate (S48's runner may call it) -------------
@@ -70,8 +71,7 @@ class Ambience:
         avatar = self.sim.avatars.get(session.user_id)
         if avatar is None or avatar.travel is not None:
             return False
-        if session.danger_at is not None and (
-                self.clock.now_utc() - datetime.fromisoformat(session.danger_at)).total_seconds() < DANGER_HOLD_SECONDS:
+        if holds(session, self.clock.now_utc(), self.drone_can_act):
             return False
         if session.voice_tick is not None and tick - session.voice_tick < LINE_BUDGET_SECONDS * TICK_HZ:
             return False

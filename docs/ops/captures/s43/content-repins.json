@@ -1,37 +1,37 @@
 {
   "core-plaza-idle": {
-    "frame_sha256": "e023b6f7bd3e1c798a81628dd5136bebe3536703fd71d750ff4f260a8859c70a",
-    "body_sha256": "b9e84f091ec7f940ff1628012e11060bd662189d175252d7e20d635e73906ac7",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "e44dd1de21e77ee0bf7d7a89ce71bd1daa2925aeb3ca0d4c957880af00074a19",
+    "body_sha256": "f340f7dad70a4c725f2dbeedd9afc95f230eceef2b204d0bbd9db4a18afc62cf",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "core-plaza-walk": {
-    "frame_sha256": "97fcf8f7dbfde6530e4d6daef3458a4f75c079c9a85ba0ff08e1aada2ea954ff",
-    "body_sha256": "8c95831863db2870d246ca139f0d531627cce217ac4fc5167d73ad90bfdfef78",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "30e2b0d2c5caa914d6e72acf8c230b542477534374e443f56eee1c213133b069",
+    "body_sha256": "0ab5b6e13909913cc3d30c55aaab12e082d1179248722597b12b6f58b06da60d",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "core-precinct-idle": {
-    "body_sha256": "dc6bf28a7df4194a967af80aa6228d73b1e1c8a40ef7307bd83057d008e96c36",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "5f5ff03277491617be28a5db355330c2f076d7d9ea8c65b4447a57bc9da22a20",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "core-precinct-walk": {
-    "frame_sha256": "35d65eb495cca2b044a36734a9bbd164a6e06c0fb04c67b1b660f89dfbd4ea61",
-    "body_sha256": "9b0ab77f40f70bce5bdbbbc7bf4f6b325bf2c2074937d0ee091d799f7e9deb95",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "4ee25e0d1655e7ceaeb43ebbbe98a68be8ccfb2bad0673e2c7035ea5761efd09",
+    "body_sha256": "6e69138064271d19965f1b14a90e4e64d3cc39a1d10656b81dc0a310d5c8b252",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "core-tram-hub-idle": {
-    "body_sha256": "24093d05ad65ba989db03cc27ff6195abac264d2bc38701b158fade17765a372",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "691cfc9841a17383c8213776f94500b828d94c826028581e6bb3904b040465bc",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "core-tram-hub-walk": {
-    "frame_sha256": "75e589f10761ddd7750c02188ea1f04358e3760325f5a1fd64ff3a4bb88af259",
-    "body_sha256": "9536c931d4a0560430bf639dc898d3223550b3b66680c8ba9252b8d4e0c860e1",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "fd30ab1a8f2b40ad67b948cf9d364d00b567b0fb2b395daa4f9bc3157908c70b",
+    "body_sha256": "6b23cf76dd29511029f235110bebd1344af5bb0afd06deef764e8376f99cbe57",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "sodium-row-idle": {
     "body_sha256": "a57faf354acf76ab9f3be735bc9068fad475ca1f75ef9204085d6ea86bd95925",
@@ -45,51 +45,51 @@
     "pr": 241
   },
   "sodium-tin-halo-idle": {
-    "body_sha256": "4dd8b6b702dcd02694e85ff1f007de4fc2d029842faa2534128ccd95e57c9af4",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "9d949d3d7661805c0582f5ee7c0bbe17cd89ef85e79d94a264ee6c12c1f4007e",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "sodium-tin-halo-walk": {
     "frame_sha256": "c65a68dc91345f4f5a38d67ecbcea241dcb9efc012dbac10c5fab2b4e03c023d",
-    "body_sha256": "27a7e026d6b6aadc3663acdf83ac2e83b3760073b9e004a7fa3e7fda9c54968e",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "d72c842e19225ec6ab90f032ea565d7156a9065fa5cca71b8338649446ac1190",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "terraces-blocks-idle": {
     "frame_sha256": "dc1e850004810f8aa4aa20fecf1813b4c4529f1e88aeb0c3d47ab4e700e4c286",
-    "body_sha256": "8a49580c52488a62225b35ebccee821c12df8ca918aa1289f3a498048983a725",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "0b31b4fd447882c171660ebafb74d50b00f32d9fb4246d1fc2e75f6d13ce2f9b",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "terraces-blocks-walk": {
     "frame_sha256": "33aeeaec8522ea002f348f13ab6c39a9e543b84305cf54f448e8666b9a68358f",
-    "body_sha256": "b1bdef212a7dc3e6f5822ccf746661a960fcc70d7cd6cf383327a45c48a3a7d8",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "b53efdaac99e3f912697c566e69e58e522deb91e49b506a5cb95ae1e6d422b33",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "terraces-lobby-idle": {
-    "frame_sha256": "94f4a4d48be4f0506d64beee4989d133c7ab84111a63975618e52f28e5bddeac",
-    "body_sha256": "92079f735448cada8e0d4302ad6e60c52c38aa556a2461a80f3961d930f44f10",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "3b3e23ceca700043b73bc03ce92c449e3b3490133f95fa625176e81a7686f183",
+    "body_sha256": "a985b0b293c057fd9ef955fd8836dd10216ca5355b814694c460d329d04317ea",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "terraces-lobby-walk": {
-    "frame_sha256": "6d5e79c7861a7098cf7e026db905c099f8374c41fcf7e32f74d6bf61d710ae73",
-    "body_sha256": "37e6a42522302cebd44ad3daab4fbd1621a5bfde688032ade10595e8e0cfcfe5",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "60e9829eed337b68f58fd39aab882721037d22f4fa3a0100bfe251b6c4a12c90",
+    "body_sha256": "c28051c754053758f93062aa2d492954d0edafc611b81565d984a81e25d4556a",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "vatside-clinics-idle": {
     "frame_sha256": "a32ee20e9776ac689b58bd8092d994db303da4f474d35a21aa942fcfcdcf9218",
-    "body_sha256": "612f5b4ea9c1e70b4dcae2068bb8e0d8a042895065d7685eeec927dedebe1c35",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "b4fdf96279b2c98eee192706f1817bca4e0da1e77d02de412258b32668518d3b",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "vatside-clinics-walk": {
     "frame_sha256": "d96c5c1f6e88d82ca39ad9911a267b88ef3b7856771c1d64fffbd8c2152c5604",
-    "body_sha256": "579ca6d2b9817bc43da143ec99c004c5ffaa24ab39bc87d5bee7b904a6029497",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "5e618be0f43445042513895caad42856dacc4a7eea2d64eebff9377bcb65e818",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "vatside-vat-row-idle": {
     "body_sha256": "e74ec8213e17d6d746ab59c4bd5c2b4e1885a9944f811929661edc4330ca3c19",
@@ -97,20 +97,20 @@
     "pr": 241
   },
   "vatside-vat-row-walk": {
-    "frame_sha256": "42532952ed422f4845fb997e01971d8145e51cdb2c58b6c8f07b6561b826f161",
-    "body_sha256": "ed49656a1c37377249bc8f01b2c55e658c0f2710c5ee777e6d647d64a1dc25a3",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "64f3dd0b41b33e5c0b836542904c80f1a1ec47368d4ca056595f1c147db000a3",
+    "body_sha256": "3e44786c82504b8aceba9f55e5f6bfb656683ae6698be15fbb4bb559f4cadb00",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "vatside-wake-hall-idle": {
-    "body_sha256": "3bee0277699aa38432cdc2143b194538cd401c2e60b01e1e4577022f428a8614",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "body_sha256": "67ac3ddc2625c180a76c660d6cb736e7c679fd7f57afb6861917661b72080302",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2 restages the Wake Hall: Okafor and Vantongeren at their posts in view (content change); traces, inputs and moves unchanged",
+    "pr": 252
   },
   "vatside-wake-hall-walk": {
-    "frame_sha256": "9efd0719dfe57964353c9d4b54cd0a8aaf9e8bc5ef30d1b4e9f57a51bbe102df",
-    "body_sha256": "34febcc5d35b7522b665d8e67e6bb1e35dd2b9949c766263abb2366bde391d61",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged",
-    "pr": 241
+    "frame_sha256": "b1e123c27c03dba3e5aa196d77343dac97675ab34d733ed4ac1c8e59f91ce30b",
+    "body_sha256": "3b610df670f5f2940e8982cc20323b466d5043678605fac995f0d03848109ad1",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2 restages the Wake Hall: Okafor and Vantongeren at their posts in view (content change); traces, inputs and moves unchanged",
+    "pr": 252
   }
 }

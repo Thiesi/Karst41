@@ -38,11 +38,11 @@
 ║          │ q equip  f slot  e equipment  s secure  d drop  x split  u use  Esc/B back                                 │          ║
 ║          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          ║
 ╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
-║* The training drone falls silent. The tutorial terminal is ahead.                                                                ║
+║√ 200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.                                                                    ║
+║" Vantongeren: Vesper, at the Tin Halo on Sodium Row, pays on time. Her card's the one I put on top.                              ║
 ║+ You arrive at Clinic Row.                                                                                                       ║
 ║» You walk past clinics with their logo in cyan on white. You hear a polite overhead voice. Your clone insurance premium is due.  ║
 ║√ You gain 25 XP.                                                                                                                 ║
-║· An orderly mops a floor that was already clean.                                                                                 ║
 ║+ You arrive at Meridian Plaza.                                                                                                   ║
 ║» You cross Meridian Plaza under the Ring. You hear tram bells and the fountain. Wardens watch every corner.                      ║
 ║√ You gain 25 XP.                                                                                                                 ║

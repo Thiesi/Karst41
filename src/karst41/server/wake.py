@@ -41,9 +41,10 @@ def pages(lines: list[str], count: int) -> list[list[str]]:
     return result
 
 
-def briefing(content: ContentTree, screen: int, width: int, height: int) -> list[list[str]]:
+def briefing(content: ContentTree, screen: int, width: int, height: int,
+             ref: str = "wake-briefing") -> list[list[str]]:
     layout = screen_layout(width, height)
-    return pages(wrapped(content.text[f"wake-briefing-{screen}"].body, layout.briefing.width), layout.briefing.rows)
+    return pages(wrapped(content.text[f"{ref}-{screen}"].body, layout.briefing.width), layout.briefing.rows)
 
 
 # The card table's rows after the deck (#220 decision 4: the table stays open
@@ -78,7 +79,8 @@ def cards(content: ContentTree, cursor: int, width: int, height: int, ask: bool 
 
 # S48 (#220): the stages that show a menu over the hall; `hall` is play.
 MENU_STAGES = ("record", "name", "saving")
-SAVED = ("stage", "archetype", "name", "cursor", "screen", "page", "serial", "card", "lessons", "met", "tile", "source")
+SAVED = ("stage", "archetype", "name", "cursor", "screen", "page", "serial", "card", "lessons", "met", "tile", "source",
+         "opening")
 
 
 def menu(title: str, rows: list[dict[str, Any]], cursor: int, detail: str, hint: str = "Enter selects",
@@ -109,6 +111,8 @@ class Wake:
     met: list[str] = field(default_factory=list)
     tile: list[int] | None = None
     source: str = ""
+    opening: dict[str, Any] = field(default_factory=dict)
+    """The opening runner's state (S48c2), until the character is created."""
 
     @classmethod
     def restore(cls, value: dict[str, Any]) -> "Wake":

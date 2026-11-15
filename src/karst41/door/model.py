@@ -19,6 +19,7 @@ from karst41.door.log import rows as log_rows
 from karst41.door.present.context import Context
 from karst41.door.present.paint import Paint
 from karst41.door.present import screen as presentation_screen
+from karst41.door.present import chrome as present_chrome
 from karst41.door.present.chrome import NOTICE_SECONDS, PROTECT_SECONDS
 from karst41.server.protocol import Frame, VIEW_KINDS
 
@@ -49,6 +50,7 @@ class Display:
         self.toast: tuple[str, str, float] | None = None
         self.notice_started = 0.0
         self.notice_pressed = self.notice_header = False
+        self.release_seen: float | None = None  # The newest `me.danger_release` seen (#253).
         # S44: a rule's price, stated before it is paid (terminal UI 2.1).
         self.notice_price = False  # The shown notice is a price notice.
         self.price_noticed = False  # The first-target notice, once per session.
@@ -81,11 +83,13 @@ class Display:
             self.open_help(log_rows(list(self.logs), self.layout.text_area.width), "SCROLLBACK")
 
     def receive(self, frame: Frame, now: float) -> list[Frame]:
+        self.danger_release()  # Keep the outgoing zone view's stamp (#253).
         old_hit = self.body.get("me",{}).get("hit_serial")
         data = frame.data
         result: list[Frame] = []
         if frame.type == "welcome":
             self.connected = True
+            self.release_seen = None  # #253: a new connection starts with no stamp; the server re-sends.
             self.keymap = data.get("keymap", {})
             settings = data.get("player", {}).get("settings", {}) if isinstance(data.get("player"), dict) else {}
             self.selected_keymap = settings.get("keymap", "arrows")
@@ -375,6 +379,17 @@ class Display:
             if self.notice_queue:
                 self._show(*self.notice_queue.popleft(), now)
 
+    def danger_release(self) -> float | None:
+        """The newest `me.danger_release` seen in a zone view (terminal UI 2.5,
+        #253). It only moves forward, so it still applies under a Wake screen
+        or a menu, whose bodies carry no `me`."""
+        shown = self.body.get('body', {}) if self.kind == 'wake' else self.body
+        stamp = (shown.get('me') or {}).get('danger_release') if isinstance(shown, dict) else None
+        value = present_chrome.seconds({'at': stamp}) if stamp else None
+        if value is not None and (self.release_seen is None or value > self.release_seen):
+            self.release_seen = value
+        return self.release_seen
+
     def _notice_to_header(self, now: float) -> bool:
         """Only declared fields protect prompts and current danger; no inference."""
         shown = self.body.get('body', {}) if self.kind == 'wake' else self.body
@@ -382,6 +397,7 @@ class Display:
                     or shown.get('me', {}).get('channel') or shown.get('hazards')
                     or (shown.get('target') or {}).get('relation') in ('hostile', '!')
                     or any(line.get('kind') in ('danger', 'combat')
+                           and not present_chrome.released(present_chrome.seconds(line), self.danger_release())
                            and 0 <= now - line.get('_arrived', float('-inf')) < PROTECT_SECONDS
                            for line in reversed(self.logs)))
 
@@ -434,6 +450,8 @@ class Display:
                     escape = back + '  ' + escape
                 hint = chrome.focus_hint(self.toast[0], self.layout.hint.width, [],
                                          fit_all=True, primary=True, escape=escape)
+            elif (zone_hint or shown_kind == 'lattice' and self.local is None and not primary) and shown.get('lesson'):
+                hint = chrome.lesson_hint(shown['lesson'], self.layout.hint.width, context)
             else:
                 hint = chrome.focus_hint(hint, self.layout.hint.width, context, objective,
                                          fit_all=True, primary=primary, objective_in_panel=self.layout.wide)
@@ -476,4 +494,5 @@ class Display:
             self.paint = Paint(self.palette)
         presentation_screen.render(buffer, self.layout, self.paint, kind, body, list(self.logs), hint, now,
                                    flash=self.hit_flash, toast=self.toast, handle=self.info.handle,
-                                   body_safety=self.body_safety, notice_in_header=self.notice_header)
+                                   body_safety=self.body_safety, notice_in_header=self.notice_header,
+                                   danger_release=self.danger_release())

@@ -8,7 +8,7 @@
       "tier": 1,
       "weight": 1.0,
       "base_price": 0,
-      "description": "A Kestrel sidearm on a cable by the corridor door. It fires for the lesson and goes back on its hook.",
+      "description": "A light pistol on a cable from the wall by the corridor door. The grip is worn smooth by every first hand. When the lesson ends, the cable takes it back.",
       "maker": "Kestrel Issue",
       "weapon": {
         "damage": 12,

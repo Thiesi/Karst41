@@ -364,15 +364,19 @@ def test_leaving_the_lattice_still_resets_the_view_and_survives_a_missing_avatar
     resets: list[str] = []
     original = lattice.sim.reset_view
     lattice.sim.reset_view = lambda s, a: (resets.append(s.id), original(s, a))[1]
+    outs: list[str] = []
+    jacked_out = game.core.characters.jacked_out
+    game.core.characters.jacked_out = lambda s: (outs.append(s.id), jacked_out(s))[1]
     for transition in (False, True):
         place(game, client, HALL, (34, 15))
         act(game, client, Frame("key", {"k": "j", "t": 0}))
         game.step(3)
         assert session.player_id in lattice.presences
-        session.subscribed, resets[:] = "elsewhere", []
+        session.subscribed, resets[:], outs[:] = "elsewhere", [], []
         lattice.leave(session, transition=transition)
         assert session.player_id not in lattice.presences
         assert session.subscribed == HALL and resets == [session.id], transition
+        assert outs == ([session.id] if transition else []), transition  # Once, after the view (S48c2 merge).
         game.step(3)
     act(game, client, Frame("key", {"k": "j", "t": 0}))
     game.step(3)

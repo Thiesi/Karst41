@@ -23,7 +23,10 @@ SPOTS = {
 COUNTERS = {'vesper': 'npc-vendor-sodium-tin-halo-vesper', 'lindgren': 'npc-vendor-core-precinct-warden-quartermaster'}
 MOVED = sorted([*SPOTS, *COUNTERS])
 DOOR_RECRUITERS = ('achebe-roux', 'kettle', 'vance', 'vael')
-WAKE_HALL = ('okafor', 'vantongeren')  # Technical lead: dormant until S48c restages the hall.
+# S48b kept these dormant until S48c restaged the hall; S48c2 switches them on
+# where the staging rulings put them (Okafor off the street door's approach,
+# Vantongeren at her desk), in their own bundle.
+WAKE_HALL = {'okafor': ('npc-cast-okafor', (35, 18)), 'vantongeren': ('npc-cast-vantongeren', (13, 6))}
 
 
 @pytest.fixture(scope='module')
@@ -40,8 +43,15 @@ def test_s48b_moved_talkers_are_active_and_the_rest_stay_dormant(content):
     assert not any(content.active('dialogue', t) for t in cast.members['dialogue'])
     assert set(DOOR_RECRUITERS) <= set(cast.members['dialogue'])  # Creative lead: the hall stays quiet.
     assert 'orderly' not in ''.join(MOVED)  # The orderlies wait for S48c with O1.
-    assert set(WAKE_HALL) <= set(cast.members['dialogue'])
-    assert not any(content.npcs[t].dialogue in WAKE_HALL for t in content.npcs if content.npcs[t].dialogue)
+    assert not set(WAKE_HALL) & set(cast.members['dialogue'])
+    hall = content.bundles['s48-wake-hall']
+    assert hall.status == 'active' and sorted(hall.members['dialogue']) == sorted(WAKE_HALL)
+    assert all(content.active('dialogue', t) for t in WAKE_HALL)
+    speakers = {content.npcs[t].dialogue: t for t in content.npcs if content.npcs[t].dialogue in WAKE_HALL}
+    assert speakers == {talker: template for talker, (template, _) in WAKE_HALL.items()}
+    posts = {s.npc: (s.region.x, s.region.y, s.region.w, s.region.h)
+             for s in content.zones['vatside-wake-hall'].meta.spawners if s.npc.startswith('npc-cast-')}
+    assert all(posts[template] == (*tile, 1, 1) for template, tile in WAKE_HALL.values())
 
 
 def test_s48b_a_moved_talker_may_not_reference_dormant_content(content):

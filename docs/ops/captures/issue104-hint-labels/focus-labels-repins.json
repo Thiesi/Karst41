@@ -1,0 +1,43 @@
+{
+  "repins": [
+    {
+      "removed": [
+        [
+          "jack in at",
+          "Tutorial terminal"
+        ],
+        [
+          "open",
+          "Sablier Wake Outfitter"
+        ]
+      ],
+      "added": [
+        [
+          "jack in at",
+          "Hall terminal"
+        ],
+        [
+          "open",
+          "Wake Outfitter"
+        ]
+      ],
+      "reason": "§4.12 renames, #220",
+      "pr": 252
+    },
+    {
+      "removed": [],
+      "added": [
+        [
+          "talk to",
+          "Dr. Ilse Vantongeren"
+        ],
+        [
+          "talk to",
+          "Nurse Bea Okafor"
+        ]
+      ],
+      "reason": "S48c2 talkers",
+      "pr": 252
+    }
+  ]
+}

@@ -114,6 +114,8 @@ class LogLine(TypedDict):
     kind: LogKind
     speaker: NotRequired[str]
     speaker_role: NotRequired[str]
+    script: NotRequired[str]
+    """The authored script line that emitted it (terminal UI 2.5: never merges)."""
 
 
 class Log(TypedDict):

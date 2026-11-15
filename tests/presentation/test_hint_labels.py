@@ -47,7 +47,7 @@ def test_ui_11_shared_terminal_has_one_group_and_no_generic_e(
     terminal.write(model.render(1)[0])
     row = terminal.screen_text().splitlines()[compute(*size).hint.y]
     alias = 'E/Ctrl-O' if keymap == 'vi' else 'E/J'
-    assert row.count(alias+' jack in at Tutorial terminal') == 1
+    assert row.count(alias+' jack in at Hall terminal') == 1
     assert 'E act' not in row and 'E interact' not in row
     assert '  J jack in at' not in row and '  Ctrl-O jack in at' not in row
 
