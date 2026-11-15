@@ -414,8 +414,8 @@ draws the dimmed theme or region ground and stable grain there, without
 rule glyphs, signs, floor marks or glints. Visible terrain and genuine
 memory take precedence. The legacy renderer ignores this additive grid.
 
-`LogLine` gains `kind`, and for speech `speaker` and `speaker_role`
-(5.5.3). `LatticeView` cells gain `owner` and `tier` for cores (a private
+`LogLine` gains `kind`, for speech `speaker` and `speaker_role`, and for
+authored script lines `script` (5.5.3). `LatticeView` cells gain `owner` and `tier` for cores (a private
 core reads `private`), the sector gains `theme`, links gain `label`, and
 black ICE is marked from the caller's survey state, never from the
 template (P4).
@@ -554,6 +554,9 @@ it fits. The existing terminal cell-width and clipping helpers apply.
 Every log line passes through one emit entry point that requires a
 `kind`: `place`, `ambient`, `speech`, `danger`, `combat`, `system`,
 `reward` or `notice`. Speech carries `speaker` and `speaker_role`.
+A line emitted by an authored script (S48c2's opening runner and its
+successors) carries `script`, the line's ID. The client never merges such
+a line with another (terminal UI 2.5). Nothing about it is drawn.
 Operator and service notices (crew restarts, maintenance) use `notice`,
 not the world log. P4 delivers notices on the existing toast surface;
 they do not enter the world ring or reconnect replay. `speaker` is the
