@@ -410,7 +410,7 @@ TARGET and the pinned vitals.
    - grade 5 or higher, before day 90: `sig 12/90`; the count stays;
    - at personhood: `on the roll`, and the count goes.
 
-   The widest cases are `9999 ch   sig 89/90` and `9999 ch   on the roll`.
+   The widest cases are `9999 ch  sig 89/90` and `9999 ch  on the roll`.
    The promotion toast introduces "sig", and help's first page names it.
    The panel shows no Signatory XP row. The target is on the record
    (`P`), which keeps it separate from the lease days as game design 3.4
