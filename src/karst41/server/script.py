@@ -15,7 +15,11 @@ read and the hall left (only the errand, a per-character flag, goes on).
   line was already spoken, it is queued at once (second amendment).
 - When a beat begins, its own lines go first; waiting non-anchor lines of
   earlier beats are dropped. An older anchor is spoken only when no line
-  of the current beat is waiting, oldest first.
+  of the current beat is waiting, oldest first. Once the record opens, an
+  anchor still owed from before it plays first instead, and may speak
+  under the record (fourth amendment, 2026-11-15, owner-approved), and a
+  non-anchor follower of a line from before the record is stale and never
+  queued (technical lead).
 - Quiet for speech: a target set, an ICE warned, a menu or text page open,
   jacked in, or within P8's ten-second danger hold. The drone lesson's
   lines hold only while the drone can still act: down, skipped or inert
@@ -64,12 +68,15 @@ class Opening:
         self.walked: dict[str, list[Any]] = {}
         self.lines: dict[str, tuple[int, s.ScriptLine]] = {}
         self.after: dict[str, list[str]] = {}
+        self.record_beat = len(self.script.beats) if self.script else 0
         if self.script:
             for index, beat in enumerate(self.script.beats):
                 for ln in beat.lines:
                     self.lines[ln.id] = index, ln
                     if ln.after:
                         self.after.setdefault(ln.after, []).append(ln.id)
+            self.record_beat = next((i for i, beat in enumerate(self.script.beats) if beat.id == "the-record"),
+                                    self.record_beat)
         hook = self.game.lesson_hook
         self.game.lesson_hook = lambda player, key, value: (hook(player, key, value), self.push_player(player, key, value))
 
@@ -133,10 +140,17 @@ class Opening:
             return False
         return not trigger.value or str(value) == trigger.value
 
-    def fire(self, session: Session, state: dict[str, Any], name: str, value: Any) -> None:
+    def fire(self, session: Session, state: dict[str, Any], name: str, value: Any,
+             only: s.ScriptTrigger | None = None) -> None:
+        """A pushed fact matches by name and value. A polled trigger (`only`)
+        fires just the line or beat it belongs to: its own region, count or
+        target, never every trigger of that name."""
         beats = self.script.beats
+
+        def hit(trigger: s.ScriptTrigger) -> bool:
+            return trigger is only if only is not None else self.matches(trigger, name, value)
         matched = [lid for lid, (_, ln) in self.lines.items()
-                   if lid not in state["fired"] and any(self.matches(t, name, value) for t in ln.when)]
+                   if lid not in state["fired"] and any(hit(t) for t in ln.when)]
         # Arm chained lines first, so a line said in this same call finds
         # its followers armed (fix 1 as amended).
         armed = state.setdefault("armed", [])
@@ -147,7 +161,7 @@ class Opening:
             ln = self.lines[lid][1]
             if ln.after and ln.after in state["spoken"] and lid not in state["fired"]:
                 state["fired"].append(lid)
-                if self.eligible(state, ln):
+                if self.eligible(state, ln) and not self.stale(state, lid):
                     self.queue_line(session, state, lid, front=True)
         # A triggered line, in any beat (the record can open from beat 3).
         for lid in matched:
@@ -166,15 +180,31 @@ class Opening:
         # skipped, game design 4). Polled triggers only ever end the current beat.
         start = state["beat"]
         if name in s.SCRIPT_POLLED:
-            ends = [start] if any(self.matches(t, name, value) for t in beats[start].next) else []
+            ends = [start] if any(hit(t) for t in beats[start].next) else []
         else:
-            ends = [i for i in range(start, len(beats)) if any(self.matches(t, name, value) for t in beats[i].next)]
+            ends = [i for i in range(start, len(beats)) if any(hit(t) for t in beats[i].next)]
         if ends and ends[0] + 1 < len(beats) and state["beat"] == start:
             self.begin(session, state, ends[0] + 1)
 
     def eligible(self, state: dict[str, Any], ln: s.ScriptLine) -> bool:
         facts = set(state["facts"])
         return all(f in facts for f in ln.requires) and not any(f in facts for f in ln.unless)
+
+    def past_record(self, state: dict[str, Any], lid: str) -> bool:
+        """`lid` is from a beat before the record, and the record has opened."""
+        return self.lines[lid][0] < self.record_beat <= state["beat"]
+
+    def stale(self, state: dict[str, Any], lid: str) -> bool:
+        """A non-anchor follower of an earlier beat's line, once the record has
+        opened: it only makes sense straight after its lead in the lesson
+        (technical lead, 2026-11-15; 6.3, 6.5, 6.4)."""
+        return self.past_record(state, lid) and not self.lines[lid][1].anchor
+
+    def owed(self, state: dict[str, Any], lid: str) -> bool:
+        """An earlier beat's anchor still owed once the record has opened: it
+        plays first, ahead of the record lines, and may speak under the record
+        (amendment 4, owner-approved 2026-11-15; 6.2)."""
+        return self.past_record(state, lid) and self.lines[lid][1].anchor
 
     def begin(self, session: Session, state: dict[str, Any], index: int) -> None:
         state["beat"], state["beat_tick"], state["steps"] = index, self.core.clock.now_tick(), 0
@@ -183,6 +213,8 @@ class Opening:
         # only the hall drop removes it (fix 1 as amended; 9.11 after kit_issued).
         state["queue"] = [q for q in state["queue"] if q[1] >= index or self.lines[q[0]][1].anchor
                           or self.lines[q[0]][1].kind != "speech"]
+        # Amendment 4: an owed anchor from before the record goes first.
+        state["queue"].sort(key=lambda q: not self.owed(state, q[0]))
         for ln in self.script.beats[index].lines:
             if not ln.when and not ln.after and ln.id not in state["fired"]:
                 state["fired"].append(ln.id)
@@ -197,8 +229,12 @@ class Opening:
             return
         entry = [lid, index, due]
         if front:  # Ahead of older anchors, behind the current beat's waiting lines.
-            at = next((i for i, q in enumerate(state["queue"]) if q[1] < state["beat"]), len(state["queue"]))
-            state["queue"].insert(at, entry)
+            queue = state["queue"]
+            lead = 0  # Behind an owed anchor from before the record (amendment 4).
+            while lead < len(queue) and self.owed(state, queue[lead][0]):
+                lead += 1
+            at = next((i for i in range(lead, len(queue)) if queue[i][1] < state["beat"]), len(queue))
+            queue.insert(at, entry)
         else:
             state["queue"].append(entry)
 
@@ -235,7 +271,7 @@ class Opening:
                 continue  # Its own trigger never fired (another archetype's line).
             if follower not in state["fired"]:
                 state["fired"].append(follower)
-                if self.eligible(state, nxt):
+                if self.eligible(state, nxt) and not self.stale(state, follower):
                     self.queue_line(session, state, follower,
                                     due=self.core.clock.now_tick() + round(nxt.delay * TICK_HZ))
 
@@ -259,9 +295,11 @@ class Opening:
                 or session.id in self.game.sim.external_views or session.id in self.game.sim.maps
                 or (self.core.dialogue is not None and session.id in self.core.dialogue.menus)
                 or session.id in self.core.commerce.menus)
-        if menu and not (ln.record and record_open):
+        state = self.states.get(session.id)
+        record = ln.record or (state is not None and self.owed(state, ln.id))  # Amendment 4.
+        if menu and not (record and record_open):
             return True
-        if not ln.record and record_open:
+        if not record and record_open:
             return True
         return False
 
@@ -308,7 +346,7 @@ class Opening:
             if trigger.name not in names:
                 continue
             if self.holds(trigger, state, actor, in_hall, tick):
-                self.fire(session, state, trigger.name, trigger.value or True)
+                self.fire(session, state, trigger.name, trigger.value or True, only=trigger)
                 if state["beat"] != self.script.beats.index(beat):
                     return
 
@@ -335,14 +373,21 @@ class Opening:
             if entry in state["queue"]:
                 state["queue"].remove(entry)
                 self.say(session, state, self.lines[entry[0]][1])
+        # A held line holds the queue behind it, except a `fight` line, which
+        # may pass a held ordinary line: 6.5 speaks at the first hit while 6.3
+        # waits out the fight (approved design, Pacing and beat 6).
+        held = False
         for at, (lid, _, due) in enumerate(state["queue"]):
             if due and tick < due:
                 continue
             _, ln = self.lines[lid]
-            if ln.kind != "speech":
+            if ln.kind != "speech" or (held and not ln.fight):
                 continue
             if self.quiet(session, ln, tick):
-                return
+                if ln.fight:
+                    return
+                held = True
+                continue
             state["queue"].pop(at)
             self.say(session, state, ln)
             return

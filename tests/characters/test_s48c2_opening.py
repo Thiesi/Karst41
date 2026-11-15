@@ -399,3 +399,155 @@ def test_amendment_3_p5s_pace_now_hears_the_record_lines(game: HeadlessServer) -
         if "9.2" in heard:
             break
     assert "9.2" in heard
+
+
+# --- Amendment 4 and the stale-follower ruling (2026-11-15) -----------------
+
+def test_amendment_4_an_owed_anchor_plays_before_the_record_lines_and_its_followers_drop(game: HeadlessServer) -> None:
+    """p5's order: a line was just spoken, so 6.2 is still owed when the
+    record opens. 6.2 plays first, then 9.2; 6.3, 6.5 and 6.4 never play
+    after the record (technical lead's ruling), and 6.2 is never between
+    9.8 and 9.9 (creative lead)."""
+    from tests.characters.test_s48c1b_lessons import approach, drone_of
+    client = game.connect()
+    session, clock = client.session, game.core.clock
+    state = game.core.opening.states[session.id]
+    game.step(2)
+    approach(game, client)
+    pid = session.player_id
+    actor = game.core.world.actors[pid]
+    # The fight with the speech gap kept running (p5: Okafor's 7.1/7.2 had
+    # just been spoken), so 6.2 is queued at the first hit and still owed.
+    for _ in range(1200):
+        drone = drone_of(game, pid)
+        if drone is None:
+            break
+        session.voice_tick = clock.now_tick()
+        if "first_hit" in state["facts"]:
+            actor.target = drone.id
+            game.core.combat.fire(pid)
+        game.step()
+    assert "6.2" not in state["spoken"] and "6.2" in [q[0] for q in state["queue"]]
+    heard = [line.get("script") for line in said(game, client)]
+    place(game, client, HALL, DOOR)
+    act(game, client, Frame("key", {"k": "e", "t": 0}))  # The record, within the speech gap.
+    assert game.core.characters.wakes[session.id].stage == "record"
+    assert state["queue"][0][0] == "6.2"
+    for _ in range(120):
+        game.step()
+        heard += [line.get("script") for line in said(game, client)]
+        if "9.2" in heard:
+            break
+    assert "6.2" in heard and heard.index("6.2") < heard.index("9.2")
+    act(game, client, Frame("intent", {"name": "menu_select", "args": {}}))
+    wake = game.core.characters.wakes[session.id]
+    act(game, client, Frame("line", {"id": wake.prompt_id, "text": "Noor"}))
+    game.step(1)
+    game.commit_characters()
+    for _ in range(600):
+        game.step()
+        heard += [line.get("script") for line in said(game, client)]
+    after = heard[heard.index("9.2"):]
+    assert not {"6.3", "6.4", "6.5"} & set(after)  # Stale after the record.
+    assert after.index("9.8") < after.index("9.9") and "6.2" not in after[after.index("9.8"):]
+
+
+def test_beat_six_6_2_and_6_5_speak_in_the_fight_and_6_3_6_4_drop_when_the_next_beat_begins(game: HeadlessServer) -> None:
+    """Approved design (first-ten-minutes, Pacing and beat 6): 6.2 and 6.5
+    are spoken during the fight, from the first hit; 6.3 and 6.4 are
+    ordinary lines, dropped once the fight has ended and the next beat has
+    begun. 6.5 passes the held 6.3; nothing else jumps the queue."""
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, drone_of
+    client = game.connect()
+    session = client.session
+    state = game.core.opening.states[session.id]
+    pid, drone, actor = armed_and_warned(game, client)  # The first hit: 6.2 is queued.
+    for _ in range(200):  # The fight goes on; nobody fires back yet.
+        if "6.5" in state["spoken"]:
+            break
+        game.step()
+    assert drone_of(game, pid) is not None  # Still fighting.
+    assert state["spoken"].index("6.2") < state["spoken"].index("6.5")
+    assert not {"6.3", "6.4"} & set(state["spoken"])  # Held by the fight.
+    for _ in range(1200):
+        if drone_of(game, pid) is None:
+            break
+        actor.target = drone.id
+        game.core.combat.fire(pid)
+        game.step()
+    for _ in range(300):
+        game.step()
+    beats = [b.id for b in game.core.opening.script.beats]
+    assert state["beat"] == beats.index("the-terminal")
+    assert not {"6.3", "6.4"} & set(state["spoken"])  # Dropped at drone_down.
+
+
+# --- Each polled trigger fires only its own line or beat (bug fix, 2026-11-15)
+# Before this fix a polled trigger fired every line whose trigger had the same
+# name: entering beat 1's region fired 7.1/7.2 and jumped past beats 2-5.
+
+def test_entering_beat_ones_region_fires_neither_7_1_nor_7_2_and_skips_no_beat(game: HeadlessServer) -> None:
+    client = game.connect()
+    game.step(2)
+    state = game.core.opening.states[client.session.id]
+    beats = [b.id for b in game.core.opening.script.beats]
+    state["beat"] = beats.index("the-shape")
+    place(game, client, HALL, (5, 9))  # Beat 1's `next` region (y 8-19), far from 7.1/7.2's.
+    game.step(3)
+    assert state["beat"] == beats.index("the-lease")
+    assert not {"7.1", "7.2"} & set(state["fired"])
+
+
+def test_7_1_and_7_2_fire_in_their_own_regions(game: HeadlessServer) -> None:
+    client = game.connect()
+    game.step(2)
+    state = game.core.opening.states[client.session.id]
+    beats = [b.id for b in game.core.opening.script.beats]
+    state["beat"] = beats.index("the-terminal")
+    place(game, client, HALL, (27, 14))
+    game.step(2)
+    assert "7.1" in state["fired"] and "7.2" not in state["fired"]
+    place(game, client, HALL, (35, 15))
+    game.step(2)
+    assert "7.2" in state["fired"]
+
+
+@pytest.mark.parametrize("name", ["steps", "seconds", "target_set", "zone_entered"])
+def test_a_valueless_polled_trigger_fires_only_its_own_line(repo_root, name: str) -> None:
+    """Two lines with a same-name trigger: one in the current beat, one later.
+    Only the current one fires, and the beat does not jump."""
+    from copy import deepcopy
+    from dataclasses import replace
+    from karst41.content.loader import load_content
+    from karst41.content.schema import ScriptTrigger
+    content = deepcopy(load_content(repo_root / "src/karst41/content"))
+    script = content.scripts["wake-opening"]
+    beats = list(script.beats)
+    template = next(ln for b in beats for ln in b.lines if ln.id == "6.0")
+    trigger = ScriptTrigger(name, count=1)
+    here = replace(template, id="iso.here", when=(trigger,), after="", delay=0)
+    later = replace(template, id="iso.later", when=(ScriptTrigger(name, count=1),), after="", delay=0)
+    terminal = next(i for i, b in enumerate(beats) if b.id == "the-terminal")
+    beats[0] = replace(beats[0], lines=(*beats[0].lines, here))
+    beats[terminal] = replace(beats[terminal], lines=(*beats[terminal].lines, later))
+    content.scripts["wake-opening"] = replace(script, beats=tuple(beats))
+    game = HeadlessServer(content, character_state={})
+    client = game.connect()
+    game.step(1)
+    opening = game.core.opening
+    state = opening.states[client.session.id]
+    actor = game.core.characters.sim.avatars[client.session.user_id].actor
+    if name == "steps":
+        place(game, client, HALL, (actor.x + 1, actor.y))
+    elif name == "target_set":
+        game.step(5)  # The hall's cast spawns.
+        actor.target = next(a.id for a in game.core.world.actors.values()
+                            if a.zone == HALL and a.kind != "player" and a.id != actor.id)
+    elif name == "zone_entered":
+        place(game, client, "vatside-clinics", (30, 18))
+    for _ in range(12):
+        game.step()
+        if "iso.here" in state["fired"]:
+            break
+    assert "iso.here" in state["fired"]
+    assert "iso.later" not in state["fired"] and state["beat"] == 0
