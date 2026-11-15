@@ -154,7 +154,12 @@ Rules:
 - **Header** (1 row): district (dim), zone (bright), the safety word, then
   live facts (heat, Marked, `HUNTED`, `PvP G5+` on
   contested ground, event summary); the clock at the right.
-  Lower-priority segments drop first.
+  Lower-priority segments drop first. When the district's name equals
+  the zone's, ignoring case, the district segment is left out. The zone
+  name is never cut below its first whole word (a leading `The`, `A` or
+  `An` is skipped): it shows whole, or as a whole-word prefix ending in
+  `...`. That minimum is reserved before a notice in the header gets
+  its share. The safety and threat words are never dropped (S48c3).
   The frame around it shows safety by line style (2.1); the sketch draws
   single lines throughout.
 - **Viewport**: width = columns - 2 outer borders - 1 divider - 22
@@ -722,7 +727,24 @@ are ordinary text. Arrow navigation cannot move the character.
   names and are measured as zero width; control characters never reach
   the buffer.
 - Names and chat are truncated with `...` to fit; the truncation is by
-  display width, not code points.
+  display width, not code points. A name is never cut inside a word: it
+  shows whole, as a short form of whole words, or as the longest
+  whole-word prefix that fits with `...`. The only exception is a single
+  word too long for its field on its own, which is cut to fit and ends
+  with `...`. Short forms are built from the presented name only, so a
+  covered character never shortens to its real name. In the side panel
+  (both sizes, 22 inner cells, one cell of right margin):
+  - **HERE** keeps its glyph and gives the label 18 cells. The label
+    shows whole if it fits. Otherwise it shows its last whole word before
+    a trailing parenthetical, keeping the parenthetical
+    (`terminal (Plaza 1)`), then that word alone, then the prefix.
+  - **NEARBY and TARGET** give the name 16 cells. The name shows whole if
+    it fits. Otherwise it shows its last whole word, skipping honorifics
+    and initials (`Dr.`, a single letter with a dot). If two rows whose
+    full names differ would then read the same, both use the prefix.
+
+  Words that are only digits or punctuation are never chosen as the
+  short form (section 11) (S48c3).
 - A `view` message forces a full redraw; `Ctrl-L` clears and redraws.
 - Frame rate is bounded by view revisions: the client renders when a
   view or delta arrives, at most 10 times per second, and coalesces if it
