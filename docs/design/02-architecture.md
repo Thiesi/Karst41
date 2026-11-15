@@ -288,8 +288,9 @@ invalid patch or base mismatch requests `intent {name: "resync", args:
 {}}` without partially changing the displayed view. The client reports
 the first spoken line it couldn't show whole with `intent {name:
 "log_missed", args: {}}`, at most once per connection (S48c3b): a speech
-entry that arrived on this connection and was cut as the newest entry, or
-left the visible log, without ever having been drawn whole. Replayed
+entry that arrived on this connection and is cut as the newest entry, or
+that is no longer the newest and has never been drawn whole (one hidden
+by 2.5's stop rule before it ever showed counts). Replayed
 history on attach never counts. The server decides what, if anything, to
 show (today only the opening's Ctrl-P read-back hint, in the Wake Hall)
 and ignores the intent silently otherwise. The server holds the limit
