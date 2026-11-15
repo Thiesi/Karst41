@@ -992,7 +992,9 @@ class Combat:
                     return True
             if name == "recovery":
                 self.commerce.enqueue_system(lambda:self.recover_at_vat(player.id,str(args.get("target","")))); return True
-            if key in ("b","B") and any(a.owner == actor.id and a.behaviour.get("training") and not a.behaviour.get("inert") for a in self.world.actors.values()):
+            # Movement wins (#249, beat 6): a key the caller's keymap binds to
+            # a move (vi `b`) walks; literal B still skips and is consumed.
+            if key in ("b","B") and not action.startswith("move_") and any(a.owner == actor.id and a.behaviour.get("training") and not a.behaviour.get("inert") for a in self.world.actors.values()):
                 self.game.lesson(player, "drone", "skipped"); self.disarm(player.id); self.remember(player,actor)
                 for drone in tuple(self.world.actors.values()):
                     if drone.owner == actor.id and drone.behaviour.get("training"): self.world.leave(drone)

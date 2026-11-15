@@ -1268,7 +1268,10 @@ class Encounters:
                 if any(r["id"] == row for r in rows):
                     self.select(session, presence, row)
             return True
-        if (key in ("b", "B") or name == "menu_close") and (presence.cast or presence.procedure or presence.destination or presence.room_destination):
+        # Movement wins (#249): a key the caller's keymap resolves to a move
+        # (vi `b` is move_down_left) never cancels or leaves.
+        back = key in ("b", "B") and not action.startswith("move_")
+        if (back or name == "menu_close") and (presence.cast or presence.procedure or presence.destination or presence.room_destination):
             presence.cast = presence.procedure = None
             presence.destination = presence.room_destination = None
             return True
@@ -1277,7 +1280,7 @@ class Encounters:
             self.enter(session, args.get("core", cell.core_id or "lat-wake-hall"), args.get("risk") is True)
         elif name == "lat.room":
             self.move(presence, args.get("room", ""))
-        elif name == "lat.leave" or (name == "menu_close" or key in ("b", "B")) and presence.instance:
+        elif name == "lat.leave" or (name == "menu_close" or back) and presence.instance:
             self.leave_core(session)
         elif name == "lat.theft":
             self.lat.interlock.private.start_theft(presence, args.get("item", ""))
