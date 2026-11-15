@@ -163,7 +163,10 @@ Rules:
   notice then doesn't fit whole, the gap before it shrinks to one cell
   of the header's frame line, and then the notice is cut at a whole word
   with `...`; the full notice stays on the toast. The safety and threat
-  words are never dropped, and they come before the zone's minimum: if
+  words (the safety word such as `CONTESTED` or `TRUCE`, then `PvP G5+`
+  and `HUNTED`) are never dropped; heat, Marked and the event summary
+  drop before the zone's minimum. The threat words come before the
+  zone's minimum: if
   both can't fit, the zone's first word is cut inside itself, as
   section 6 allows for a single word too long for its field (S48c3b).
   The frame around it shows safety by line style (2.1); the sketch draws
@@ -882,7 +885,7 @@ digits or punctuation: `Public terminal (Plaza 1)` becomes `terminal`,
 `Dr. Vantongeren` becomes `Vantongeren`, and `Locker 7` becomes `Locker`.
 If no such word is left, the label stays whole. If two shortened labels
 on the row would read the same, both stay whole. If the shortened labels
-still cannot fit, drop J, then E. Until S48c3 the general fitter still
+still cannot fit, drop J, then E. Until S48c3c the general fitter still
 keeps the first word; only the lesson-hint row follows this rule
 (architecture 5.5).
 Only then shorten the objective's target text; keep `Next:`, its verb

@@ -99,6 +99,13 @@ creative lead's new answers fail at authoring time, not in play.
 
 **5. The log shows whole entries.** Both renderers select **entries**,
 not rows. An entry is shown complete or not at all.
+
+> **Superseded (S48c3b):** terminal UI 2.5 is now the home of this rule
+> and wins over this record. It changes step 4 (the fill stops at the
+> first unprotected entry that doesn't fit) and states the layout: entries
+> display from the top, newest last, with free rows blank below. "Newest
+> at the bottom" below means newest last among the shown entries. The
+> text below is kept as the record of what P12 built.
 - **The newest entry always shows,** at least its first row. A line just
   said is never pushed off the page. Selection runs in this order:
   1. Reserve one row for the newest entry.
