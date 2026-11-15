@@ -12,7 +12,7 @@ world and accounts are private; NPCs, rules, funds and clock are normal.
 Human and presentation acceptance are not granted.
 
 The frames stay valid across the merge of `origin/main` into the branch
-(MERGE_SHA). That merge brings only #251 (canon text) and #248 (an
+(`550d9aaa6bba2634f22f59fe6e096933e681955f`). That merge brings only #251 (canon text) and #248 (an
 acceptance script and a test), with no change under `src/`.
 
 ## History
