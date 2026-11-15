@@ -1,4 +1,4 @@
-┌─SODIUM ROW─Sodium Row─CONTESTED─TRUCE─PvP G5+─────────┬────────────00:00─────┐
+┌─Sodium Row─CONTESTED─TRUCE─PvP G5+────────────────────┬────────────00:00─────┐
 │    DRINKS     LIVE MUSIC  STAGE              DRINKS   │─ TARGET ─────────────│
 │ ···,·······,·······,·······,·······,·······,·······,··│ Sodium regular       │
 │ , ← NEON STAIR· ,    ·· ,    ·· ,    ·· ,    ·· ,    ·│ HP  ██████████ 100%  │
@@ -15,7 +15,7 @@
 │ ·    ··,  ∙  ∙∙·∙    ··,     ··,··∙·· ·      ··,     ·│ HP  ██████████ 90    │
 │ ··· ,    ·· ·    ·· ,    ·· ,    ··      ·· ,    ·· , │ STA ██████████ 77    │
 │ ·, ··    , ··    , ··    , ··    , ··    , ··    , ·· │ SHK ░░░░░░░░░░ 0     │
-│ ·     ,··     ,··     ,··     ,··     ,··     ,··     │ 200 ch   lease 0/90  │
+│ ·     ,··     ,··     ,··     ,··     ,··     ,··     │ 200 ch   day 1/90    │
 ├───────────────────────────────────────────────────────┴──────────────────────┤
 │» You walk under orange lamps on wet pavement. You hear music from six        │
 │  doorways. At the street's end, you see the Tin Halo's sign, lit whole.      │

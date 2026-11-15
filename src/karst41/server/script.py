@@ -74,6 +74,7 @@ class Opening:
         self.states: dict[str, dict[str, Any]] = {}
         self.showing: dict[str, tuple[str, int]] = {}
         self.walked: dict[str, list[Any]] = {}
+        self.missed_heard: set[str] = set()  # Connections that sent `log_missed` (S48c3b).
         self.lines: dict[str, tuple[int, s.ScriptLine]] = {}
         self.after: dict[str, list[str]] = {}
         self.record_beat = len(self.script.beats) if self.script else 0
@@ -124,6 +125,7 @@ class Opening:
         # connection's only (review 6889691584); the flags live on the character.
         self.showing.pop(session.id, None)
         self.walked.pop(session.id, None)
+        self.missed_heard.discard(session.id)
         return self.states.pop(session.id, None)
 
     def log_missed(self, session: Session) -> None:
@@ -135,6 +137,9 @@ class Opening:
         so Clinic Row's fallback never shows it again. Anything else is
         ignored silently.
         """
+        if session.id in self.missed_heard:
+            return  # The first per connection is honoured; the rest are dropped.
+        self.missed_heard.add(session.id)
         state = self.states.get(session.id)
         if not self.script or state is None or state.get("done") or READ_BACK in state["hints"]:
             return

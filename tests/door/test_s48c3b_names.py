@@ -175,3 +175,52 @@ def test_the_header_keeps_the_zones_first_word_and_the_notice_whole(info):
         assert word in top
     # At 132x50 the full zone fits.
     assert 'Sodium Row' in header(info, (132, 50), me, notice=('Fire here and Sable comes. No Halo.', 'log_danger', 0))
+
+
+# --- disclosure -------------------------------------------------------------
+
+@pytest.mark.parametrize('size', SIZES)
+def test_a_covered_npc_never_shortens_to_its_real_name(info, repo_root, size):
+    """Short forms come from the presented name only (terminal UI 6, #261).
+
+    The plainclothes Warden's cover is made long enough to shorten; NEARBY
+    and TARGET show the cover's last word and never `Warden`.
+    """
+    from karst41.content.loader import load_content
+    from karst41.server.views.zone_view import Perception, build
+    from tests.character_helpers import create, place
+    from tests.harness import HeadlessServer
+    width, height = size
+    content = load_content(repo_root/'src/karst41/content')
+    cover = 'Sodium Row night regular'
+    for key in ('npc-plainclothes-warden',):
+        content.npcs[key] = replace(content.npcs[key], cover_name=cover)
+    game = HeadlessServer(content, character_state={})
+    client = game.connect({'user_id': 1, 'handle': 'Cover', 'node_name': 'P4'}, width=width, height=height)
+    create(game, client, archetype=3, name='Cover', card='none')
+    place(game, client, 'sodium-row', game.core.world.free_tile('sodium-row', (89, 3)))
+    zone = game.core.world.zones['sodium-row']
+    npc = next(a for a in zone.actors.values() if a.behaviour.get('template') == 'npc-plainclothes-warden')
+    game.core.world.enter(npc, zone.id, game.core.world.free_tile(zone.id, (90, 3)))
+    caller = game.core.world.actors[client.session.player_id]
+    caller.target = npc.id
+    view = build(caller, zone, Perception(), content, width, height, '12:00', False, 0)
+    view['target'] = game.core.combat.target_view(caller)
+    assert next(a for a in view['nearby'] if a['id'] == npc.id)['name'] == cover
+    assert view['target']['name'] == cover
+    rows = panel_text(info, size, {**view, 'me': {**body()['me'], **view['me'], 'grade': 1, 'chits': 0,
+                                                     'lease_days': 0, 'legal_at': None}})
+    text = '\n'.join(rows)
+    assert 'regular' in text and 'Warden' not in text and 'Plainclothes' not in text
+
+
+def test_threat_words_come_before_the_zones_first_word(info):
+    # Terminal UI 2's stated exception: with every threat word showing, a
+    # zone whose first word alone is too long is cut inside that word.
+    me = {'zone_name': 'Supercalifragilisticexpialidociousness Yard', 'safety': 'contested', 'truce': 'sable',
+          'heat_until': 'x', 'marked_until': 'x', 'hunted': True}
+    top = header(info, (80, 24), me)
+    for word in ('CONTESTED', 'TRUCE', 'PvP G5+', 'HEAT', 'MARKED', 'HUNTED'):
+        assert word in top
+    first = top.split()[0]
+    assert first.startswith('Supercal') and first.endswith('...') and 'Yard' not in top

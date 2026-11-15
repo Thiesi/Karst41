@@ -156,3 +156,24 @@ def test_with_no_live_opening_the_intent_is_ignored(game):
     act(game, client, Frame('intent', {'name': 'log_missed', 'args': {}}))
     assert lesson(game, client) != 'Ctrl-P reads back what you missed.'
     assert not any('You send intent' in line.get('text', '') for line in client.session.log_ring)
+
+
+def test_the_server_honours_only_the_first_log_missed_per_connection(game):
+    # The first arrives outside the hall and is ignored; the second and
+    # third, sent from inside the hall on the same connection, are dropped.
+    client = game.connect()
+    game.step(2)
+    place(game, client, 'vatside-clinics', (3, 2))
+    act(game, client, Frame('intent', {'name': 'log_missed', 'args': {}}))
+    place(game, client, 'vatside-wake-hall', (20, 14))
+    for _ in range(2):
+        act(game, client, Frame('intent', {'name': 'log_missed', 'args': {}}))
+    assert 'read-back' not in game.core.opening.states[client.session.id]['hints']
+    assert lesson(game, client) != 'Ctrl-P reads back what you missed.'
+    # A new connection may send it again, and that one is honoured.
+    game.core.sessions.disconnect(client.session)
+    game.step(2)
+    back = game.connect()
+    game.step(2)
+    act(game, back, Frame('intent', {'name': 'log_missed', 'args': {}}))
+    assert lesson(game, back) == 'Ctrl-P reads back what you missed.'
