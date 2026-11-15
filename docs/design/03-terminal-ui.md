@@ -449,6 +449,21 @@ kind is told apart by colour alone.
   only the opening's training
   drone sends it: once the drone is down, skipped or inert (S48c2). Real
   combat sends none and keeps its 10 seconds.
+- **The visible log shows whole entries,** never rows of one. It is
+  filled in this order:
+  1. One row is reserved for the newest entry.
+  2. Protected danger and combat entries fill the remaining rows, newest
+     first, each whole.
+  3. The newest entry takes back any rows still free, up to its full
+     height.
+  4. Other entries fill what is left, newest first, each whole. The fill
+     stops at the first older entry that doesn't fit whole. The rows above
+     it stay blank, and no older entry takes them.
+
+  The newest entry is the only one ever shown in part: its first rows
+  show, and the last of them ends with `… Ctrl-P`. Apart from protected
+  entries, the visible log is therefore always an unbroken run of the
+  newest entries, with no line missing from the middle (P12, S48c3).
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
   and a rule's price stated before you pay it, such as
   a truce zone's, section 2.1) are not world-log lines. A notice takes
