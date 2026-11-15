@@ -388,3 +388,32 @@ def test_leaving_the_lattice_still_resets_the_view_and_survives_a_missing_avatar
     finally:
         lattice.avatar = real_avatar
     assert session.player_id not in lattice.presences
+
+
+def test_the_training_pistol_harms_nothing_in_the_pocket_hall_but_the_owners_drone(game: HeadlessServer) -> None:
+    """claude-review 6879532113 on #245: while armed, `weapon()` returns the
+    pistol for any target. The Wake Hall is a pocket, so `permits_harm`
+    refuses every pair there; only the owner's live drone takes the training
+    branch in `legal()`."""
+    combat, world = game.core.combat, game.core.world
+    a, b = game.connect(), game.connect({"user_id": 2, "handle": "Other", "node_name": "test"})
+    game.step(2)
+    approach(game, a)
+    place(game, b, HALL, (NEAR_DRONE[0], NEAR_DRONE[1]+1))
+    game.step(2)
+    pid = a.session.player_id
+    assert combat.weapon(game.core.characters.players[pid])[0].template == PISTOL
+    shooter, drone = world.actors[pid], drone_of(game, pid)
+    others = [world.actors[b.session.player_id], drone_of(game, b.session.player_id)]
+    others += [x for x in world.zones[HALL].actors.values() if x.kind != "player" and not x.behaviour.get("training")]
+    others = [x for x in others if x is not None]
+    assert any(x.kind == "player" for x in others) and any(x.behaviour.get("training") for x in others)
+    assert combat.legal(shooter, drone)
+    for other in others:
+        assert not combat.legal(shooter, other), other.id
+        health = other.health
+        shooter.cooldowns.clear()
+        shooter.target = other.id
+        combat.fire(pid)
+        game.step()
+        assert other.health == health, other.id
