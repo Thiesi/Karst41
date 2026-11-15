@@ -159,7 +159,10 @@ Rules:
   name is never cut below its first whole word (a leading `The`, `A` or
   `An` is skipped): it shows whole, or as a whole-word prefix ending in
   `...`. That minimum is reserved before a notice in the header gets
-  its share. The safety and threat words are never dropped (S48c3).
+  its share. If the notice then doesn't fit whole, the gap before it
+  shrinks to one rule cell, and then the notice is cut at a whole word
+  with `...`; the full notice stays on the toast. The safety and threat
+  words are never dropped (S48c3).
   The frame around it shows safety by line style (2.1); the sketch draws
   single lines throughout.
 - **Viewport**: width = columns - 2 outer borders - 1 divider - 22
@@ -740,8 +743,9 @@ are ordinary text. Arrow navigation cannot move the character.
     (`terminal (Plaza 1)`), then that word alone, then the prefix.
   - **NEARBY and TARGET** give the name 16 cells. The name shows whole if
     it fits. Otherwise it shows its last whole word, skipping honorifics
-    and initials (`Dr.`, a single letter with a dot). If two rows whose
-    full names differ would then read the same, both use the prefix.
+    and initials (`Dr.`, a single letter with a dot). If two rows across
+    NEARBY and TARGET whose full names differ would then read the same,
+    both use the prefix.
 
   Words that are only digits or punctuation are never chosen as the
   short form (section 11) (S48c3).
