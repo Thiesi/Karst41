@@ -27,6 +27,11 @@ def holds(session: Session, now: datetime, drone_can_act: Callable[[str], bool])
         return False
     if (now - datetime.fromisoformat(session.danger_at)).total_seconds() >= DANGER_HOLD_SECONDS:
         return False
+    # Real combat holds its full ten seconds even if a drone line came after it
+    # (review 6889245226): an untagged line inside the window keeps the hold.
+    other = session.danger_other_at
+    if other is not None and (now - datetime.fromisoformat(other)).total_seconds() < DANGER_HOLD_SECONDS:
+        return True
     source = session.danger_source or ""
     return not (source.startswith(TRAINING) and not drone_can_act(source[len(TRAINING):]))
 

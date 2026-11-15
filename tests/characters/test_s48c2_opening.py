@@ -623,3 +623,49 @@ def test_a_resumed_state_naming_lines_or_beats_the_content_lacks_still_attaches(
     assert state["beat"] == len(opening.script.beats) - 1
     assert [q[0] for q in state["queue"]] == ["9.8"]
     game.step(5)
+
+
+def test_a_disconnect_between_name_and_commit_still_gives_the_kit_lines_and_the_errand(game: HeadlessServer) -> None:
+    """Review 6889245226: kit_issued had no session to reach when the caller
+    left during "saving". The errand is set at the commit, and the next attach
+    plays the kit lines."""
+    client = game.connect()
+    game.step(1)
+    opening = game.core.opening
+    state = opening.states[client.session.id]
+    record = next(i for i, beat in enumerate(opening.script.beats) if beat.id == "the-record")
+    state["fired"] += [ln.id for beat in opening.script.beats[:record] for ln in beat.lines]
+    state["queue"] = []
+    place(game, client, HALL, DOOR)
+    act(game, client, Frame("key", {"k": "e", "t": 0}))
+    game.step(10)
+    act(game, client, Frame("intent", {"name": "menu_select", "args": {}}))
+    wake = game.core.characters.wakes[client.session.id]
+    act(game, client, Frame("line", {"id": wake.prompt_id, "text": "Noor"}))
+    game.core.sessions.disconnect(client.session)  # Gone while the record saves.
+    game.commit_characters()
+    manager = game.core.characters
+    player = next(p for p in manager.players.values() if p.name == "Noor")
+    assert player.progress.get("errand") is True
+    back = game.connect()
+    assert back.session.player_id == player.id
+    heard = []
+    for _ in range(300):
+        game.step()
+        heard += [line.get("script") for line in said(game, back)]
+    assert {"9.10", "9.11"} <= set(heard)  # The kit lines, on the next attach.
+
+
+def test_the_speech_hold_keeps_real_combats_ten_seconds_after_a_drone_line(game: HeadlessServer) -> None:
+    """Review 6889245226: a real hit, then a drone line, then the drone down:
+    speech still waits for the real hit's ten seconds (amendment 3)."""
+    from karst41.server.danger import holds
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, fight
+    client = game.connect()
+    pid, drone, actor = armed_and_warned(game, client)
+    game.core.combat.log(actor, "Someone hits you for 5.", True)  # Real combat.
+    game.step(1)
+    fight(game, client)  # Drone lines after it; then the drone is down.
+    session = client.session
+    assert session.danger_source.startswith("training:")
+    assert holds(session, game.core.clock.now_utc(), game.core.characters.training_drone_can_act)

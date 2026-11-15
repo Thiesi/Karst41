@@ -109,6 +109,7 @@ OTHER = {
     "characters.py::Characters.committed::identities": "storage answered a create or delete",
     "characters.py::Characters.committed::identities-held": "storage answered a create or delete",
     "characters.py::Characters.committed::queue:identity": "clears the used serial from the wake record (review 6872808103)",
+    "characters.py::Characters.committed::queue:save": "a created character whose caller left before the commit: saves its errand flag (S48c2, review 6889245226); the character is stored, never an unread body",
     "characters.py::Characters.__init__::identities": "loads the stored identities",
     "characters.py::Characters.identity::identities": "the accessor: creates an empty identity once",
     "characters.py::Characters.identity::identities-held": "the accessor itself",

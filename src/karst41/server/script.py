@@ -111,6 +111,9 @@ class Opening:
             state["beat_tick"] = self.core.clock.now_tick()
         state["pos"] = None
         self.states[session.id] = state
+        pending = state.pop("kit_pending", None)
+        if pending is not None:  # A commit that found no session (review 6889245226).
+            self.push(session, "kit_issued", pending)
 
     def stop(self, session: Session) -> dict[str, Any] | None:
         return self.states.pop(session.id, None)

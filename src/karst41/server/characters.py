@@ -685,6 +685,14 @@ class Characters:
             else:
                 self.players[player.id] = player
                 self.unread_ids.discard(player.id)
+                # The caller left between the name and the commit: kit_issued had
+                # no session to reach. The errand is a per-character flag, so it
+                # is set now; the runner plays the kit lines on the next attach
+                # (review 6889245226).
+                player.progress["errand"] = True
+                if isinstance(player.progress.get("opening"), dict):
+                    player.progress["opening"]["kit_pending"] = player.archetype
+                self.queue("save", player.bbs_user_id, player, immediate=True)
         elif action == "delete":
             self.deleting.discard(effect["player"]["id"])
             if not error:
