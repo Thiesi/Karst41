@@ -490,6 +490,10 @@ kind is told apart by colour alone.
   last of them ends with `… Ctrl-P`. Apart from protected entries and a
   cut newest entry, the visible log is always an unbroken run of the
   newest entries, with no line missing from the middle (P12, S48c3b).
+  This is a deliberate trade: a tall older entry can leave blank rows
+  while shorter, older lines stay hidden behind it. It stops blocking
+  once newer lines fill the rows or push it past the fill, and Ctrl-P
+  always reads back everything.
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
   and a rule's price stated before you pay it, such as
   a truce zone's, section 2.1) are not world-log lines. A notice takes

@@ -292,7 +292,9 @@ entry that arrived on this connection and was cut as the newest entry, or
 left the visible log, without ever having been drawn whole. Replayed
 history on attach never counts. The server decides what, if anything, to
 show (today only the opening's Ctrl-P read-back hint, in the Wake Hall)
-and ignores the intent silently otherwise.
+and ignores the intent silently otherwise. The server holds the limit
+too: it honours the first `log_missed` per connection and drops the rest,
+and the hint's once-only state lives on the character, server-side.
 
 S03 wire spellings: `line.id` identifies the prompt, `caps.tier` is
 `"16"`, `"256"` or `"truecolor"`, and `caps.unicode` is `true`.
