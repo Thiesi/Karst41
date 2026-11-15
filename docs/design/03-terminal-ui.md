@@ -479,7 +479,8 @@ kind is told apart by colour alone.
      height.
   4. Other entries fill what is left, newest first, each whole. The fill
      stops at the first of them that doesn't fit whole, and no older
-     unprotected entry shows.
+     unprotected entry shows. Protected entries are not candidates here:
+     one passed over in step 2 neither shows nor stops this fill.
 
   The chosen entries display from the top of the log in arrival order,
   newest last, and any free rows are left blank below them. For example, in a
@@ -771,7 +772,9 @@ are ordinary text. Arrow navigation cannot move the character.
     it fits. Otherwise it shows its last whole word, skipping honorifics
     and initials (`Dr.`, a single letter with a dot). If two rows across
     HERE, NEARBY and TARGET whose full names differ would then read the
-    same, both use the prefix. Rows not drawn, such as NEARBY rows cut off by a
+    same, both use the prefix. If the prefixes would still read the same,
+    each shows the end of its name instead: `...` and as many whole words
+    from the end as fit (`...Drone 12`, `...Drone 13`). Rows not drawn, such as NEARBY rows cut off by a
     short panel, don't count. A name with no word left to choose uses
     the prefix.
   - **The name row's handle** (2.4 item 7) is optional: it shows whole

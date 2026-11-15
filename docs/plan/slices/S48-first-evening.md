@@ -497,7 +497,7 @@ runner contract with the creative lead's fixes.
 - **Ctrl-P read-back:** c2 ships the stated fallback (once on Clinic Row
   after the shift hint). The in-hall trigger ("the first time a spoken
   line is cut or pushed out of view") is a door-side signal; the
-  technical lead deferred it to S48c3 (panel and paint, already door-side
+  technical lead deferred it to S48c3b (fit and log rules, already door-side
   work). A deferral, not a dropped beat.
 - **Template reward lines** (creative lead): after 9.10, Hardline's vest,
   Cantor's First Ear (with Steady) and Operator's Mule, named from the
