@@ -560,7 +560,7 @@ verb and current cost remain. Help is first among remaining groups when
 it fits. The existing terminal cell-width and clipping helpers apply.
 The lesson-hint row (S48c2) already follows terminal UI 11's newer rule:
 it keeps each label's last whole word before any trailing parenthetical.
-The general fitter switches to that rule in S48c3, with the owner's P3
+The general fitter switches to that rule in S48c3c, with the owner's P3
 approval.
 
 #### 5.5.3 Log kinds
