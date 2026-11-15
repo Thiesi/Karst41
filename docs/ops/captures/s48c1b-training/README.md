@@ -1,19 +1,23 @@
 # S48c1b training packet (re-pinned by S48c2)
 
-Execution head: `11742a723d0c368577f8e92fd5f9a6496821093c` (PR #252).
+Execution head: `4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722` (PR #252).
 Driver: `scripts/accept_p5_netbbs.py`, all sizes and tiers (no `--size`
 or `--tier`). Transport: real NetBBS v7.45.0 Telnet to a registered native
 stdio door, source-matched wheel, `DOOR_KARST41_PRESENTATION=1`.
 
 The run was made on the runner (`docs/ops/remote-runner.md`: WSL2 Ubuntu
 24.04 on the owner's second workstation), as job
-`p5-acceptance:native`, run ID `c2-p5-4`, both matrix entries. The node,
+`p5-acceptance:native`, run ID `c2-p5-7`, both matrix entries. The node,
 world and accounts are private; NPCs, rules, funds and clock are normal.
 Human and presentation acceptance are not granted.
 
-The frames stay valid across the merge of `origin/main` into the branch
-(`550d9aaa6bba2634f22f59fe6e096933e681955f`). That merge brings only #251 (canon text) and #248 (an
-acceptance script and a test), with no change under `src/`.
+The frames stay valid for the commits after the run (`ce6ca7a`, `a18558f`
+and `7ada989`, PR #252). They add #253's guards: short forms skip digit-only
+words, and two short forms that would read the same stay whole. The release
+waits while another danger source is live and starts empty per connection.
+None of those cases occurs in P5, and the packet files are as committed. An
+earlier merge of `origin/main` (`550d9aaa6bba2634f22f59fe6e096933e681955f`,
+#251 and #248, no change under `src/`) precedes the run.
 
 ## History
 
@@ -22,10 +26,10 @@ acceptance script and a test), with no change under `src/`.
   `capture-retirements.json`, because c1b changed the input sequence
   behind every P5 capture: the unread body now fights the drone before the
   record. Those old files stay where they were.
-- **PR #252 (S48c2)** re-pins 42 of the 48 frames from `c2-p5-4`. Each one is
-  listed in `capture-repins.json` with its reason and PR. The six
-  unchanged frames (inventory, contracts and help at 80x24 in 16 and 256)
-  are byte-identical. The previous frames stay in git history.
+- **PR #252 (S48c2)** re-pins 39 of the 48 frames from `c2-p5-7`. Each one is
+  listed in `capture-repins.json` with its reason and PR. The nine
+  unchanged frames (inventory, contracts and help at 80x24, all tiers) are
+  byte-identical. The previous frames stay in git history.
 
 ## Why these are re-pins, not retirements
 
@@ -60,7 +64,7 @@ in any rerun.
 
 ## Two waits, no keys
 
-`c2-p5-4`'s driver waits twice. It never sends a key while waiting, so the
+`c2-p5-7`'s driver waits twice. It never sends a key while waiting, so the
 stored inputs and the loop rule are unaffected.
 - **At the decant record**, before the `wake-record` capture, it waits
   until no record line is waiting and the speech gap is over. It does this
@@ -74,6 +78,21 @@ stored inputs and the loop rule are unaffected.
 Both waits then hold until the last spoken line is on screen, because log
 lines are not views. P5 otherwise names at once, which is a real path, so
 9.3 to 9.7 can be skipped (an approved drop).
+
+## Whole frames only
+
+Every capture waits until the last frame has arrived whole, not just until
+the door has acknowledged it. The stream must end with the cursor sequence
+that every rendered frame ends with. The door's ack reaches the server
+before its bytes reach the caller through NetBBS, so an ack alone can
+snapshot a frame mid-write (#255).
+
+Earlier runner runs (`c2-p5-5`, `c2-p5-6`) had torn menu frames that way. The
+runner's raw bytes showed the terminal's final state was clean. None of those
+frames were committed. For this packet, a scan of all 54 `.txt` frames of
+`c2-p5-7` found no torn frame. 18 of them have an overlay box, and the scan
+checks two things: a box row whose right edge is not the box border, and a
+zone `┴` separator under a box.
 
 ## Captures
 

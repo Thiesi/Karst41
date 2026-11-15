@@ -1,4 +1,4 @@
-╔═VATSIDE═Wake Hall═POCKET══════════════════════════════╤════════════01:51═════╗
+╔═VATSIDE═Wake Hall═POCKET══════════════════════════════╤════════════04:01═════╗
 ║        ···················                            │─ HERE ───────────────║
 ║        ··Θ·Θ·Θ·Θ··········                            │ + Corridor door      ║
 ║        ···················                            │─ TARGET ─────────────║
@@ -13,12 +13,12 @@
 ║        ··················· ··········                 │                      ║
 ║         ··················+@··········                │──────────────────────║
 ║             ·············· ··········                 │ No. 0003             ║
-║                 ·········· ··········                 │ HP  █████████▌ 53    ║
+║                 ·········· ··········                 │ HP  ███████▌░░ 43    ║
 ║                 ·········· ··········                 │ STA ██████████ 36    ║
-║                 ·········· ··········                 │ SHK ▌░░░░░░░░░ 2.5   ║
+║                 ·········· ··········                 │ SHK ▌░░░░░░░░░ 7.5   ║
 ╟───────────────────────────────────────────────────────┴──────────────────────╢
-║* Hit: Training drone. (x2)                                                   ║
+║" Okafor: That's her on the hall channel. She watches every first one.        ║
 ║* The drone stops. It had been trying since Tuesday.                          ║
 ║+ The cable reels the pistol back to the wall.                                ║
-║E use Corridor door  ? help  Weapon 0.7s  Tab target  F fire  X weapon        ║
+║E use Corridor door  ? help  Weapon 0.8s  Tab target  F fire  X weapon        ║
 ╚══════════════════════════════════════════════════════════════════════════════ 

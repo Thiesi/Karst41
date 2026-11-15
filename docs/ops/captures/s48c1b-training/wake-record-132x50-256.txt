@@ -38,10 +38,10 @@
 ║          │ enter read this line  Esc/B put the record down                                                            │          ║
 ║          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          ║
 ╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
-║* Hit: Training drone. (x2)                                                                                                       ║
-║* Miss: Training drone. (x3)                                                                                                      ║
+║* Miss: Training drone. (x2)                                                                                                      ║
 ║‼ Training drone hits you for 5.                                                                                                  ║
 ║" Vantongeren: If you die, you'll wake up here, or somewhere like here, with a bill. Sablier keeps a copy.                        ║
+║* Hit: Training drone. (x2)                                                                                                       ║
 ║* The drone stops. It had been trying since Tuesday.                                                                              ║
 ║+ The cable reels the pistol back to the wall.                                                                                    ║
 ║" Okafor: Up you get. Vantongeren does the speech; I do the walking.                                                              ║

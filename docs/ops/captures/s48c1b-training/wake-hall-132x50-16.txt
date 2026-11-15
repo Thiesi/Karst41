@@ -1,4 +1,4 @@
-╔═VATSIDE═Wake Hall═POCKET══════════════════════════════════════════════════════════════════════════════════╤════════════01:53═════╗
+╔═VATSIDE═Wake Hall═POCKET══════════════════════════════════════════════════════════════════════════════════╤════════════04:04═════╗
 ║                                                                                                           │─ TARGET ─────────────║
 ║                                                                                                           │ none   Tab picks     ║
 ║                                                                                                           │─ NEARBY ─────────────║
@@ -38,9 +38,9 @@
 ║                                                                                                           │ 200 ch   lease 0/90  ║
 ║                                                                                                           │ signatory 0/1500     ║
 ╟───────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────╢
+║" Okafor: Hardline. Thought so. You took that hit like furniture.                                                                 ║
 ║" Vantongeren: Many names vanish from the lease rolls. Some leave the work; some disappear. The roll does not tell me which.      ║
 ║" Vantongeren: Keep your own record.                                                                                              ║
-║" Vantongeren: Here's the part they make me say and the part I'd say anyway. For ninety days you're Sablier property under lease. ║
 ║" Vantongeren: After ninety days you're a person, with a name on the civic roll. Nothing gets you there sooner. The days count    ║
 ║  without you.                                                                                                                    ║
 ║√ Issued: sidearm, 50 rounds, baton, two patches, two rations.                                                                    ║

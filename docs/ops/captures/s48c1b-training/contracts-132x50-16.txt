@@ -34,10 +34,10 @@
 ║          │                                                                                                            │          ║
 ║          │                                                                                                            │          ║
 ║          │                                                                                                            │          ║
-║          │                                                                                                            ░░░░ 0     ║
-║        █· ·← TRAMS ·  ·  ·  ·  ·  ·  PRECINCT ·  ·  ·  ·  ·  ·  ·SODIUM ROW ·  ·  ·  · TERRACES·█         │ 200 ch   lease 0/90  ║
-║        █··  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  · ·█         │ signatory 50/1500    ║
-╟───────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────╢
+║          │                                                                                                            │          ║
+║          │ j journal  d done  Esc/B back                                                                              │          ║
+║          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          ║
+╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
 ║√ 200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.                                                                    ║
 ║" Vantongeren: Vesper, at the Tin Halo on Sodium Row, pays on time. Her card's the one I put on top.                              ║
 ║+ You arrive at Clinic Row.                                                                                                       ║
@@ -46,5 +46,5 @@
 ║+ You arrive at Meridian Plaza.                                                                                                   ║
 ║» You cross Meridian Plaza under the Ring. You hear tram bells and the fountain. Wardens watch every corner.                      ║
 ║√ You gain 25 XP.                                                                                                                 ║
-║Card: Sodium Row. Take the NEON STAIR.  M map  E/J jack in at Public terminal (Plaza 1)  ? help                                   ║
+║? help  Esc/B returns; the world continues.                                                                                       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 

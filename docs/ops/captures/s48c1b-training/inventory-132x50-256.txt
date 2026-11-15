@@ -46,5 +46,5 @@
 ║+ You arrive at Meridian Plaza.                                                                                                   ║
 ║» You cross Meridian Plaza under the Ring. You hear tram bells and the fountain. Wardens watch every corner.                      ║
 ║√ You gain 25 XP.                                                                                                                 ║
-║Card: Sodium Row. Take the NEON STAIR.  M map  E/J jack in at Public terminal (Plaza 1)  ? help                                   ║
+║? help  Esc/B returns                                                                                                             ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 

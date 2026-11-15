@@ -1,10 +1,10 @@
 {
-  "head": "11742a723d0c368577f8e92fd5f9a6496821093c",
+  "head": "4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722",
   "passed": true,
   "platform": {
     "host": "Karst 41 runner (docs/ops/remote-runner.md): WSL2 Ubuntu 24.04 on the owner's second workstation",
-    "run": "c2-p5-4",
-    "sha": "11742a723d0c368577f8e92fd5f9a6496821093c",
+    "run": "c2-p5-7",
+    "sha": "4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722",
     "netbbs": "v7.45.0",
     "line_endings": "LF: each .txt manifest hash is also the committed frame's hash (no committed_lf needed)"
   },
@@ -133,19 +133,6 @@
               "f",
               "f",
               "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
               "f"
             ],
             "segments": [
@@ -159,7 +146,7 @@
                 "may_press": [
                   "f"
                 ],
-                "presses": 27,
+                "presses": 14,
                 "reached": true
               }
             ]
@@ -179,11 +166,11 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "e"
             ],
@@ -281,12 +268,12 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "e",
               "\u001b[C",
@@ -306,14 +293,7 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
+              "\u001b[B",
               "\u001b[A",
               "\u001b[C",
               "\u001b[C",
@@ -354,6 +334,14 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -464,7 +452,7 @@
                   "\u001b[C",
                   "\u001b[D"
                 ],
-                "presses": 77,
+                "presses": 78,
                 "reached": true
               },
               {
@@ -677,6 +665,9 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
               "f"
             ],
             "segments": [
@@ -690,7 +681,7 @@
                 "may_press": [
                   "f"
                 ],
-                "presses": 15,
+                "presses": 18,
                 "reached": true
               }
             ]
@@ -710,11 +701,11 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "e"
             ],
@@ -812,12 +803,12 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "e",
               "\u001b[C",
@@ -829,16 +820,7 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
+              "\u001b[B",
               "\u001b[C",
               "\u001b[A",
               "\u001b[C",
@@ -896,6 +878,17 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
               "\u001b[B",
               "\u001b[B",
               "\u001b[D",
@@ -994,7 +987,7 @@
                   "\u001b[C",
                   "\u001b[D"
                 ],
-                "presses": 76,
+                "presses": 78,
                 "reached": true
               },
               {
@@ -1111,11 +1104,7 @@
         "people_floor": 63.38528726606927,
         "terminal_cells": [
           [
-            4,
-            4
-          ],
-          [
-            1,
+            8,
             5
           ],
           [
@@ -1239,6 +1228,27 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
               "f"
             ],
             "segments": [
@@ -1252,7 +1262,7 @@
                 "may_press": [
                   "f"
                 ],
-                "presses": 14,
+                "presses": 35,
                 "reached": true
               }
             ]
@@ -1272,11 +1282,11 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "e"
             ],
@@ -1374,18 +1384,19 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "e",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[A",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -1431,6 +1442,17 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[B",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -1448,16 +1470,6 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[A",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
               "\u001b[B",
               "\u001b[D",
@@ -1556,7 +1568,7 @@
                   "\u001b[C",
                   "\u001b[D"
                 ],
-                "presses": 76,
+                "presses": 78,
                 "reached": true
               },
               {
@@ -1772,6 +1784,15 @@
               "f",
               "f",
               "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
+              "f",
               "f"
             ],
             "segments": [
@@ -1785,7 +1806,7 @@
                 "may_press": [
                   "f"
                 ],
-                "presses": 18,
+                "presses": 27,
                 "reached": true
               }
             ]
@@ -1805,8 +1826,8 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -1907,8 +1928,8 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -1919,68 +1940,6 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -1992,20 +1951,81 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[A",
-              "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
               "\u001b[B",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
               "\u001b[D",
               "\u001b[D",
               "\u001b[D",
@@ -2091,7 +2111,7 @@
                   "\u001b[C",
                   "\u001b[D"
                 ],
-                "presses": 78,
+                "presses": 77,
                 "reached": true
               },
               {
@@ -2311,11 +2331,6 @@
               "f",
               "f",
               "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
               "f"
             ],
             "segments": [
@@ -2329,7 +2344,7 @@
                 "may_press": [
                   "f"
                 ],
-                "presses": 27,
+                "presses": 22,
                 "reached": true
               }
             ]
@@ -2349,8 +2364,8 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -2451,8 +2466,8 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -2466,94 +2481,92 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[A",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
               "\u001b[B",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[A",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
               "\u001b[B",
-              "\u001b[B",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
               "\u001b[D",
               "\u001b[D",
               "\u001b[D",
@@ -2635,7 +2648,7 @@
                   "\u001b[C",
                   "\u001b[D"
                 ],
-                "presses": 78,
+                "presses": 76,
                 "reached": true
               },
               {
@@ -2752,12 +2765,12 @@
         "people_floor": 63.38528726606927,
         "terminal_cells": [
           [
-            42,
+            37,
             4
           ],
           [
-            48,
-            5
+            45,
+            4
           ],
           [
             110,
@@ -2896,11 +2909,6 @@
               "f",
               "f",
               "f",
-              "f",
-              "f",
-              "f",
-              "f",
-              "f",
               "f"
             ],
             "segments": [
@@ -2914,7 +2922,7 @@
                 "may_press": [
                   "f"
                 ],
-                "presses": 35,
+                "presses": 30,
                 "reached": true
               }
             ]
@@ -2934,8 +2942,8 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -3036,38 +3044,14 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[B",
               "e",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
@@ -3118,10 +3102,49 @@
               "\u001b[C",
               "\u001b[C",
               "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
-              "\u001b[C",
               "\u001b[B",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[C",
+              "\u001b[A",
+              "\u001b[B",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[D",
+              "\u001b[B",
+              "\u001b[D",
               "\u001b[B",
               "\u001b[D",
               "\u001b[D",
@@ -3167,18 +3190,7 @@
               "\u001b[D",
               "\u001b[D",
               "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D",
-              "\u001b[D"
+              "\u001b[A"
             ],
             "segments": [
               {
@@ -3219,7 +3231,7 @@
                   "\u001b[C",
                   "\u001b[D"
                 ],
-                "presses": 77,
+                "presses": 79,
                 "reached": true
               },
               {
@@ -3237,7 +3249,7 @@
                   "\u001b[C",
                   "\u001b[D"
                 ],
-                "presses": 58,
+                "presses": 60,
                 "reached": true
               }
             ]
@@ -3310,7 +3322,7 @@
   ],
   "inputs_record": {
     "script": "scripts/accept_p5_netbbs.py",
-    "commit": "11742a723d0c368577f8e92fd5f9a6496821093c",
+    "commit": "4ff676bdd75e4066f160c4bc4f14c9cb1dc5e722",
     "form": "per case: connect (Telnet NAWS/TERM/COLORTERM), then per capture every string the caller wrote since the previous capture, in order, plus server-side moves as {\"move\": ...}",
     "comparison": "per capture, `segments` in order: {\"keys\": [...]} must be byte-identical; a loop {\"loop\", \"goal\", \"may_press\", \"presses\", \"reached\"} matches when loop, goal and may_press are equal and reached is true; presses is run variance (technical lead, S48c2)"
   },
@@ -3318,14 +3330,14 @@
   "source_matched_wheel": {
     "80x24": {
       "version": "0.0.20",
-      "file": "~/karst41-runner/runs/c2-p5-4/01-p5-acceptance-native-80x24/temp/p5-venv/lib/python3.12/site-packages/karst41/__init__.py",
-      "python_tree_sha256": "575bb2fbaabf21d983dfa1a606906e741270febcac0d543d227bf62b8c794008",
+      "file": "~/karst41-runner/runs/c2-p5-7/01-p5-acceptance-native-80x24/temp/p5-venv/lib/python3.12/site-packages/karst41/__init__.py",
+      "python_tree_sha256": "eb29e483ebac7f95c594e3e4095c442015db92d09c2e49dfbdf3538087ade361",
       "renderer": "present"
     },
     "132x50": {
       "version": "0.0.20",
-      "file": "~/karst41-runner/runs/c2-p5-4/02-p5-acceptance-native-132x50/temp/p5-venv/lib/python3.12/site-packages/karst41/__init__.py",
-      "python_tree_sha256": "575bb2fbaabf21d983dfa1a606906e741270febcac0d543d227bf62b8c794008",
+      "file": "~/karst41-runner/runs/c2-p5-7/02-p5-acceptance-native-132x50/temp/p5-venv/lib/python3.12/site-packages/karst41/__init__.py",
+      "python_tree_sha256": "eb29e483ebac7f95c594e3e4095c442015db92d09c2e49dfbdf3538087ade361",
       "renderer": "present"
     }
   },
@@ -3350,68 +3362,68 @@
   "fixtures": "private node/world/accounts only; normal game rules",
   "manifest": {
     "training-drone-80x24-16.ans": {
-      "bytes": 24768,
-      "sha256": "db34bea33654db23c8059e9344388b7bfe547bf69e01eba4fe8bf01240f16ee3"
+      "bytes": 25057,
+      "sha256": "d23e8a7923aae26b0c0352987bbc2bfac5840fe4fc4a21d84a5af287a5017a23"
     },
     "training-drone-80x24-16.txt": {
       "bytes": 2984,
-      "sha256": "262418bd942fb861eca48431952ca5d34b91538f5d1ab305f7582a08342bc96e"
+      "sha256": "b94c5774c6ffce14715fa39c59d0178a3fe262612b56fea9a5090248f6a7f8b1"
     },
     "training-drone-80x24-16.json": {
       "bytes": 4887,
-      "sha256": "95fad7e99d271b9951902ada15f3c7ab55543716dc37ee5d0f57b8b7d2dbd9c0"
+      "sha256": "75f8c19698ee9188dc965c7b36e9d62104d7f21d30ad1d23ddce08a23efbed94"
     },
     "training-complete-80x24-16.ans": {
-      "bytes": 32917,
-      "sha256": "ddc5c61679ce9976bd577625ecab4240cc600764362db7b3b7a3990c98b8a7a8"
+      "bytes": 29533,
+      "sha256": "8a6e90fdb1fcc5d118023eebc4b92b04d5aeb46d8d0e237a9003495f5df7dc4d"
     },
     "training-complete-80x24-16.txt": {
       "bytes": 2931,
-      "sha256": "699bb7221de0e5aee272664b428ce94478aa51a0535d29559d4cbc936e6c70e8"
+      "sha256": "bcf2dfa7e20e58ba518186d84a6892064f3bf46d7f023958095404798f212d67"
     },
     "training-complete-80x24-16.json": {
-      "bytes": 4638,
-      "sha256": "579c599e90a19f56c194b5a28d9141f3545736ab9d2a4f335bccb1b1e0a2d7d3"
+      "bytes": 4632,
+      "sha256": "956e6b75b28106dd58e07e93a8b42a312ec3ab580c3ad6cb86e352850d1e632e"
     },
     "wake-record-80x24-16.ans": {
-      "bytes": 47035,
-      "sha256": "ba878de063ff11ab452f6c6b9de050e752fa93fbdcf51ec3b5b4f4e3059393c3"
+      "bytes": 44159,
+      "sha256": "b883b2b8634bd5eaafd16669514e854f51e6733fc7b4ef46908139dffd896963"
     },
     "wake-record-80x24-16.txt": {
       "bytes": 2677,
-      "sha256": "20cee77cb2c95fe8de56b9956cf06041a7db434bee87ab0ee24a12b0954ace5a"
+      "sha256": "cd37e0fae89bc082115f9716bf0ee7879eafed4a9cb7739fccf256150f8de591"
     },
     "wake-record-80x24-16.json": {
-      "bytes": 4120,
-      "sha256": "815bea32913e6e62827b5c9a22f079894a3dc0602f398502964585eccf743f60"
+      "bytes": 4165,
+      "sha256": "45987e598d3681956a3349fc2188630f2b9cce7693e3027bee8d67be0b72d998"
     },
     "wake-hall-80x24-16.ans": {
-      "bytes": 57639,
-      "sha256": "32d191f5e9dcff3d04432a6800f1630d8f76209991a204dd4ba57b82860954a2"
+      "bytes": 58372,
+      "sha256": "a669972bac7a198b29e4138caa7490ee55a0b4aef883459f68b4df690e08caf6"
     },
     "wake-hall-80x24-16.txt": {
       "bytes": 3084,
-      "sha256": "5439c9bf72a8c4742ca1f2378d5ca58f9901a7bf0f69ac4a56b5fb6ee698db48"
+      "sha256": "4487bd2f81847a14d2768ab8a6c0303b99e377d42f8d75e5061497c42b04b2e0"
     },
     "wake-hall-80x24-16.json": {
       "bytes": 4990,
-      "sha256": "c204da0461c05f5a345e8035361d0c24324594497de2b9b906ade9a507eba163"
+      "sha256": "34ccf6b43919d71ff84f74412aafcd0898e81ff5224e135533114a3e26f2219b"
     },
     "meridian-plaza-80x24-16.ans": {
-      "bytes": 270626,
-      "sha256": "c23a67aa70877b16fa08900bfdcea402146f4c87eded75685648eb38564a473d"
+      "bytes": 273381,
+      "sha256": "52d55e72ac4d2a45d4f46168f3a82962789efedd4bae643bfad0d18bb8a28f9f"
     },
     "meridian-plaza-80x24-16.txt": {
-      "bytes": 3321,
-      "sha256": "b41eb2a5df97c01c35398358da14367cf2dc33c2ae79fdeb35712f8f85eacbfe"
+      "bytes": 3317,
+      "sha256": "fff99c956e0471123a94dfe92a8846476d5f91ad656a19cda491e4bf0b28c5ef"
     },
     "meridian-plaza-80x24-16.json": {
-      "bytes": 4906,
-      "sha256": "88bb596549c7717657ac51a9802f8e1b5a99e4308ca2a48d212eb241a95da846"
+      "bytes": 4848,
+      "sha256": "a843029533ce8e2e5c8250a9c448b93f883214b8ab3410d3d7e1175496f51449"
     },
     "inventory-80x24-16.ans": {
-      "bytes": 274722,
-      "sha256": "f57cf7f425dc7489a2a9038e2b5f203114a5942566a240e8047c4e744931095c"
+      "bytes": 277652,
+      "sha256": "2ec1055236a3a52b1bb7ea678dd7922938dccdd164a65b4a98fd900b0428f5cb"
     },
     "inventory-80x24-16.txt": {
       "bytes": 2788,
@@ -3422,8 +3434,8 @@
       "sha256": "e7d4159b9bad4d69e5cff2669cab27896ea26e543d4346844135e18274a646f0"
     },
     "contracts-80x24-16.ans": {
-      "bytes": 284076,
-      "sha256": "2345e7906cafd80f07207114e61dd888aefbfc6e1b64bb6395979ad51c73cf2f"
+      "bytes": 286730,
+      "sha256": "7d11da2fa99dd6be3d8d165902b63411c320d4aa7a0f9672b867e3c073a8d373"
     },
     "contracts-80x24-16.txt": {
       "bytes": 2760,
@@ -3434,8 +3446,8 @@
       "sha256": "2801f5afe16dbe12226227149a9f089b68142fb8aad147dbad61b984cc6b21c7"
     },
     "help-80x24-16.ans": {
-      "bytes": 291051,
-      "sha256": "d04e18d4174c88519b41bb4792bc1f4045d9df5eae659c6a23aaa1e0f798a4c4"
+      "bytes": 293438,
+      "sha256": "587dea8d8434e51cef3218145ed97dab7236e278ef4d2fff7a65583e0d1776cb"
     },
     "help-80x24-16.txt": {
       "bytes": 2480,
@@ -3446,68 +3458,68 @@
       "sha256": "c64aeb1d4795d6894357c574edf11d7d5f8242fdc8599bca303282fdd6ec81b0"
     },
     "training-drone-80x24-256.ans": {
-      "bytes": 41234,
-      "sha256": "0f9c20efcb3b0754a6c4c6f205cf4d3e3e518eacf2d022c885e742cb90d462ca"
+      "bytes": 44876,
+      "sha256": "92817437a512272027176f31f115212985f4dc8e469d77ce187d62ea40248064"
     },
     "training-drone-80x24-256.txt": {
       "bytes": 3060,
-      "sha256": "ce8c05499519f62a64f7deaab899a37a6d36b9d27915357573fa15810b6c9132"
+      "sha256": "0a109dee5772c93ca74d981f45b2deb1c1f94feffb22255e57553fdbc03ec3db"
     },
     "training-drone-80x24-256.json": {
       "bytes": 6561,
-      "sha256": "bf1f25646614beabf7e2c3077d1ed09e8fec0695b3dd21638d19a29812ae1330"
+      "sha256": "ff5d918b794258b44d6b9e9382d9bcd600298ffa851a75cb6d253786e8c76d9f"
     },
     "training-complete-80x24-256.ans": {
-      "bytes": 46188,
-      "sha256": "2e8b519f1fb501ba0f31267cd9d22b32646446bdecb0e75898e4aa1099ff71a1"
+      "bytes": 52909,
+      "sha256": "ad0dcece393c04cc03be7fa31290e31d291d8722187bd0c8534a7c64dd3a2a9a"
     },
     "training-complete-80x24-256.txt": {
       "bytes": 3007,
-      "sha256": "c15668376b843328c50501d18211239bb7f16c8b28169bb0d373091a0c2b2b16"
+      "sha256": "101b60ceead42a670542355f2c180a20cdb8cc3e0e7c5194eb90ed68f6e886d2"
     },
     "training-complete-80x24-256.json": {
-      "bytes": 6262,
-      "sha256": "23a01b65a78d7567ec85465967c1a858bb48c77c6131bd6b5387c1c05e1af4bf"
+      "bytes": 6267,
+      "sha256": "664602c3475ee134b5ba7f7063c65abc8663a7141035b74406e293ac079b09f9"
     },
     "wake-record-80x24-256.ans": {
-      "bytes": 69183,
-      "sha256": "02f4d694bb00fd3d5a5d7fb2e6db8eba18daa9b11231c03ef8fec50cc8cb86ae"
+      "bytes": 76579,
+      "sha256": "f23d305851902f5aa66b9a89cc65c13dfabaf633d307ce80df7af7030cb34ec9"
     },
     "wake-record-80x24-256.txt": {
       "bytes": 2677,
-      "sha256": "5fe9de2545cda2115beee5ab9005a716351ee39d629b7ed824465a9c4bd51935"
+      "sha256": "8fd2aa806831d109573b4eacba7d7f6b81544265bea005708531be43b4ba0b99"
     },
     "wake-record-80x24-256.json": {
-      "bytes": 4503,
-      "sha256": "44c02ee211c9cde81c2a5f5366bf8b7bdd86ea6115bf055c69c09203fc831a89"
+      "bytes": 4609,
+      "sha256": "9010adb5c073f20cf454e7782fef29959d62d71ed1f3deca1cf172a4779e1f4b"
     },
     "wake-hall-80x24-256.ans": {
-      "bytes": 88343,
-      "sha256": "9ee6853e9f0c6195dfe3ae3189696fd6061e48a20451d22960a48b17c92d3cd5"
+      "bytes": 95288,
+      "sha256": "1b4a66cf24f0d351cbd83c0709f1f0f4fefe5535fb259447e55c47201f253dcd"
     },
     "wake-hall-80x24-256.txt": {
       "bytes": 3036,
-      "sha256": "407fdad741b02c9a12516f30b5172270bd04c899831a6202a59e851c3a96a9a1"
+      "sha256": "14ea7a72a5003beea10c2a1fd8c127bc91e818cb500457b23f546ed939b8261d"
     },
     "wake-hall-80x24-256.json": {
       "bytes": 6591,
-      "sha256": "c5f18084871771452dbec22b9dab550c8fdaa70cf9e4f13671637ed316995e17"
+      "sha256": "179f41243a9f0df3dce7f9ffc6602c13651b541564c5d2f11c1b106b1c091e33"
     },
     "meridian-plaza-80x24-256.ans": {
-      "bytes": 476656,
-      "sha256": "9087f58433b08ae8b6c278cc9b46821de1e3291a753c84b46c33f4ab09765df7"
+      "bytes": 482736,
+      "sha256": "70e606d36c71730586ad67a81e06ae676ff3b64d304ffa26d4bd8c011ba015b1"
     },
     "meridian-plaza-80x24-256.txt": {
-      "bytes": 3332,
-      "sha256": "d240c3fbaa13bc70f2300476509b6953bf08bac6351e9edb466368fa67f656a2"
+      "bytes": 3326,
+      "sha256": "e3db9f8b9a33303dd12112642dd320d1efbb31b53747adcc242510e11355febd"
     },
     "meridian-plaza-80x24-256.json": {
-      "bytes": 7868,
-      "sha256": "94dc70291b3c9a4d8f924eb9057dfeb1b74b13e811abd2e9759445ad77a4f170"
+      "bytes": 7655,
+      "sha256": "bf42e1aa2d0d342c91aabaed1247f96d3795292328951764dc2ab1316954a37f"
     },
     "inventory-80x24-256.ans": {
-      "bytes": 482456,
-      "sha256": "d064d955b10ba99c577bb9d89682bf4d9f3d1774112e728f990a43ccb1af01a1"
+      "bytes": 488247,
+      "sha256": "6fd1dd62de4b11b66d6be9e6dff9b7beedba08692dce4f5e1b56dfbe46b53e46"
     },
     "inventory-80x24-256.txt": {
       "bytes": 2788,
@@ -3518,8 +3530,8 @@
       "sha256": "71073399d74f3f35a27bacead3c1708fd8c3c672a6f40230a094f9751a115abe"
     },
     "contracts-80x24-256.ans": {
-      "bytes": 496084,
-      "sha256": "f28d0e5c4f57d5b421886855e6e94c2c7818bdf27bbce0e1b8516af68b1f3666"
+      "bytes": 501613,
+      "sha256": "fbc47b7e1058a1e49a11729b030a01e622d9ccb653696da6e22a90ac5220bcc5"
     },
     "contracts-80x24-256.txt": {
       "bytes": 2760,
@@ -3530,8 +3542,8 @@
       "sha256": "6f75402a5a4007fb530f125bc96dcd2895567a4532d14466b314433c7300f0a9"
     },
     "help-80x24-256.ans": {
-      "bytes": 506189,
-      "sha256": "f8ac7e1cbcff103e8e0cf16cfb0e1c7493a1bab7dcff330b0c0de8d5fed131de"
+      "bytes": 511582,
+      "sha256": "702ebc458ab113d293b04fd309c35891e4f53f8297855d0630780d8a2106357e"
     },
     "help-80x24-256.txt": {
       "bytes": 2480,
@@ -3542,164 +3554,164 @@
       "sha256": "1cdf3d0d5be35e3f409dab8fa424af9ef8cbca9382c2bccb440ea6566fc8a342"
     },
     "training-drone-80x24-truecolor.ans": {
-      "bytes": 49718,
-      "sha256": "137e4e6cb256f3a7832b46a57e687299bd13c9feab9a05c74d79c19b3311296d"
+      "bytes": 53295,
+      "sha256": "e4879854d0e838ade5b33d5dcb8bf65e2194bc4e1e4ae9e1796ad2f7958781fb"
     },
     "training-drone-80x24-truecolor.txt": {
       "bytes": 3060,
-      "sha256": "80994bbe8c7d71e76dcb1d6bf7f5faf96bfff98215676ae6e054d39d4d59c4fa"
+      "sha256": "961c4d227c003d1b75ea249b13f16e643f0a39a0b0bf72b87fc740a9c580fc8d"
     },
     "training-drone-80x24-truecolor.json": {
       "bytes": 6802,
-      "sha256": "aacbc4bd621357bc03a9a50defab3362b757c9e7f85e35aafce57ddbc90ba1e2"
+      "sha256": "b686cc49be13adbbd972b2814dacbae2bd8e25b3ead6c4183242340e681969b9"
     },
     "training-complete-80x24-truecolor.ans": {
-      "bytes": 54953,
-      "sha256": "84789a51da6c0721ea6af3a8f4bd7802d3cdd2fde8912c178e16917372f2366d"
+      "bytes": 67113,
+      "sha256": "756bf1a366b612a4d6b57be815f5b7292ee57e80a767b5f1a0ef7dbb412cda24"
     },
     "training-complete-80x24-truecolor.txt": {
       "bytes": 3007,
-      "sha256": "b79b31abb595d5d489b4e177c798c85e5de95321253238f40a8f3a255eb8406a"
+      "sha256": "db31ed8137330fca0810b68ac170a8eff1bea85cfb097369e033a72cdf1f4e77"
     },
     "training-complete-80x24-truecolor.json": {
-      "bytes": 6505,
-      "sha256": "6a19291a0c79d6ee991462e00b9377fe184fe3e2edd3df7ab07b61fa683b9177"
+      "bytes": 6657,
+      "sha256": "23bd8d2c371f12443b74af96f49e9b16198906ca37530b1fee0e9a919bdedcbe"
     },
     "wake-record-80x24-truecolor.ans": {
-      "bytes": 82677,
-      "sha256": "fb1670e37df3a79fbf511a3d5cf1e8f1c8c5d678e18492ff280944b01765b6eb"
+      "bytes": 95537,
+      "sha256": "f9196051c3d287d4263be8f9db631cada8d60ed8c1dd7cfb1f495efc5803f457"
     },
     "wake-record-80x24-truecolor.txt": {
       "bytes": 2677,
-      "sha256": "b33751e6fa14c4505860537054fe700b5c089a4488f682e187a9c96806e4dc94"
+      "sha256": "04a1cf0aa6d24d62a48f4d67ce76c9303e9df20084b0f2c31fb9476ae34f08c8"
     },
     "wake-record-80x24-truecolor.json": {
-      "bytes": 4565,
-      "sha256": "f3030b2a0ef686ba4517c0a33db43e923f2e5fb362ac4c94f71720dbb8867850"
+      "bytes": 4637,
+      "sha256": "efc4c46ab0335416c68d1400a0653563a84c2151767515bc1ed165d2ac9f0f1e"
     },
     "wake-hall-80x24-truecolor.ans": {
-      "bytes": 104995,
-      "sha256": "79df0fb11455c7c73876fbd6562e38099693ed16402bf2adb62326eee2625f22"
+      "bytes": 117564,
+      "sha256": "f0ebaf712580a0876d48bbb635ef5b6dd0b6b3210ab0cb5c75341de7bc8fe39f"
     },
     "wake-hall-80x24-truecolor.txt": {
       "bytes": 3036,
-      "sha256": "45cd326a3b04dd301bf9bdcc1a3cbc55c7cd26e20b33fb0668b3c7e474d01da2"
+      "sha256": "3958b5c1cfdf2b8381a9986b4f0e9c79cc0f7b54167b9656879a8445eba34874"
     },
     "wake-hall-80x24-truecolor.json": {
       "bytes": 6867,
-      "sha256": "4e65afef60bce18a83611129bd6bede92b49cf398b7bcc70a11e059f3f7d3ab6"
+      "sha256": "597f0c2fb1f173b1f55daebec0879e05ddfb46c699f89d3c8ac03616378c1750"
     },
     "meridian-plaza-80x24-truecolor.ans": {
-      "bytes": 594264,
-      "sha256": "4ddc35c22b6bf0f29e0f0a15b9e64318f705ebc77c94bf98e7a1d6b41d9f6772"
+      "bytes": 606538,
+      "sha256": "8c813bcedbab8d8091c89046a95ac9f582f9efc7e7dd0847c0a510ba914981e3"
     },
     "meridian-plaza-80x24-truecolor.txt": {
-      "bytes": 3330,
-      "sha256": "08ba9437427e2d847d9be4c952480e4fb6f17e20b67d851c52a6c6064a4a96e9"
+      "bytes": 3326,
+      "sha256": "c17505355252017098907926a535710361148ce1d5e2b592281b7d50a1c66133"
     },
     "meridian-plaza-80x24-truecolor.json": {
-      "bytes": 8508,
-      "sha256": "6b51ecbf17a31353519516d3f1d2b026e92f3bcd9b4ab7f946969ec0cf0ca016"
+      "bytes": 8300,
+      "sha256": "ebaa0be1f1b70b088bf2d636ef0b844de5b1d862ac23fa3536b849c6aa8a9b81"
     },
     "inventory-80x24-truecolor.ans": {
-      "bytes": 600713,
-      "sha256": "8bb6da4e375a39950bb09cace3a78df34fc9edbc72b69a6acf98aa379de2cd5a"
+      "bytes": 612965,
+      "sha256": "a1317aa2b8f96b9f806f3f1a02f804cec866cf3f10fe2e85908983abcf0b3a93"
     },
     "inventory-80x24-truecolor.txt": {
       "bytes": 2788,
-      "sha256": "96ad545148fda75f43136e8001582b77a1460ce76eae45d85cf14a9cb276f822"
+      "sha256": "08d3bd8baf455bc531fc46feb0e84caf84719c030f09d35c5590e11c854778c1"
     },
     "inventory-80x24-truecolor.json": {
-      "bytes": 4732,
-      "sha256": "baaacb3dd9f73f526c2fce474bee0b9a749a27b5ba19b00f540a5c107b58049d"
+      "bytes": 4660,
+      "sha256": "70eeb322b471dd182db67f539d2c480268d571bdfa69e6fdb81fde6fa891a26e"
     },
     "contracts-80x24-truecolor.ans": {
-      "bytes": 617395,
-      "sha256": "1c8c98ca8aff34e57179f21a26f8d31b68a281e10b8d6e8e9954cd8cf222374b"
+      "bytes": 629575,
+      "sha256": "c7afbabbd07a39e36139ca23c3914d11c501252f323ce0eb38c147f2db9b6879"
     },
     "contracts-80x24-truecolor.txt": {
       "bytes": 2760,
-      "sha256": "7202a2d89a01ca711c19982613eb49108cf2b63152ce05b4b47f229385d19ec4"
+      "sha256": "a75139c19bffc20d0d42622502f0f5effee0ad18fc80504a196a31fe7fd45c8a"
     },
     "contracts-80x24-truecolor.json": {
-      "bytes": 4707,
-      "sha256": "9f549b32a40660c31a2c4e0ba020d1af979f624f5ddc9aa4ba1a6cd7ba5d5258"
+      "bytes": 4635,
+      "sha256": "afca47e04218c909cc72095df553c59f784872e0d167c2e3855037ba2a43f549"
     },
     "help-80x24-truecolor.ans": {
-      "bytes": 630325,
-      "sha256": "efd0b52b55d34bca33f49bc825ca41cfa9aa72f448f899f14b495fef8cf66ff4"
+      "bytes": 641809,
+      "sha256": "8c14976c1a0ce99664e72e6d035d2a1e6e955ec2a0f3048eda473456a166eca9"
     },
     "help-80x24-truecolor.txt": {
       "bytes": 2480,
-      "sha256": "8d7614faedce81fe3321511e3175bb567dc8f754a2b3e5c17b4f3b8d9386a9e9"
+      "sha256": "b58e672c5e7d2499d32e67f963f382252918d630eb2dc6040ff6d573c7fcccee"
     },
     "help-80x24-truecolor.json": {
-      "bytes": 3844,
-      "sha256": "5dd5d37cd419420f5a7f800b0e227685bb8d7e8d8aeb9c150119b0af7f7ca2c2"
+      "bytes": 3774,
+      "sha256": "c73dc3cdb3ece117973689c3dd2f219eac06beb436c6d6631a0763bb63fc1f42"
     },
     "training-drone-132x50-16.ans": {
-      "bytes": 27800,
-      "sha256": "9f838b2810acd4c869700fb055a02fb8f9a18c3c830b7401f959bf9bb7d02869"
+      "bytes": 27794,
+      "sha256": "e121690713d87148dc56e0cd3b3e3d70409ca1fbd7f6fcaec3a4bf9f33ecbddd"
     },
     "training-drone-132x50-16.txt": {
       "bytes": 8252,
-      "sha256": "fd0b86077f907a5334ea76991c532fe02e53a141d37324b0a5de3c2785470379"
+      "sha256": "8e01d2ca1a7322a8346455b89df139586c7f6c308c2affecb92fa6b1637e6e6e"
     },
     "training-drone-132x50-16.json": {
       "bytes": 11180,
-      "sha256": "81e864c27e76deb0adacba578048786e29de1a4720d4ccbc59021faea9c63824"
+      "sha256": "b74aededd96e5eaff790556136d760b063c2e3f64d488b365947ffb795e443f1"
     },
     "training-complete-132x50-16.ans": {
-      "bytes": 29726,
-      "sha256": "b2a91cefb52b9caa3f9d0d304834ac4079117a54f013f08e24aec3d1c71ae601"
+      "bytes": 48637,
+      "sha256": "2142b7752c4fa0df29fb777f404fc10a7f3f4eade790eeb0fbb93da0cbc9c0af"
     },
     "training-complete-132x50-16.txt": {
-      "bytes": 8202,
-      "sha256": "6ba430e0238a530c0c9ac66fc50400c04681875600bbbc26194f0f824283c1a9"
+      "bytes": 8204,
+      "sha256": "1457d082b15172037849a2197ea3ed785af7b102102f30db356eaacb946fa076"
     },
     "training-complete-132x50-16.json": {
-      "bytes": 10996,
-      "sha256": "adcf894d8c85b3415e70829c459ae9976e428290f9dca1aa5ca0d89b658fb94c"
+      "bytes": 11013,
+      "sha256": "79362b1c5c8ca30ec2b0595f7ca589574ab2ee31a5104a000c9a69952cf9342a"
     },
     "wake-record-132x50-16.ans": {
-      "bytes": 48084,
-      "sha256": "dffadb03c9e974bb39535dc628508d577f88a3b64fd35fa0e7bba21a0a9b48e6"
+      "bytes": 67254,
+      "sha256": "6ec1c1ccd673dc78051ba6125b9d0db0f3154c99a6a7aac864c0ddef0f9dc176"
     },
     "wake-record-132x50-16.txt": {
       "bytes": 8043,
-      "sha256": "ccbd3e979b0b5381fa1cf5b1b105b5e6e39b2c20a6838e573bdaea2f86458d1e"
+      "sha256": "8646b1637a4479b7d08e935eb72779fd3515a22a7e9131c657f0ec6cc754aa1c"
     },
     "wake-record-132x50-16.json": {
-      "bytes": 10855,
-      "sha256": "0361c397060722f996b69444bd6208cde5ac0afcf3e4ede45a643f7ec8257bac"
+      "bytes": 10856,
+      "sha256": "66bd103370355a490b81ecacad747ddbd755eec2609db5036b06b8da0f56b08c"
     },
     "wake-hall-132x50-16.ans": {
-      "bytes": 85243,
-      "sha256": "ccee14658bfc8d5da8fc7e479c16b21c356dd39ae13404462356509ff817faa8"
+      "bytes": 103882,
+      "sha256": "200e4e1f485ca9742af3ff36e86bc8810bfd666220e2d1838e6ffc16427acc64"
     },
     "wake-hall-132x50-16.txt": {
       "bytes": 8350,
-      "sha256": "29fee541d95886cd2f9d46124a963a980f459ad68ae92dc486a36ceedc629db3"
+      "sha256": "b974759899fe875ce4734ae94eef6ca31a5f2543f1b762c20318c7a0a2b69363"
     },
     "wake-hall-132x50-16.json": {
-      "bytes": 11335,
-      "sha256": "0cd59fe223e114e03ae316e54b92cf4b0b72ac1ded5e3ecb2e5b90bb8686bd9a"
+      "bytes": 11334,
+      "sha256": "e4708bad9bff232e7cc8fed5855f1efe7d45f5bbc7881d3ff56c22ed8cc25e85"
     },
     "meridian-plaza-132x50-16.ans": {
-      "bytes": 159676,
-      "sha256": "74b6dc0bff156cd28a816f4a8dbac9455d68923b5efc2e80b2b278eb44067fdf"
+      "bytes": 177796,
+      "sha256": "7649691054e878b4170144b0cad28cd42c2475555354f054a14e9101d16777bd"
     },
     "meridian-plaza-132x50-16.txt": {
-      "bytes": 9759,
-      "sha256": "f553f811852b697b3e28a64ffba1d33dabffd058a1884ba59bc7c0c285501adc"
+      "bytes": 9760,
+      "sha256": "7776803a2db5c634b4b8a5b395a9469d7cbd1ffc3cab97c71f7aefa68fc551bf"
     },
     "meridian-plaza-132x50-16.json": {
       "bytes": 12828,
-      "sha256": "67cb10c4398bdb770dacf42b151afed464f3768f61f98a2cd8e7ebd7483dce09"
+      "sha256": "1422c9eb0eaa9c232831506424a37c4786113780dd129ae039fdf67fb768c7c4"
     },
     "inventory-132x50-16.ans": {
-      "bytes": 171092,
-      "sha256": "020ed023c27d11d575da7f5918a4fec0a96d63f65797abcf97082a69c2f11f29"
+      "bytes": 189212,
+      "sha256": "e08cf8e02d74d1546ede4cf14ad7837ba15240ae55e1d2f9d6be53e7809802f7"
     },
     "inventory-132x50-16.txt": {
       "bytes": 8157,
@@ -3710,20 +3722,20 @@
       "sha256": "192d57f7a59eff271c591b5800a845c7a7fae189a82930545953648f55489e36"
     },
     "contracts-132x50-16.ans": {
-      "bytes": 192616,
-      "sha256": "431a32cdc90173cf228dab5af5bd63ab01ed08367054b925038d6db89c0212ed"
+      "bytes": 214224,
+      "sha256": "ebbb9db898f127f79b6f8a213617bf7f3759251628a0d028159079ddbfbf9d0a"
     },
     "contracts-132x50-16.txt": {
-      "bytes": 7976,
-      "sha256": "15b77ce715b7192fe66a1b4c93d38b0effe7766c069ceae0c10fb291e68d2cb7"
+      "bytes": 8129,
+      "sha256": "f6f2b161715f92302c2e813e5f369c38e6f3b520d51386c0f23cfa11d6cf7cd9"
     },
     "contracts-132x50-16.json": {
-      "bytes": 10815,
-      "sha256": "9f71d63eb41e782c0e696d0f61ffa2fc7313aa75bd98311212943fb9d2427cb1"
+      "bytes": 10948,
+      "sha256": "32e42f500a42ca3dfe08daf75a9266a500fb54e393adb542ea4e2266078a4fa5"
     },
     "help-132x50-16.ans": {
-      "bytes": 214456,
-      "sha256": "7738ca2d560389b49325c1c0a2a28c8e8399a606883ab3bda4eae6fc0c2dcf2d"
+      "bytes": 232965,
+      "sha256": "a0697c5d4a9fced304f57ab1195675e9881dfbcb120984d4e5549ac232ff1c0d"
     },
     "help-132x50-16.txt": {
       "bytes": 7605,
@@ -3734,80 +3746,80 @@
       "sha256": "f9de062254bd0be4b2878b60d835f6ffc14444dcd3de0b7c6b7971a53ffe4fd0"
     },
     "training-drone-132x50-256.ans": {
-      "bytes": 39944,
-      "sha256": "a1ceac1add8bb374e03f53f610ae6e1b0f275ffc6c7f9903a73026b0c8c657eb"
+      "bytes": 49535,
+      "sha256": "c4f52464fc53b8993e308eb3d1312d3f39fad7edce3f3f623e214260e8ef95e7"
     },
     "training-drone-132x50-256.txt": {
       "bytes": 8245,
-      "sha256": "cd31b9f6811b3b9b6f730ecb9c6c1aed76c12de7bf4b5d5cc10e3e15fe67e4e5"
+      "sha256": "b2658587e16ad22c7d812c258536cbc498b35585d7cb98bb4af0d25bf95f5948"
     },
     "training-drone-132x50-256.json": {
       "bytes": 13248,
-      "sha256": "42b17994e5a6421ff938e45c72fcabe89f527e8daef5ed30b75cbcfe15aa1357"
+      "sha256": "25eb230f7689e67b8002607d153029fd2528d4c602407dcaa6be959f2451af42"
     },
     "training-complete-132x50-256.ans": {
-      "bytes": 49570,
-      "sha256": "d24bb0cec11e62cb5a14ea3505f627fad9cc2c6bb9d31080344c2dae6d61838f"
+      "bytes": 59918,
+      "sha256": "dbe737582678658c3ed7b52599bd1ebce7d8e52ef9664918721f18a86d2753a9"
     },
     "training-complete-132x50-256.txt": {
       "bytes": 8197,
-      "sha256": "625492b38958cac9b1a805364a7d223c5506c77371851b670dfbfbb8677ae6c3"
+      "sha256": "7ba062eff0e03842964e2a2574d850258cde4f7b8f342afc79a1d78409042ab1"
     },
     "training-complete-132x50-256.json": {
       "bytes": 12919,
-      "sha256": "91dd25a75eb344b0c2745f35a9393533b2b3dcd8c6382ec12cc5bc70f05a8508"
+      "sha256": "8ef31c8350fb4e1f7250722670bce783148cc76e4217fea2f9fec12436989cf0"
     },
     "wake-record-132x50-256.ans": {
-      "bytes": 75064,
-      "sha256": "0adeb2332f1c9ddb2fed67a7be731c4fa4414883d3c58c013e863686dfac08c0"
+      "bytes": 86099,
+      "sha256": "35fcbf12911f668ce987a1586d46bbe81da588b988dd5f8aad7fe2ef7217853f"
     },
     "wake-record-132x50-256.txt": {
       "bytes": 8043,
-      "sha256": "82544b942e09d6bbf84dcd10e62bea0e19c06e335f41ad86eeb30adc11d37869"
+      "sha256": "2ccde7549f7c22fdbd5c140647aa9917c1e892d22b25756aa877cbd26dbc5004"
     },
     "wake-record-132x50-256.json": {
       "bytes": 11467,
-      "sha256": "719a6c95d7646a2fc68b0447c361e7d6585e3bc06e8fc1c327a2081576f3c9f9"
+      "sha256": "6f5b689aa235132a0e6000eca1011eccea2a988f89e2c47d91789eb100995bf7"
     },
     "wake-hall-132x50-256.ans": {
-      "bytes": 120211,
-      "sha256": "eae351b841e8d784dba6704bebd1de1b564f0d2a733fce1ae45a8ed5081e2022"
+      "bytes": 131035,
+      "sha256": "b3253fc1255153327568a49c2077c50d1bfafeca374e930ec65dd970be48a719"
     },
     "wake-hall-132x50-256.txt": {
       "bytes": 8257,
-      "sha256": "450a1d70e8f52c7d9e6999e9f498b9888374635a4ce5a3df68cba52d61142a0d"
+      "sha256": "7974fe41277dc7d25d1b884e738866e007650e22d9d54290b3b603d2d13297c1"
     },
     "wake-hall-132x50-256.json": {
       "bytes": 13220,
-      "sha256": "2ef94cc20837bcc178b9972ae3a06793d1c0501e21c928fb118365eaecb5412a"
+      "sha256": "ea71df78997d090588e8d9f696678c339cfff699b876b9d3bfa9cb473d19cb19"
     },
     "meridian-plaza-132x50-256.ans": {
-      "bytes": 299032,
-      "sha256": "7412602436251cd20206e5a746b07f7f7a7751a9ed238865926eec36c1742ed7"
+      "bytes": 308771,
+      "sha256": "beed476d4a600fa07497ff46c1fa7456fe699a6c27957201952c786a698dd7f0"
     },
     "meridian-plaza-132x50-256.txt": {
-      "bytes": 9836,
-      "sha256": "dc116d3931d94f1dd43fee8f34d236377ebb897c7a760dfdf8dfa5643a85788b"
+      "bytes": 9838,
+      "sha256": "2362221e3309989e104e95ec8782002b5011a0e8395b76153851eb326721bd8a"
     },
     "meridian-plaza-132x50-256.json": {
-      "bytes": 17556,
-      "sha256": "976fd75f8b7bd52831664bc203ee8eacb36d88037358c024ceb1fe0caf66b532"
+      "bytes": 17496,
+      "sha256": "d40e5ff78a3347636ff0ba9c050f1590e9f3ae6dac907a4e53792518bec0b4dd"
     },
     "inventory-132x50-256.ans": {
-      "bytes": 311320,
-      "sha256": "be72826841816c6e9e3fc913250a705510ae17ce0f3179d28c1bb184fc30f070"
+      "bytes": 322847,
+      "sha256": "f731ce42bcf5878476f3b9a3af7f79bc8f79445b034e5fe532753f4796c63f47"
     },
     "inventory-132x50-256.txt": {
       "bytes": 8157,
-      "sha256": "bf02c25bbfb172431e97dc2a89bb47e2b4a4b7a8747bf726c6b649841e9231ea"
+      "sha256": "bbf32326af64ce19af656c63faf35c50186b2548096947b62a37937f1a38a08a"
     },
     "inventory-132x50-256.json": {
-      "bytes": 11661,
-      "sha256": "c59602d7523819289a849d5816bba1463caef18de9f226ae4b41de2c382c1522"
+      "bytes": 11662,
+      "sha256": "f5370d164b7987bd04e1071ad43d5ec5becdad33b1026250ff5d107435b91aa5"
     },
     "contracts-132x50-256.ans": {
-      "bytes": 348722,
-      "sha256": "e0b35742216884326b03186139329bdba36f72b9bfedc7f04377bee862a51793"
+      "bytes": 358476,
+      "sha256": "e3172120914dac1528e3206a37da5b9b304e8aea36f49142342bd363334d1cd2"
     },
     "contracts-132x50-256.txt": {
       "bytes": 8129,
@@ -3818,8 +3830,8 @@
       "sha256": "271eaf232cee4f68fd53715e8b591c78da305e4e24e690b29e34c59e3d088e56"
     },
     "help-132x50-256.ans": {
-      "bytes": 375655,
-      "sha256": "cf5008b3630de37ebc2fbee07ab6365d823493c76f7a54b63427703db5c64169"
+      "bytes": 385411,
+      "sha256": "6b053c1e50af7ea53b344baa36541f534c8b9a679435703e5bc36db263d7050b"
     },
     "help-132x50-256.txt": {
       "bytes": 7605,
@@ -3830,100 +3842,100 @@
       "sha256": "3095fc39b4e20f7c186b0cde5fbc6bf26610bda731277f0b60c9c4e4517f1dd8"
     },
     "training-drone-132x50-truecolor.ans": {
-      "bytes": 55609,
-      "sha256": "56009759aa7358acdb61766d74a244e5ddb93d631129b18ff3f76c9557496e06"
+      "bytes": 56065,
+      "sha256": "86efc74c9a40d223f83847300e32261c2bdef395d40cb4bafd0347451a99ed94"
     },
     "training-drone-132x50-truecolor.txt": {
       "bytes": 8245,
-      "sha256": "f913e0e578febefe573fed3b14e43002c5f335f1fbc262f152726e2a3c022f06"
+      "sha256": "ddd8ada8533687f35cc548bf7c43f0d61d3d48883116a52ae815cf8dfc587694"
     },
     "training-drone-132x50-truecolor.json": {
       "bytes": 13527,
-      "sha256": "56e045debc854e55e83a129d0512b9cc58f387f2e19d112f8d27dff2da8b8628"
+      "sha256": "34187172cf8e86cad7ca871645f0c104de45b1bcd07a23dbeb2c289eed8d32b6"
     },
     "training-complete-132x50-truecolor.ans": {
-      "bytes": 86582,
-      "sha256": "0e1f575614ea7175f2f9412e94817df606bbe601d5bff5ff71a2b012234dc3b4"
+      "bytes": 73480,
+      "sha256": "fb8d6afb2f7b3b6c4ee0eb6ef5654e03e7ee34791eb72376812e8a125e3dce2c"
     },
     "training-complete-132x50-truecolor.txt": {
       "bytes": 8197,
-      "sha256": "43ad8fb411f8e14ebaee808d303540b5b8621f0a256076b1318d4f608f3ee451"
+      "sha256": "63cb1df93771dcb32fbb3d1746777323dc0772c6baeaef2771a445807cbc6d68"
     },
     "training-complete-132x50-truecolor.json": {
-      "bytes": 13203,
-      "sha256": "2b1bd6c993c4f5cbe864fdc3615a742f648704951e81aa1a511c1d8adf5e3d1f"
+      "bytes": 13204,
+      "sha256": "4b01c8c3fb437bf410454f02a352e2c6807c2f6964d25f70f4c6428bf7e0e2fc"
     },
     "wake-record-132x50-truecolor.ans": {
-      "bytes": 118103,
-      "sha256": "dadc245c3831be253c8cdc860954d3c8ee7890d236d96702c06bbb2ed0e225c3"
+      "bytes": 104397,
+      "sha256": "1e6de2db04eebc76f9c65ee1872a71d154177e53e0d2a1444caa30ce65632e83"
     },
     "wake-record-132x50-truecolor.txt": {
       "bytes": 8043,
-      "sha256": "cb54787c20ae74f5395cc19e234608f7e1cb9ceff9714f98c71fb6fbb8593568"
+      "sha256": "9295bc97552703675611c4ae542ce65f640d875d34e6ce175a5c955fb328a166"
     },
     "wake-record-132x50-truecolor.json": {
-      "bytes": 11532,
-      "sha256": "5404f6482888f9f042047f52308287524638755170194f67c55f071a03c51b95"
+      "bytes": 11534,
+      "sha256": "a7874a8a4210529152e16edb5512f96d450d7c182f05b40d4541ae9cb904336a"
     },
     "wake-hall-132x50-truecolor.ans": {
-      "bytes": 169288,
-      "sha256": "780c961d674c16d80793355401d3a813228fbae3eb8b1fa739f3651993cef33f"
+      "bytes": 155100,
+      "sha256": "31ef5996bba5dabb5d5a1394e133f4b1c18ca292b141d3ac64c88c89f162592c"
     },
     "wake-hall-132x50-truecolor.txt": {
       "bytes": 8257,
-      "sha256": "7f1f2b659576858ede63134164f9d826254910bcaa505deaa07ca0569523e5d7"
+      "sha256": "6c147b02d94e0998ce8d6fa6eda9148f2ab2ca7862aae484d2cd43c9c3844bf0"
     },
     "wake-hall-132x50-truecolor.json": {
-      "bytes": 13504,
-      "sha256": "fe44f9239136f8d9f1fedbfbece50333ed8e843b57905914bf5b7f6f0a0ee6ff"
+      "bytes": 13503,
+      "sha256": "3a28a2f87e694358178563b7906b6e4619e0b56a2c6fcc3fc976033c38f79c3f"
     },
     "meridian-plaza-132x50-truecolor.ans": {
-      "bytes": 392800,
-      "sha256": "803247a5d3691982dbb8a475e4fe803df529e78ee16bd091e2128b491eee4b64"
+      "bytes": 390814,
+      "sha256": "bcbe91fa494d34147db2dd4710f469c62cc5c97334d4b199b6b32f4f04923fcf"
     },
     "meridian-plaza-132x50-truecolor.txt": {
-      "bytes": 9835,
-      "sha256": "c70638091af49ce88eea66faca2884b6c6eb38cf60370130d3759502113f1c32"
+      "bytes": 9837,
+      "sha256": "a8d42f61ffb55123de55f3b5a3f2adad8115c922de7414be7bee12626c8765f3"
     },
     "meridian-plaza-132x50-truecolor.json": {
-      "bytes": 18362,
-      "sha256": "1f35fac3171f71f9cdcba65ba3ee469999f9d5e9d0da34a71e04c940876de837"
+      "bytes": 18214,
+      "sha256": "ab664cb35067ee44b50822be9d5c668345fbcbd5d7a378d5d2d23d8b5f3a5a26"
     },
     "inventory-132x50-truecolor.ans": {
-      "bytes": 408846,
-      "sha256": "910fba61c2bb1f574bdc816e2a4da272432617d7e231b40bd2d118964119663c"
+      "bytes": 406859,
+      "sha256": "c3472f4cd0d5f6f09b4481b21fcba1dec9472da1b89f8b7ad6c57e0223410d5b"
     },
     "inventory-132x50-truecolor.txt": {
-      "bytes": 8157,
-      "sha256": "17c1b8f565e846c1059b78ad3870fc684d4f0dd99cbd7c8ecdba4c29f1c36b4b"
+      "bytes": 8156,
+      "sha256": "c9aa9e6a8880086284885a5bc60403bb533ff713ce380acb162bd97c2b5d76cd"
     },
     "inventory-132x50-truecolor.json": {
-      "bytes": 11797,
-      "sha256": "b0ba163a5e93ec134a6d5bdd4a404c5643ad550cf896f0790c89bd45c0f82f1f"
+      "bytes": 11865,
+      "sha256": "64395ddc1e7ac48fdd49873335b40521a93d4ff138be82a64623587aa05bce9d"
     },
     "contracts-132x50-truecolor.ans": {
-      "bytes": 448004,
-      "sha256": "49c860057ab2d5aa64ad88bb036c6abe8cbee7f49643fdc16075ab98e69f50e0"
+      "bytes": 449744,
+      "sha256": "9b2032f191d46f0f8c58aa38e95842e34a42815292ca83f7decef6b71f9b43c7"
     },
     "contracts-132x50-truecolor.txt": {
-      "bytes": 7935,
-      "sha256": "78739f33fa65ac2131b3212558c0b68c25293476c8b93414559ae24adae59d62"
+      "bytes": 8128,
+      "sha256": "1316c3fb4581142a76aa23b579ede12f2ee1a320f9661dd1c9cf7a18c572ed80"
     },
     "contracts-132x50-truecolor.json": {
-      "bytes": 11810,
-      "sha256": "e501b6a3344b67b53b0590bd959527d248ffb2a5af9e5cb68862af57d72ebb93"
+      "bytes": 11836,
+      "sha256": "bef92f49178a1e8123aabb8ce97cc3ede30f0c1d21563964c22b2d4927155593"
     },
     "help-132x50-truecolor.ans": {
-      "bytes": 484057,
-      "sha256": "eef85b3b0883b3f1bae5f5030b541b1295f960063e7551dc33617c1547a17b0b"
+      "bytes": 482066,
+      "sha256": "11f6dc550fa66009eefe39efdb1c8967cd9c8f634069d52b2910aa325b278c13"
     },
     "help-132x50-truecolor.txt": {
-      "bytes": 7605,
-      "sha256": "89b32b55a806b10fc2ddbbfc71f576061766829b23a670f2b39a912ad0dff439"
+      "bytes": 7604,
+      "sha256": "4350d219543839d78b284d8016478312ed92966e8c6b5d16ebb494345e059c65"
     },
     "help-132x50-truecolor.json": {
-      "bytes": 9959,
-      "sha256": "a7483873131c30f2bec2dbe2f11ee796a4faf5b8e395e7d52e8cb3f54f598da0"
+      "bytes": 10027,
+      "sha256": "08225a281eef1a9121947f3c747bf46ae700a6243f5dc484bd5f5cde30b193c7"
     }
   },
   "committed_note": "manifest sha256/bytes are the files as the runner wrote them; the .txt frames are LF and committed byte for byte; .ans/.json are run artifacts kept on the runner"

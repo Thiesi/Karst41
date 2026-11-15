@@ -38,13 +38,13 @@
 ║          │ enter read this line  Esc/B put the record down                                                            │          ║
 ║          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          ║
 ╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
-║‼ You raise your weapon. Fire again after two seconds; the target can move to safety.                                             ║
-║* Miss: Training drone.                                                                                                           ║
+║‼ Training drone hits you for 5. (x3)                                                                                             ║
 ║* Hit: Training drone. (x2)                                                                                                       ║
+║" Vantongeren: If you die, you'll wake up here, or somewhere like here, with a bill. Sablier keeps a copy.                        ║
+║* Miss: Training drone. (x3)                                                                                                      ║
 ║* The drone stops. It had been trying since Tuesday.                                                                              ║
 ║+ The cable reels the pistol back to the wall.                                                                                    ║
-║" Vantongeren: If you die, you'll wake up here, or somewhere like here, with a bill. Sablier keeps a copy.                        ║
-║" Okafor: Up you get. Vantongeren does the speech; I do the walking.                                                              ║
+║" Vantongeren: Here's the part they make me say and the part I'd say anyway. For ninety days you're Sablier property under lease. ║
 ║" Okafor: No record in hand? I keep a copy. Read me the template line.                                                            ║
 ║? help  Enter read this line  Esc/B put the record down                                                                           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 

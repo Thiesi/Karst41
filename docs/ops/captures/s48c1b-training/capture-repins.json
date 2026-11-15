@@ -76,21 +76,6 @@
       "pr": 252
     },
     {
-      "capture": "inventory-80x24-truecolor.txt",
-      "reason": "S48c2: the log carries the opening's lines; the kit from beat 9",
-      "pr": 252
-    },
-    {
-      "capture": "contracts-80x24-truecolor.txt",
-      "reason": "S48c2: the log carries the opening's lines",
-      "pr": 252
-    },
-    {
-      "capture": "help-80x24-truecolor.txt",
-      "reason": "S48c2: the log carries the opening's lines",
-      "pr": 252
-    },
-    {
       "capture": "training-drone-132x50-16.txt",
       "reason": "S48c2: the drone lesson speaks its script lines (6.0, 6.1) and #220 4.12 text",
       "pr": 252
