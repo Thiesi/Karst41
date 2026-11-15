@@ -177,3 +177,24 @@ def test_the_server_honours_only_the_first_log_missed_per_connection(game):
     game.step(2)
     act(game, back, Frame('intent', {'name': 'log_missed', 'args': {}}))
     assert lesson(game, back) == 'Ctrl-P reads back what you missed.'
+
+
+@pytest.mark.parametrize('presentation', [True, False])
+def test_line_identity_survives_evictions_past_the_ring(info, presentation):
+    """Lines are known by a sequence stamp, not id(): after the ring evicts
+    hundreds of lines (and CPython reuses their addresses), a never-shown
+    speech line is still reported, and a replayed one never is."""
+    def churn(model: Display, start: int) -> None:
+        maxlen = model.logs.maxlen
+        for batch in range(3):  # Well past maxlen, rendering between batches.
+            lines = [system(f'Tick {start + batch}.{i}.', 1) for i in range(maxlen // 2 + 7)]
+            assert show(model, start + batch, *lines) == []
+    model = door(info, presentation)
+    churn(model, 1)
+    assert len(model.logs) == model.logs.maxlen
+    assert show(model, 9, said(ONE_ROW, 9), system(THREE_ROWS, 9), system('Ready.', 9)) == MISSED
+    model = door(info, presentation)
+    churn(model, 1)
+    assert show(model, 9, said(ONE_ROW, 9), system(THREE_ROWS, 9), system('Ready.', 9), replay=True) == []
+    # Only live speech is tracked, and nothing stale lingers past the ring.
+    assert model.live_lines <= {line['_seq'] for line in model.logs}

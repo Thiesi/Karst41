@@ -54,6 +54,10 @@ class Display:
         # S48c3b, the Ctrl-P read-back (architecture 3, #260): a spoken line
         # that arrived on this connection and was cut or left the log before
         # it was ever drawn whole sends `log_missed`, once per connection.
+        # Lines are known by a sequence stamp, never id(): a freed line's
+        # address is reused at once, which would mistake one line for another.
+        # The counter never resets, so old lines can't collide with new ones.
+        self.log_seq = 0
         self.live_lines: set[int] = set()
         self.log_whole: set[int] = set()
         self.missed_sent = False
@@ -147,11 +151,14 @@ class Display:
                     continue
                 if len(self.logs) == self.logs.maxlen:
                     self.log_ids.discard(self.logs[0].get("id"))
-                self.logs.append({**line, '_arrived': now} if self.presentation else dict(line))
+                self.log_seq += 1
+                stored = {**line, '_arrived': now} if self.presentation else dict(line)
+                stored['_seq'] = self.log_seq
+                self.logs.append(stored)
                 if token:
                     self.log_ids.add(token)
                 if not data.get("replay") and line.get("kind") == "speech":
-                    self.live_lines.add(id(self.logs[-1]))  # Replayed history never counts.
+                    self.live_lines.add(self.log_seq)  # Replayed history never counts.
         elif frame.type == "prompt":
             self.prompt = LinePrompt(data["id"], data["label"], min(200, data["max_len"])) if data["kind"] == "line" else None
             self.key_prompt = data if data["kind"] == "key" else None
@@ -508,7 +515,7 @@ class Display:
         """
         if self.missed_sent or not self.connected or not self.live_lines:
             return
-        current = {id(line) for line in self.logs}
+        current = {line.get('_seq') for line in self.logs}
         self.live_lines &= current
         self.log_whole &= current
         if not self.live_lines - self.log_whole:

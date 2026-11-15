@@ -509,7 +509,7 @@ class Opening:
             return
         avatar = self.game.sim.avatars.get(session.user_id)
         zone = avatar.actor.zone if avatar else None
-        once =self.once_hint(session, player, zone, avatar) if player.progress.get("opening") is not None else ""
+        once = self.once_hint(session, player, zone, avatar) if player.progress.get("opening") is not None else ""
         if once:
             body["lesson"] = {"text": resolve_keys(once, keymap)}
             return

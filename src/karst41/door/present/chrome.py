@@ -137,7 +137,7 @@ class LogEntry:
     script: str = ''
     """The authored script line that emitted it; such an entry never merges."""
     lines: list[int] = field(default_factory=list)
-    """id() of each raw line it stands for, so the door can tell which were drawn whole."""
+    """The `_seq` of each raw line it stands for, so the door can tell which were drawn whole."""
 
     @property
     def shown(self) -> str:
@@ -160,6 +160,12 @@ def seconds(line: dict[str, Any]) -> float | None:
         return None
 
 
+def _seq(line: dict[str, Any]) -> list[int]:
+    """The display's own sequence stamp for a stored line (S48c3b), if any."""
+    seq = line.get('_seq')
+    return [seq] if isinstance(seq, int) else []
+
+
 def digest(lines: list[dict[str, Any]]) -> list[LogEntry]:
     """Declared kinds only; XP formatting never determines a line's kind."""
     out: list[LogEntry] = []
@@ -177,7 +183,7 @@ def digest(lines: list[dict[str, Any]]) -> list[LogEntry]:
                      and (entry.kind, entry.text, entry.speaker, entry.speaker_role) == (kind, text, who, role)), None)
         if same:
             same.count += 1
-            same.lines.append(id(line))
+            same.lines.extend(_seq(line))
             same.at, same.arrived = at, arrived
             continue
         match = re.fullmatch(r'You gain (\d+) XP\.?', text) if kind == 'reward' else None
@@ -192,9 +198,9 @@ def digest(lines: list[dict[str, Any]]) -> list[LogEntry]:
                 prev.text = join_merged(prev.shown, text)
             prev.count = 1
             prev.at, prev.arrived = at, arrived
-            prev.lines.append(id(line))
+            prev.lines.extend(_seq(line))
             continue
-        out.append(LogEntry(str(kind), text, at, arrived, who, role, xp=xp, script=script, lines=[id(line)]))
+        out.append(LogEntry(str(kind), text, at, arrived, who, role, xp=xp, script=script, lines=_seq(line)))
     return out
 
 

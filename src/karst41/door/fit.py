@@ -191,8 +191,9 @@ def default_log_rows(lines: Sequence[dict[str, Any]], width: int, height: int,
         return wrapped[index]
 
     shown = select_lazy(len(lines), rows_of, lambda index: False, height)
-    if whole is not None:  # S48c3b: id() of raw lines drawn whole (Ctrl-P read-back).
-        whole.update(id(lines[index]) for index, count in shown.items() if count >= len(wrapped[index]))
+    if whole is not None:  # S48c3b: the `_seq` of raw lines drawn whole (Ctrl-P read-back).
+        whole.update(lines[index]['_seq'] for index, count in shown.items()
+                     if count >= len(wrapped[index]) and isinstance(lines[index].get('_seq'), int))
     out: list[dict[str, str]] = []
     for index in sorted(shown):
         rows, count = wrapped[index], shown[index]
