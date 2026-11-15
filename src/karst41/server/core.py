@@ -334,6 +334,12 @@ class Core:
             return
         if frame.type == "intent" and frame.data["name"] == "resync":
             session.replay_log()
+        if frame.type == "intent" and frame.data["name"] == "log_missed":
+            # Architecture 3 (S48c3b): the door's one-per-connection report of a
+            # spoken line missed; only the opening listens, and silently.
+            if self.opening is not None:
+                self.opening.log_missed(session)
+            return
         routes = self.routes_for(session)
         action = key_action(self.keymap, session, frame)
         if self.opening is not None and action:

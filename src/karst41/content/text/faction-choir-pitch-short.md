@@ -1,0 +1,1 @@
+Everyone else says what's under the city is a hazard, or a secret, or a claim. We think it's a person. A lonely one. If Sablier won't discuss your template, you heard something in the vat. The Choir asks nothing but attention. Take the card.

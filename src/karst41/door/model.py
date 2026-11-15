@@ -51,6 +51,13 @@ class Display:
         self.notice_started = 0.0
         self.notice_pressed = self.notice_header = False
         self.release_seen: float | None = None  # The newest `me.danger_release` seen (#253).
+        # S48c3b, the Ctrl-P read-back (architecture 3, #260): a spoken line
+        # that arrived on this connection and was cut or left the log before
+        # it was ever drawn whole sends `log_missed`, once per connection.
+        self.live_lines: set[int] = set()
+        self.log_whole: set[int] = set()
+        self.missed_sent = False
+        self.outbox: list[Frame] = []
         # S44: a rule's price, stated before it is paid (terminal UI 2.1).
         self.notice_price = False  # The shown notice is a price notice.
         self.price_noticed = False  # The first-target notice, once per session.
@@ -90,6 +97,7 @@ class Display:
         if frame.type == "welcome":
             self.connected = True
             self.release_seen = None  # #253: a new connection starts with no stamp; the server re-sends.
+            self.live_lines, self.log_whole, self.missed_sent = set(), set(), False
             self.keymap = data.get("keymap", {})
             settings = data.get("player", {}).get("settings", {}) if isinstance(data.get("player"), dict) else {}
             self.selected_keymap = settings.get("keymap", "arrows")
@@ -139,9 +147,11 @@ class Display:
                     continue
                 if len(self.logs) == self.logs.maxlen:
                     self.log_ids.discard(self.logs[0].get("id"))
-                self.logs.append({**line, '_arrived': now} if self.presentation else line)
+                self.logs.append({**line, '_arrived': now} if self.presentation else dict(line))
                 if token:
                     self.log_ids.add(token)
+                if not data.get("replay") and line.get("kind") == "speech":
+                    self.live_lines.add(id(self.logs[-1]))  # Replayed history never counts.
         elif frame.type == "prompt":
             self.prompt = LinePrompt(data["id"], data["label"], min(200, data["max_len"])) if data["kind"] == "line" else None
             self.key_prompt = data if data["kind"] == "key" else None
@@ -481,6 +491,7 @@ class Display:
             chrome.render_effects(buffer, self.layout, self.palette, self.toast, flashed)
         if flashed:
             self.hit_flash = False
+        self._check_missed(now)
         output = buffer.diff(None if self.force_full else self.previous)
         output += chrome.cursor(self.layout, hint, bool(self.prompt and not self.confirm_exit))
         self.previous = buffer
@@ -488,6 +499,33 @@ class Display:
         self.force_full = False
         self.dirty = flashed
         return output, Frame("ack", {"rev": self.revision}) if self.connected else None
+
+    def _check_missed(self, now: float) -> None:
+        """After a render: did a live spoken line miss being drawn whole?
+
+        It reruns the log selection the renderer just used, and only while
+        some live spoken line is still waiting to be drawn whole.
+        """
+        if self.missed_sent or not self.connected or not self.live_lines:
+            return
+        current = {id(line) for line in self.logs}
+        self.live_lines &= current
+        self.log_whole &= current
+        if not self.live_lines - self.log_whole:
+            return
+        area, lines = self.layout.log, list(self.logs)
+        if self.presentation:
+            present_chrome.visible_rows(lines, area.width, area.height, now, self.danger_release(),
+                                        whole=self.log_whole)
+        else:
+            chrome.default_log_rows(lines, area.width, area.height, whole=self.log_whole)
+        if self.live_lines - self.log_whole:
+            self.missed_sent = True
+            self.outbox.append(Frame("intent", {"name": "log_missed", "args": {}}))
+
+    def take_outbox(self) -> list[Frame]:
+        frames, self.outbox = self.outbox, []
+        return frames
 
     def _present(self, buffer: CellBuffer, kind: str, body: dict[str, Any], hint: str, now: float) -> None:
         if self.paint.palette is not self.palette:

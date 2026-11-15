@@ -1,0 +1,24 @@
+┌─ Karst · Wide界 ─────────────────────────────────────────────────────────────┐
+│    ┌─ THE WAKE - Recruiter cards ───────────────────────────────────────┐    │
+│    │ Choice                                                             │    │
+│    │ Halvard-Ostrom                                                     │    │
+│    │ Sablier                                                            │    │
+│    │ Kestrel                                                            │    │
+│    │ Wardens                                                            │    │
+│    │ Ninefold Choir                                                     │    │
+│    │ Red Sable                                                          │    │
+│    │ Unmoored                                                           │    │
+│    │ Ferrymen                                                           │    │
+│    │ Take no card                                                       │    │
+│    │ Here's your lease. Clause four lets Sablier re-decant you if       │    │
+│    │ you're "materially damaged". Clause nine defines that. No view, no │    │
+│    │ pension. We have the Lattice, all of it, and we publish what we    │    │
+│    │ find. Ninety-Nine says hello. Dead twenty-four years.              │    │
+│    │ enter take a card  Esc/B put the cards down                        │    │
+│    └────────────────────────────────────────────────────────────────────┘    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│Enter take a card  Esc/B put the cards down                                   │
+└──────────────────────────────────────────────────────────────────────────────

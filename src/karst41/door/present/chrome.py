@@ -4,15 +4,16 @@ UI 2.1/2.4/2.5 and #106's 2026-10-30 decisions govern corrections.
 No hint fitting, duplicate geometry, text classifier or clock reads.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 import re
 from typing import Any
 
 from karst41.door.cells import CellBuffer, clean_text, display_width, truncate
+from karst41.door.chrome import word_prefix, zone_cut, zone_minimum
 from karst41.door.fit import LOG_PROTECT_EXTRA, log_cut, log_window, select_lazy
 from karst41.door.log import wrap as word_wrap
-from karst41.layout import Layout
+from karst41.layout import Layout, Rect
 from karst41.door.present.paint import Paint
 
 LINES = {True: ('═', '║', '╔', '╗', '╚', '╟', '╢', '╤'),
@@ -47,34 +48,52 @@ def frame(buffer: CellBuffer, layout: Layout, paint: Paint, safety: str, *,
 
 def header(buffer: CellBuffer, layout: Layout, paint: Paint, left: list[tuple[str, str]],
            right: list[tuple[str, str]], *, notice: tuple[str, str, float] | None = None) -> None:
-    """Drop low-priority whole segments before shortening the zone."""
+    """Terminal UI 2 (S48c3b, #261): drop whole low-priority segments, then
+    cut the zone at a whole word, keeping at least its first.
+
+    The district is left out when it names the zone. Safety and threat words
+    never drop and come before the zone's minimum. A notice gets what is left
+    after that minimum: the gap before it shrinks to one cell, then it is
+    cut at a whole word; the full notice stays on the toast.
+    """
     area = layout.header
+    shown = [(clean_text(text), role) for text, role in left if text]
+    if shown and not shown[0][1].startswith('head_zone'):
+        shown = []  # Never happens today: the zone always leads.
+    zone = shown[0][0] if shown else ''
+    shown = [entry for entry in shown
+             if not (entry[1] == 'head_district' and entry[0].casefold() == zone.casefold())]
+
+    def optional(entry: tuple[str, str]) -> bool:
+        return entry[1] == 'head_district' or entry[1] == 'head_info' and entry[0] != 'PvP G5+'
+
+    def width_of(entries: list[tuple[str, str]]) -> int:
+        return display_width(' '.join(text for text, _ in entries))
+
+    gap = 2
     if notice:
-        # Use the existing right segment ahead of clock/handle. Preserve
-        # safety/threat words and room for the zone ellipsis; the normal
-        # drop order below removes district/service, then shortens the zone.
-        fixed = [clean_text(text) for text, role in left[1:] if text
-                 and role != 'head_district' and not (role == 'head_info' and text != 'PvP G5+')]
-        # Share scarce width when both names are long; otherwise keep the
-        # full zone and give the notice every remaining cell at the right.
-        notice_room = min(display_width(clean_text(notice[0])), area.width // 2)
-        available = max(0, area.width - display_width(' '.join(fixed)) - bool(fixed) - notice_room - 2)
-        zone_room = min(display_width(clean_text(left[0][0])), available) if left else 0
-        reserve = display_width(' '.join(fixed)) + zone_room + bool(fixed and zone_room)
-        text = truncate(clean_text(notice[0]), max(0, area.width - reserve - 2))
+        # The notice replaces the clock, so the header runs to one frame cell
+        # before the corner (#261: 78 inside at 80x24, `─┐` closing it).
+        area = Rect(area.x, area.y, layout.width - 2 * area.x, area.height)
+        fixed = [entry for entry in shown[1:] if not optional(entry)]
+        least = zone_cut(zone, display_width(zone_minimum(zone))) if zone else ''
+        used = width_of([*([(least, '')] if least else []), *fixed])
+        text = clean_text(notice[0])
+        if display_width(text) > area.width - used - gap:
+            gap = 1
+        if display_width(text) > area.width - used - gap:
+            text = word_prefix(text, max(0, area.width - used - gap)) if area.width - used - gap > 3 else ''
         right = [(text, notice[1])] if text else []
     right_text = ' '.join(clean_text(text) for text, _ in right)
-    room = area.width - (display_width(right_text) + 2 if right_text else 0)
-    shown = [(clean_text(text), role) for text, role in left if text]
-    while display_width(' '.join(text for text, _ in shown)) > room:
-        optional = [i for i, (text, role) in enumerate(shown)
-                    if role == 'head_district' or role == 'head_info' and text != 'PvP G5+']
-        if not optional:
+    room = area.width - (display_width(right_text) + gap if right_text else 0)
+    while width_of(shown) > room:
+        drop = [i for i, entry in enumerate(shown) if optional(entry)]
+        if not drop:
             break
-        shown.pop(optional[-1])
-    if len(shown) >= 2 and display_width(' '.join(text for text, _ in shown)) > room:
-        fixed = display_width(' '.join(text for text, _ in shown[1:])) + 1
-        shown[0] = (truncate(shown[0][0], max(0, room - fixed)), shown[0][1])
+        shown.pop(drop[-1])
+    if shown and width_of(shown) > room:
+        fixed = width_of(shown[1:]) + 1 if len(shown) > 1 else 0
+        shown[0] = (zone_cut(zone, max(0, room - fixed)), shown[0][1])
     shown = [entry for entry in shown if entry[1] == 'head_district'] + [entry for entry in shown if entry[1] != 'head_district']
     x = area.x
     for text, role in shown:
@@ -117,6 +136,8 @@ class LogEntry:
     xp: int | None = None
     script: str = ''
     """The authored script line that emitted it; such an entry never merges."""
+    lines: list[int] = field(default_factory=list)
+    """id() of each raw line it stands for, so the door can tell which were drawn whole."""
 
     @property
     def shown(self) -> str:
@@ -156,6 +177,7 @@ def digest(lines: list[dict[str, Any]]) -> list[LogEntry]:
                      and (entry.kind, entry.text, entry.speaker, entry.speaker_role) == (kind, text, who, role)), None)
         if same:
             same.count += 1
+            same.lines.append(id(line))
             same.at, same.arrived = at, arrived
             continue
         match = re.fullmatch(r'You gain (\d+) XP\.?', text) if kind == 'reward' else None
@@ -170,8 +192,9 @@ def digest(lines: list[dict[str, Any]]) -> list[LogEntry]:
                 prev.text = join_merged(prev.shown, text)
             prev.count = 1
             prev.at, prev.arrived = at, arrived
+            prev.lines.append(id(line))
             continue
-        out.append(LogEntry(str(kind), text, at, arrived, who, role, xp=xp, script=script))
+        out.append(LogEntry(str(kind), text, at, arrived, who, role, xp=xp, script=script, lines=[id(line)]))
     return out
 
 
@@ -183,7 +206,8 @@ def _text(entry: LogEntry) -> str:
 
 
 def visible_rows(lines: list[dict[str, Any]], width: int, height: int,
-                 now: float, release: float | None = None) -> list[tuple[LogEntry, str, bool]]:
+                 now: float, release: float | None = None,
+                 whole: set[int] | None = None) -> list[tuple[LogEntry, str, bool]]:
     """P12 rule 5 (#202): whole entries; the newest always shows.
 
     Bounded work (technical review 6808753030): at most the newest
@@ -222,6 +246,9 @@ def visible_rows(lines: list[dict[str, Any]], width: int, height: int,
                 and 0 <= now - entry.arrived < PROTECT_SECONDS)
 
     shown = select_lazy(len(entries), rows_of, protected, height)
+    if whole is not None:  # S48c3b: raw lines drawn whole, for the Ctrl-P read-back.
+        whole.update(line for index, rows in shown.items() if rows >= len(wrapped[index])
+                     for line in entries[index].lines)
     out = []
     for index in sorted(shown):
         rows = wrapped[index]

@@ -51,6 +51,97 @@ def short_name(label: str) -> str:
     return words[-1] if words else clean_text(label).strip()
 
 
+# Terminal UI 6 (#261): honorifics and initials never stand for a person.
+HONORIFIC = re.compile(r'^(?:Dr|Mr|Mrs|Ms|Mx)\.$|^\w\.$')
+
+
+def word_prefix(text: str, budget: int) -> str:
+    """The longest whole-word prefix of `text` that fits `budget` with `...`.
+
+    Only a first word that alone can't fit is cut inside, to fit with `...`
+    (terminal UI 6, #261): the one in-word cut, for a word over budget - 1.
+    """
+    words = clean_text(text).split()
+    shown = ''
+    for word in words:
+        candidate = (shown + ' ' + word).strip()
+        if display_width(candidate + '...') > budget:
+            break
+        shown = candidate
+    if shown:
+        return shown + '...'
+    return truncate(words[0] if words else '', budget)
+
+
+ARTICLES = ('the', 'a', 'an')
+
+
+def zone_minimum(name: str) -> str:
+    """A cut zone name's least: its first whole word after a leading article, with `...`."""
+    words = clean_text(name).split()
+    if len(words) > 1 and words[0].casefold() in ARTICLES:
+        words = words[1:]
+    return (words[0] + '...') if words else ''
+
+
+def zone_cut(name: str, budget: int) -> str:
+    """Terminal UI 2 (#261): the zone whole, else a whole-word prefix with
+    `...` that leaves out a leading article (`The Tin Halo` cut is `Tin...`);
+    only when its first word can't fit is that word cut inside itself."""
+    name = clean_text(name).strip()
+    if display_width(name) <= budget:
+        return name
+    words = name.split()
+    if len(words) > 1 and words[0].casefold() in ARTICLES:
+        words = words[1:]
+    return word_prefix(' '.join(words), budget)
+
+
+def here_label(label: str, budget: int) -> str:
+    """Terminal UI 6, HERE (#261), first that fits: the label; its #253 short
+    form keeping the trailing parenthetical; the short form alone; a
+    whole-word prefix with `...`."""
+    label = clean_text(label).strip()
+    if display_width(label) <= budget:
+        return label
+    short = short_name(label)
+    paren = TRAILING_PAREN.search(label)
+    for candidate in ((short + ' ' + paren.group().strip()) if paren else '', short):
+        if candidate and candidate != label and display_width(candidate) <= budget:
+            return candidate
+    return word_prefix(label, budget)
+
+
+def person_word(name: str) -> str:
+    """A name's last whole word, skipping honorifics, initials and words of
+    only digits or punctuation; empty when nothing is left to choose."""
+    words = [word for word in clean_text(name).split()
+             if any(ch.isalpha() for ch in word) and not HONORIFIC.match(word)]
+    return words[-1] if words else ''
+
+
+def panel_names(names: list[str], budgets: list[int]) -> list[str]:
+    """Terminal UI 6 (#261): the side panel's name rows, NEARBY and TARGET
+    together, from presented names only. Pass only the rows that are drawn.
+
+    Each row shows its full name when it fits, else its last whole word
+    (`person_word`). Two rows that would then read the same while their full
+    names differ both fall back to a whole-word prefix with `...`; rows
+    whose full names are equal are unaffected. A name with no word left to
+    choose uses the prefix.
+    """
+    names = [clean_text(name).strip() for name in names]
+    shown = []
+    for name, budget in zip(names, budgets):
+        word = person_word(name)
+        shown.append(name if display_width(name) <= budget
+                     else word if word and display_width(word) <= budget else word_prefix(name, budget))
+    collide = [any(shown[i] == shown[j] and names[i] != names[j] for j in range(len(names)) if j != i)
+               for i in range(len(names))]
+    return [word_prefix(name, budget) if clash and text != name else text
+            for name, budget, text, clash in zip(names, budgets, shown, collide)]
+
+
 def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str]]) -> str:
     """Terminal UI 11 (presentation lead's build for S48c2).
 
@@ -160,7 +251,8 @@ def render_frame(buffer: CellBuffer, layout: Layout, palette: Palette, header: s
 def _zone_header(buffer: CellBuffer, layout: Layout, body: dict[str, Any], palette: Palette) -> None:
     me = body["me"]
     slots = layout.header_slots
-    header = f"{me['zone_name']}  "
+    # Terminal UI 2 (#261): the zone is never cut inside a word.
+    header = zone_cut(str(me['zone_name']), slots.zone_title.width - 2) + "  "
     buffer.put(slots.zone_title.x, slots.zone_title.y, truncate(header, slots.zone_title.width), palette.style("title"))
     safety = "CONTESTED─TRUCE─PvP G5+" if me["safety"] == "contested" and me.get("truce") else me["safety"].upper()
     sx = min((slots.heat_safety_right if me.get("heat_until") else slots.safety_right) - len(safety), slots.zone_title.x + display_width(header))

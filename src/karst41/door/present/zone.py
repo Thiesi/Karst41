@@ -9,7 +9,7 @@ import json
 from typing import Any
 
 from karst41.door.cells import CellBuffer, clean_text, display_width, truncate
-import re
+from karst41.door.chrome import here_label, panel_names, word_prefix
 from karst41.door.layout import Layout
 from karst41.door.palette import Style
 from karst41.door.present import chrome
@@ -295,34 +295,31 @@ def at_hand(body: dict[str, Any]) -> list[str]:
     return names
 
 
-def fit_here(text: str, width: int) -> str:
-    """Keep the distinguishing suffix when a HERE entry cannot fit (#114).
+TARGET_NAME_CELLS = 16  # Terminal UI 6 (#261): NEARBY and TARGET names.
 
-    Shape and space are retained. Parenthetical place names take priority
-    over generic prefixes such as Public terminal; otherwise elide the
-    middle so the start and the distinguishing end both survive.
+
+def fit_here(text: str, width: int) -> str:
+    """A HERE entry, `<shape> <label>`, in `width` cells (terminal UI 6, #261).
+
+    The shape is never cut. The label shows whole, else its last whole word
+    keeping a trailing parenthetical (`terminal (Plaza 1)`, which says which
+    one you stand at, #114), else that word alone, else a whole-word prefix
+    with `...`; never cut inside a word.
     """
-    text = clean_text(text)
-    if display_width(text) <= width:
-        return text
-    shape, _, label = text.partition(' ')
-    budget = max(0, width - display_width(shape) - 1)
-    match = re.match(r'^(.*?)\s*(\([^)]*\))$', label)
-    if match and display_width(match[2]) <= budget:
-        suffix = match[2]
-        room = budget - display_width(suffix) - 1
-        prefix = truncate(match[1], max(0, room))
-        return truncate(shape + ' ' + (prefix + ' ' if prefix else '') + suffix, width)
-    if budget <= 3:
-        return truncate(text, width)
-    # Slice by measured cells, including wide-character names.
-    tail = ''
-    tail_room = (budget - 3 + 1) // 2
-    for ch in reversed(label):
-        if display_width(ch + tail) > tail_room:
-            break
-        tail = ch + tail
-    return shape + ' ' + truncate(label, budget - display_width(tail) - 3, ellipsis=False) + '...' + tail
+    shape, _, label = clean_text(text).partition(' ')
+    return shape + ' ' + here_label(label, max(0, width - display_width(shape) - 1))
+
+
+def lease_row(me: dict[str, Any]) -> str:
+    """Terminal UI 2.4: `on the roll`, then `sig n/90` at grade 5, then `day n/90`.
+
+    Day n counts from 1 on the day of decant; grades never fall, so `sig`
+    never reverts to `day`.
+    """
+    if me.get('legal_at'):
+        return 'on the roll'
+    day = min(90, int(me.get('lease_days', 0)) + 1)
+    return f"{'sig' if (me.get('grade') or 0) >= 5 else 'day'} {day}/90"
 
 
 def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint) -> None:
@@ -332,7 +329,7 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
     me = body["me"]
     wide = layout.height >= 40
     has_sheet = me.get("grade") is not None
-    vitals = (6 if wide else 5) if has_sheet else 4
+    vitals = 5 if has_sheet else 4  # 2.4: no Signatory XP row at either size.
     vy = bottom - vitals + 1
     y = top
     crew = body.get('crew', [])
@@ -373,13 +370,19 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
     if hand:
         section("HERE")
         for name in hand:
-            line(fit_here(name, w - 1), "panel_text")
+            line(fit_here(name, w - 2), "panel_text")  # One cell of right margin (UI 6).
     limit += target_reserve
     target = body.get("target")
+    # UI 6 (#261): TARGET's and the drawn NEARBY rows' names are fitted
+    # together once both are known, so a short form never collides.
+    names: list[tuple[int, int, str, int, Style]] = []  # x, y, name, budget, style
     section("TARGET")
     if target:
         tag = TAGS.get({"hostile": "!", "allied": "+"}.get(target.get("relation", ""), "~"), "neutral")
-        line(target["name"], target.get("name_role", "panel_text"), bold=True)
+        if active and y < limit:
+            names.append((x + 1, y, str(target["name"]), TARGET_NAME_CELLS,
+                          paint(target.get("name_role", "panel_text"), bold=True)))
+            y += 1
         if y < limit:
             health = f"{target['hp']:g}" if "hp" in target else f"{target.get('hp_percent', target.get('hp_pct', 0))}%"
             chrome.bar(buffer, paint, x + 1, y, "HP", target.get("hp_percent", target.get("hp_pct", 0)), 100, "bar_hp", health, width=10)
@@ -393,6 +396,7 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
     else:
         line("none   Tab picks", "panel_dim")
     nearby = body.get("nearby", [])
+    suffixes: dict[int, str] = {}
     if nearby and y < limit - 2:
         section("NEARBY")
         actors = {a['id']: a for a in body.get('actors', [])}
@@ -410,9 +414,14 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
             relation = entry.get('relation', '~')
             relation = relation if relation in TAGS else '~'
             suffix = (' jacked' if jacked else '') + ' ' + relation
-            label = truncate(entry.get('name', 'Someone'), w - 4 - len(suffix)) + suffix
-            buffer.put(x + 3, y, label, paint("log_danger" if hostile else "panel_text"))
+            budget = w - 4 - len(suffix)  # 16 cells beside ` ~`.
+            names.append((x + 3, y, str(entry.get('name', 'Someone')), budget,
+                          paint("log_danger" if hostile else "panel_text")))
+            suffixes[y] = suffix
             y += 1
+    fitted = panel_names([name for _, _, name, _, _ in names], [budget for _, _, _, budget, _ in names])
+    for (nx, ny, _, _, style), text in zip(names, fitted):
+        buffer.put(nx, ny, text + suffixes.get(ny, ''), style)
     limit = vy - 1
     if crew and y < limit - 1:
         section("CREW")
@@ -422,10 +431,16 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
             line(mark + truncate(member["name"], w - 3 - len(suffix)) + suffix, "player_crew")
             line("  " + str(member["zone"]), "panel_label")
     chrome.rule(buffer, layout, paint, vy - 1)
-    name = me.get("name", me.get("handle", ""))
-    if me.get("handle") and me["handle"] != name and wide:
-        name = f"{name} · {me['handle']}"
-    buffer.put(x + 1, vy, truncate(name, w - 6), paint(me.get("name_role", "panel_strong") if paint.has(me.get("name_role", "")) else "panel_strong", bold=True))
+    name = clean_text(str(me.get("name", me.get("handle", ""))))
+    room = w - 6  # The grade sits at the right (2.4 item 7).
+    # UI 6 (#261): the handle shows whole or not at all; the full handle
+    # stays in sitrep. The name itself is never cut inside a word.
+    handled = f"{name} · {clean_text(str(me.get('handle') or ''))}"
+    if me.get("handle") and me["handle"] != name and wide and display_width(handled) <= room:
+        name = handled
+    elif display_width(name) > room:
+        name = word_prefix(name, room)
+    buffer.put(x + 1, vy, name, paint(me.get("name_role", "panel_strong") if paint.has(me.get("name_role", "")) else "panel_strong", bold=True))
     if has_sheet:
         buffer.put(x + w - 4, vy, f"G{me['grade']}", paint("panel_label"))
     chrome.bar(buffer, paint, x + 1, vy + 1, "HP", me["hp"], me["hp_max"], "bar_hp" if me["hp"] > me["hp_max"] // 3 else "bar_trace", f"{int(me['hp'])}")
@@ -433,9 +448,7 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
     chrome.bar(buffer, paint, x + 1, vy + 3, "SHK", me.get("shock", 0), 100, "bar_shock", f"{me.get('shock', 0):g}")
     if has_sheet:
         buffer.put(x + 1, vy + 4, truncate(f"{me['chits']} ch", 9), paint("panel_text"))
-        buffer.put(x + 10, vy + 4, f"lease {me['lease_days']}/90", paint("panel_label"))
-        if wide:
-            buffer.put(x + 1, vy + 5, truncate(f"signatory {me['xp']}/{me['discharge_xp']}", w - 1), paint("panel_label"))
+        buffer.put(x + 10, vy + 4, truncate(lease_row(me), 12), paint("panel_label"))
 
 
 def head(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint, *,

@@ -1,0 +1,50 @@
+┌─ Karst · Wide界 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│          ┌─ THE WAKE - Recruiter cards ───────────────────────────────────────────────────────────────────────────────┐          │
+│          │ Choice                                               Everyone else will tell you what's under the city is  │          │
+│          │ Halvard-Ostrom                                       a hazard, or a secret, or a property claim. We think  │          │
+│          │ Sablier                                              it's a person. Not a good one, not a bad one, a       │          │
+│          │ Kestrel                                              lonely one, and we've spent twenty years learning to  │          │
+│          │ Wardens                                              listen to it. If you were decanted from a template    │          │
+│          │ Ninefold Choir                                       Sablier won't discuss, you already know what I mean;  │          │
+│          │ Red Sable                                            you heard something in the vat. If you didn't, we     │          │
+│          │ Unmoored                                             can still teach you. The Choir asks nothing but       │          │
+│          │ Ferrymen                                             attention. It gives back more than you'd think. Take  │          │
+│          │ Take no card                                         the card.                                             │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │                                                                                                            │          │
+│          │ enter take a card  Esc/B put the cards down                                                                │          │
+│          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          │
+├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│                                                                                                                                  │
+│Enter take a card  Esc/B put the cards down                                                                                       │
+└──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
