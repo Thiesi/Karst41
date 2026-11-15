@@ -1,20 +1,20 @@
-╔═VATSIDE═Wake Hall═POCKET════════════════════════════════════════════════════Crews end on a service restart. Use G to invite.═════╗
+╔═VATSIDE═Wake Hall═POCKET══════════════════════════════════════════════════════════════════════════════════╤════════════01:56═════╗
 ║                                                                                                           │─ TARGET ─────────────║
 ║                                                                                                           │ none   Tab picks     ║
 ║                                                                                                           │─ NEARBY ─────────────║
 ║                                                                                                           │ ☻ Sablier orderly ~  ║
+║                                                                                                           │ ☻ Dr. Ilse Vant... ~ ║
 ║                                                                                                           │ ☻ Sablier orderly ~  ║
 ║                                                                                                           │                      ║
 ║                                                                                                           │                      ║
 ║                                                                                                           │                      ║
 ║                                                                                                           │                      ║
-║                                                                                                           │                      ║
 ║                                  ···················                                                      │                      ║
 ║                                  ···················                                                      │                      ║
-║                                  ··Θ·Θ·Θ·Θ···☻······                                                      │                      ║
-║                                  ············☻······                                                      │                      ║
+║                                  ··Θ·Θ·Θ·Θ··········                                                      │                      ║
+║                                  ···········☻☻······                                                      │                      ║
 ║                                  ·····@·····$·······                                                      │                      ║
-║                                  ···················                                                      │                      ║
+║                                  ············☻······                                                      │                      ║
 ║                                  ···················                                                      │                      ║
 ║                                  ···················                                                      │                      ║
 ║                                  ···················                                                      │                      ║
@@ -38,13 +38,13 @@
 ║                                                                                                           │ 200 ch   lease 0/90  ║
 ║                                                                                                           │ signatory 0/1500     ║
 ╟───────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────────────╢
-║» You wake on a gurney under a number. White light, warm plastic, a floor drain. Past the cards, a corridor. Past the corridor, a ║
-║  terminal.                                                                                                                       ║
-║‼ Your training drone wakes. Tab targets; F fires; B skips. Its shots cannot kill.                                                ║
-║‼ You raise your weapon. Fire again after two seconds; the target can move to safety.                                             ║
-║‼ Training drone hits you for 5. (x2)                                                                                             ║
-║* Miss: Training drone.                                                                                                           ║
-║* Hit: Training drone. (x2)                                                                                                       ║
-║* The training drone falls silent. The tutorial terminal is ahead.                                                                ║
-║? help  Tab target  F fire  X weapon  1-5 quick  V abilities  E interact  I inventory                                             ║
+║" Vantongeren: Many names vanish from the lease rolls. Some leave the work; some disappear. The roll does not tell me which.      ║
+║" Vantongeren: Keep your own record.                                                                                              ║
+║" Vantongeren: Here's the part they make me say and the part I'd say anyway. For ninety days you're Sablier property under lease. ║
+║" Vantongeren: After ninety days you're a person, with a name on the civic roll. Nothing gets you there sooner. The days count    ║
+║  without you.                                                                                                                    ║
+║√ Issued: sidearm, 50 rounds, baton, two patches, two rations.                                                                    ║
+║√ Issued: a Kestrel Issue Vest. It's on you already.                                                                              ║
+║√ 200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.                                                                    ║
+║Crews end on a service restart. Use G to invite.  Ctrl-X leaves                                                                   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════ 

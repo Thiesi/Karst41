@@ -1,0 +1,214 @@
+{
+  "repins": [
+    {
+      "capture": "training-drone-80x24-16.txt",
+      "reason": "S48c2: the drone lesson speaks its script lines (6.0, 6.1) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "training-complete-80x24-16.txt",
+      "reason": "S48c2: the drone lesson's lines (6.2, 6.5, 6.6, 6.8) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "wake-record-80x24-16.txt",
+      "reason": "S48c2: the record opens over the opening's lines; 6.2 first, then the record line 9.2 (amendments 3 and 4)",
+      "pr": 252
+    },
+    {
+      "capture": "wake-hall-80x24-16.txt",
+      "reason": "S48c2: beat 9 in the creative lead's order (9.8, 9.9, owed lease lines, the kit, 9.11; amendments 1-5) and the hall talkers",
+      "pr": 252
+    },
+    {
+      "capture": "meridian-plaza-80x24-16.txt",
+      "reason": "S48c2: the log carries the opening's lines into the Plaza frame",
+      "pr": 252
+    },
+    {
+      "capture": "training-drone-80x24-256.txt",
+      "reason": "S48c2: the drone lesson speaks its script lines (6.0, 6.1) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "training-complete-80x24-256.txt",
+      "reason": "S48c2: the drone lesson's lines (6.2, 6.5, 6.6, 6.8) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "wake-record-80x24-256.txt",
+      "reason": "S48c2: the record opens over the opening's lines; 6.2 first, then the record line 9.2 (amendments 3 and 4)",
+      "pr": 252
+    },
+    {
+      "capture": "wake-hall-80x24-256.txt",
+      "reason": "S48c2: beat 9 in the creative lead's order (9.8, 9.9, owed lease lines, the kit, 9.11; amendments 1-5) and the hall talkers",
+      "pr": 252
+    },
+    {
+      "capture": "meridian-plaza-80x24-256.txt",
+      "reason": "S48c2: the log carries the opening's lines into the Plaza frame",
+      "pr": 252
+    },
+    {
+      "capture": "training-drone-80x24-truecolor.txt",
+      "reason": "S48c2: the drone lesson speaks its script lines (6.0, 6.1) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "training-complete-80x24-truecolor.txt",
+      "reason": "S48c2: the drone lesson's lines (6.2, 6.5, 6.6, 6.8) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "wake-record-80x24-truecolor.txt",
+      "reason": "S48c2: the record opens over the opening's lines; 6.2 first, then the record line 9.2 (amendments 3 and 4)",
+      "pr": 252
+    },
+    {
+      "capture": "wake-hall-80x24-truecolor.txt",
+      "reason": "S48c2: beat 9 in the creative lead's order (9.8, 9.9, owed lease lines, the kit, 9.11; amendments 1-5) and the hall talkers",
+      "pr": 252
+    },
+    {
+      "capture": "meridian-plaza-80x24-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines into the Plaza frame",
+      "pr": 252
+    },
+    {
+      "capture": "inventory-80x24-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines; the kit from beat 9",
+      "pr": 252
+    },
+    {
+      "capture": "contracts-80x24-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    },
+    {
+      "capture": "help-80x24-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    },
+    {
+      "capture": "training-drone-132x50-16.txt",
+      "reason": "S48c2: the drone lesson speaks its script lines (6.0, 6.1) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "training-complete-132x50-16.txt",
+      "reason": "S48c2: the drone lesson's lines (6.2, 6.5, 6.6, 6.8) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "wake-record-132x50-16.txt",
+      "reason": "S48c2: the record opens over the opening's lines; 6.2 first, then the record line 9.2 (amendments 3 and 4)",
+      "pr": 252
+    },
+    {
+      "capture": "wake-hall-132x50-16.txt",
+      "reason": "S48c2: beat 9 in the creative lead's order (9.8, 9.9, owed lease lines, the kit, 9.11; amendments 1-5) and the hall talkers",
+      "pr": 252
+    },
+    {
+      "capture": "meridian-plaza-132x50-16.txt",
+      "reason": "S48c2: the log carries the opening's lines into the Plaza frame",
+      "pr": 252
+    },
+    {
+      "capture": "inventory-132x50-16.txt",
+      "reason": "S48c2: the log carries the opening's lines; the kit from beat 9",
+      "pr": 252
+    },
+    {
+      "capture": "contracts-132x50-16.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    },
+    {
+      "capture": "help-132x50-16.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    },
+    {
+      "capture": "training-drone-132x50-256.txt",
+      "reason": "S48c2: the drone lesson speaks its script lines (6.0, 6.1) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "training-complete-132x50-256.txt",
+      "reason": "S48c2: the drone lesson's lines (6.2, 6.5, 6.6, 6.8) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "wake-record-132x50-256.txt",
+      "reason": "S48c2: the record opens over the opening's lines; 6.2 first, then the record line 9.2 (amendments 3 and 4)",
+      "pr": 252
+    },
+    {
+      "capture": "wake-hall-132x50-256.txt",
+      "reason": "S48c2: beat 9 in the creative lead's order (9.8, 9.9, owed lease lines, the kit, 9.11; amendments 1-5) and the hall talkers",
+      "pr": 252
+    },
+    {
+      "capture": "meridian-plaza-132x50-256.txt",
+      "reason": "S48c2: the log carries the opening's lines into the Plaza frame",
+      "pr": 252
+    },
+    {
+      "capture": "inventory-132x50-256.txt",
+      "reason": "S48c2: the log carries the opening's lines; the kit from beat 9",
+      "pr": 252
+    },
+    {
+      "capture": "contracts-132x50-256.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    },
+    {
+      "capture": "help-132x50-256.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    },
+    {
+      "capture": "training-drone-132x50-truecolor.txt",
+      "reason": "S48c2: the drone lesson speaks its script lines (6.0, 6.1) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "training-complete-132x50-truecolor.txt",
+      "reason": "S48c2: the drone lesson's lines (6.2, 6.5, 6.6, 6.8) and #220 4.12 text",
+      "pr": 252
+    },
+    {
+      "capture": "wake-record-132x50-truecolor.txt",
+      "reason": "S48c2: the record opens over the opening's lines; 6.2 first, then the record line 9.2 (amendments 3 and 4)",
+      "pr": 252
+    },
+    {
+      "capture": "wake-hall-132x50-truecolor.txt",
+      "reason": "S48c2: beat 9 in the creative lead's order (9.8, 9.9, owed lease lines, the kit, 9.11; amendments 1-5) and the hall talkers",
+      "pr": 252
+    },
+    {
+      "capture": "meridian-plaza-132x50-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines into the Plaza frame",
+      "pr": 252
+    },
+    {
+      "capture": "inventory-132x50-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines; the kit from beat 9",
+      "pr": 252
+    },
+    {
+      "capture": "contracts-132x50-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    },
+    {
+      "capture": "help-132x50-truecolor.txt",
+      "reason": "S48c2: the log carries the opening's lines",
+      "pr": 252
+    }
+  ]
+}
