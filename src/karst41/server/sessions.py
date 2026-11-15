@@ -55,6 +55,9 @@ class Session:
     """What sent that line, when it can stop acting on the caller: `training:<pid>`
     for the caller's training drone (runner contract amendment 3). None is any
     other source, which holds the full ten seconds."""
+    danger_release: str | None = None
+    """The newest `me.danger_release` sent to this caller (terminal UI 2.5,
+    #253): it only moves forward, and survives a reconnect."""
     voice_tick: int | None = None
     """Tick of the newest bark or ambient line admitted (P8's budget)."""
     notify: Callable[[], None] = field(default=lambda: None, repr=False)
@@ -229,7 +232,7 @@ class Sessions:
             session.log_token, session.log_serial = previous.log_token, previous.log_serial
             # P8: the danger hold and the voice budget survive a reconnect.
             session.danger_at, session.voice_tick = previous.danger_at, previous.voice_tick
-            session.danger_source = previous.danger_source
+            session.danger_source, session.danger_release = previous.danger_source, previous.danger_release
         self.active[session.id] = session
         return session
 

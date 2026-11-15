@@ -183,7 +183,7 @@ def _text(entry: LogEntry) -> str:
 
 
 def visible_rows(lines: list[dict[str, Any]], width: int, height: int,
-                 now: float) -> list[tuple[LogEntry, str, bool]]:
+                 now: float, release: float | None = None) -> list[tuple[LogEntry, str, bool]]:
     """P12 rule 5 (#202): whole entries; the newest always shows.
 
     Bounded work (technical review 6808753030): at most the newest
@@ -199,7 +199,7 @@ def visible_rows(lines: list[dict[str, Any]], width: int, height: int,
     # entries fit, so stop once that many distinct ones are in; never go
     # past PROTECT_SECONDS (lines arrive in order) or LOG_PROTECT_EXTRA.
     def protected_line(line: dict[str, Any]) -> bool:
-        return (line.get('kind') in ('danger', 'combat')
+        return (line.get('kind') in ('danger', 'combat') and not released(seconds(line), release)
                 and 0 <= now - float(line.get('_arrived', -1e30)) < PROTECT_SECONDS)
     found = {(line.get('kind'), line.get('text')) for line in lines[start:] if protected_line(line)}
     floor = max(0, start - LOG_PROTECT_EXTRA)
@@ -218,7 +218,8 @@ def visible_rows(lines: list[dict[str, Any]], width: int, height: int,
 
     def protected(index: int) -> bool:
         entry = entries[index]
-        return entry.kind in ('danger', 'combat') and 0 <= now - entry.arrived < PROTECT_SECONDS
+        return (entry.kind in ('danger', 'combat') and not released(entry.at, release)
+                and 0 <= now - entry.arrived < PROTECT_SECONDS)
 
     shown = select_lazy(len(entries), rows_of, protected, height)
     out = []
@@ -230,9 +231,17 @@ def visible_rows(lines: list[dict[str, Any]], width: int, height: int,
     return out
 
 
-def log(buffer: CellBuffer, layout: Layout, paint: Paint, lines: list[dict[str, Any]], now: float) -> None:
+def released(at: float | None, release: float | None) -> bool:
+    """Runner contract amendment 3: the server's `me.danger_release` ends the
+    protection of danger and combat lines stamped up to it (their source, the
+    training drone, can no longer act). Never inferred from text or timing."""
+    return release is not None and at is not None and at <= release
+
+
+def log(buffer: CellBuffer, layout: Layout, paint: Paint, lines: list[dict[str, Any]], now: float,
+        release: float | None = None) -> None:
     area = layout.log
-    for index, (entry, text, first) in enumerate(visible_rows(lines, area.width, area.height, now)):
+    for index, (entry, text, first) in enumerate(visible_rows(lines, area.width, area.height, now, release)):
         y, role = area.y + index, 'log_' + entry.kind
         if first:
             buffer.put(area.x, y, GUTTERS[entry.kind], paint(role, bold=entry.kind == 'danger'))

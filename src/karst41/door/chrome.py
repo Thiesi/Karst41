@@ -4,6 +4,7 @@ P2 preserves the existing draw order and glyph/style output. Content
 renderers receive Layout and draw only inside their content rectangles.
 """
 
+import re
 from typing import Any
 
 from karst41.layout import Layout, Rect
@@ -37,6 +38,17 @@ def _objective_hint(objective: dict[str, Any], width: int | None = None) -> str:
     return prefix + (' '+target if target else '') + suffix
 
 
+TRAILING_PAREN = re.compile(r'\s*\([^()]*\)\s*$')
+
+
+def short_name(label: str) -> str:
+    """Terminal UI 11 (#253): a shortened E/J name keeps its last whole word
+    before any trailing parenthetical: `Public terminal (Plaza 1)` becomes
+    `terminal`, `Dr. Ilse Vantongeren` becomes `Vantongeren`."""
+    words = TRAILING_PAREN.sub('', clean_text(label)).split() or clean_text(label).split()
+    return words[-1] if words else ''
+
+
 def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str]]) -> str:
     """Terminal UI 11 (presentation lead's build for S48c2).
 
@@ -46,12 +58,10 @@ def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str
     The lesson hint itself is never cut.
     """
     full_ctx = [(prefix + ' ' + clean_text(label)).rstrip() for prefix, label in context]
-    # Short form (presentation lead): the key and verb, then the label's last
-    # whole word, never an ellipsis: `E talk to Vantongeren`, `E use door`.
-    short_ctx = []
-    for prefix, label in context:
-        words = clean_text(label).split()
-        short_ctx.append((prefix + ' ' + (words[-1] if words else '')).rstrip())
+    # Short form (terminal UI 11, #253): the key and verb, then the name's
+    # last whole word before any trailing parenthetical, never an ellipsis:
+    # `E talk to Vantongeren`, `E jack in at terminal`, `E use door`.
+    short_ctx = [(prefix + ' ' + short_name(label)).rstrip() for prefix, label in context]
     text, short = clean_text(str(lesson.get('text', ''))), clean_text(str(lesson.get('short', '')))
     heads = [text] + ([short] if short and short != text else [])
     for head in heads:

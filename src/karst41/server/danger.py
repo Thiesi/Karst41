@@ -29,3 +29,16 @@ def holds(session: Session, now: datetime, drone_can_act: Callable[[str], bool])
         return False
     source = session.danger_source or ""
     return not (source.startswith(TRAINING) and not drone_can_act(source[len(TRAINING):]))
+
+
+def released(session: Session, now: datetime, drone_can_act: Callable[[str], bool]) -> str | None:
+    """The stamp up to which the client's log stops protecting danger and
+    combat lines (`me.danger_release`): the newest line's, while its training
+    drone can no longer act and the ten seconds have not run out. None
+    otherwise, so real combat keeps the full protection (terminal UI 2.5)."""
+    source = session.danger_source or ""
+    if session.danger_at is None or not source.startswith(TRAINING):
+        return None
+    if (now - datetime.fromisoformat(session.danger_at)).total_seconds() >= DANGER_HOLD_SECONDS:
+        return None
+    return None if drone_can_act(source[len(TRAINING):]) else session.danger_at

@@ -47,3 +47,15 @@ def test_an_errand_uses_its_short_form_before_the_context_shrinks() -> None:
     ctx = [("E go to", "Meridian Plaza")]
     assert lesson_hint(errand, 78, ctx) == "Card: Sodium Row. Follow MERIDIAN PLAZA, east.  E go to Meridian Plaza  ? help"
     assert lesson_hint(errand, 60, ctx) == "Card: Sodium Row  E go to Meridian Plaza  ? help"
+
+
+def test_the_short_form_keeps_the_last_whole_word_before_a_trailing_parenthetical() -> None:
+    """Terminal UI 11 (#253): `Public terminal (Plaza 1)` becomes `terminal`,
+    never `1)`; a name with no parenthetical keeps its last word."""
+    from karst41.door.chrome import short_name
+    assert short_name("Public terminal (Plaza 1)") == "terminal"
+    assert short_name("Dr. Ilse Vantongeren") == "Vantongeren"
+    assert short_name("Hall terminal") == "terminal"
+    errand = {"text": "Card: Sodium Row. Take the NEON STAIR.", "short": "Card: Sodium Row. Take the NEON STAIR."}
+    row = lesson_hint(errand, 78, [("E/J jack in at", "Public terminal (Plaza 1)")])
+    assert "E/J jack in at terminal" in row and "1)" not in row

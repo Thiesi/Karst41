@@ -41,13 +41,14 @@ read and the hall left (only the errand, a per-character flag, goes on).
 
 from __future__ import annotations
 
+from datetime import datetime
 import re
 from typing import Any
 
 from karst41.content import schema as s
 from karst41.hints import resolve_keys
 from karst41.server.clock import TICK_HZ
-from karst41.server.danger import TRAINING, holds
+from karst41.server.danger import TRAINING, holds, released
 from karst41.server.loop import TickContext
 from karst41.server.sessions import Session
 
@@ -434,6 +435,12 @@ class Opening:
         """The objective slot: a lesson hint, else the errand, else a one-time hint."""
         if not self.script:
             return
+        stamp = released(session, self.core.clock.now_utc(), self.game.training_drone_can_act)
+        if stamp and (session.danger_release is None
+                      or datetime.fromisoformat(stamp) > datetime.fromisoformat(session.danger_release)):
+            session.danger_release = stamp  # Only ever forward (terminal UI 2.5, #253).
+        if session.danger_release and "viewport" in body:  # Amendment 3 in the client's log.
+            body.setdefault("me", {})["danger_release"] = session.danger_release
         if "viewport" not in body:  # The Lattice view: lesson hints only (beat 8).
             text = self.hint(session, self.game.players.get(session.player_id))
             if text:

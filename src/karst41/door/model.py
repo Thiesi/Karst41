@@ -19,6 +19,7 @@ from karst41.door.log import rows as log_rows
 from karst41.door.present.context import Context
 from karst41.door.present.paint import Paint
 from karst41.door.present import screen as presentation_screen
+from karst41.door.present import chrome as present_chrome
 from karst41.door.present.chrome import NOTICE_SECONDS, PROTECT_SECONDS
 from karst41.server.protocol import Frame, VIEW_KINDS
 
@@ -375,6 +376,12 @@ class Display:
             if self.notice_queue:
                 self._show(*self.notice_queue.popleft(), now)
 
+    def danger_release(self) -> float | None:
+        """`me.danger_release` from the zone view (nested under a Wake screen)."""
+        shown = self.body.get('body', {}) if self.kind == 'wake' else self.body
+        stamp = (shown.get('me') or {}).get('danger_release') if isinstance(shown, dict) else None
+        return present_chrome.seconds({'at': stamp}) if stamp else None
+
     def _notice_to_header(self, now: float) -> bool:
         """Only declared fields protect prompts and current danger; no inference."""
         shown = self.body.get('body', {}) if self.kind == 'wake' else self.body
@@ -382,6 +389,7 @@ class Display:
                     or shown.get('me', {}).get('channel') or shown.get('hazards')
                     or (shown.get('target') or {}).get('relation') in ('hostile', '!')
                     or any(line.get('kind') in ('danger', 'combat')
+                           and not present_chrome.released(present_chrome.seconds(line), self.danger_release())
                            and 0 <= now - line.get('_arrived', float('-inf')) < PROTECT_SECONDS
                            for line in reversed(self.logs)))
 
@@ -478,4 +486,5 @@ class Display:
             self.paint = Paint(self.palette)
         presentation_screen.render(buffer, self.layout, self.paint, kind, body, list(self.logs), hint, now,
                                    flash=self.hit_flash, toast=self.toast, handle=self.info.handle,
-                                   body_safety=self.body_safety, notice_in_header=self.notice_header)
+                                   body_safety=self.body_safety, notice_in_header=self.notice_header,
+                                   danger_release=self.danger_release())
