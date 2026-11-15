@@ -149,3 +149,13 @@ def test_a_second_source_line_in_the_same_tick_withholds_the_release(repo_root: 
     assert session.danger_source.startswith("training:") and released(session, now, can_act) == session.danger_at
     session.danger_other_at = session.danger_at  # Another source, stamped in the same tick.
     assert released(session, now, can_act) is None
+
+
+def test_a_new_connection_starts_with_no_release_stamp(info: DoorInfo) -> None:
+    """#253: the client keeps the highest stamp seen on the connection, and a
+    reconnect (a new welcome on the same door process) starts with none."""
+    from karst41.server.protocol import Frame
+    model = Display(replace(info, width=80, height=24), presentation=True)
+    model.release_seen = 1234.5
+    model.receive(Frame("welcome", {}), 0)
+    assert model.release_seen is None and model.danger_release() is None

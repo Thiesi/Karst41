@@ -67,3 +67,17 @@ def test_the_short_form_skips_digit_and_punctuation_words_and_keeps_a_label_with
     assert short_name("Locker 7") == "Locker"
     assert short_name("Bay 12 (east)") == "Bay"
     assert short_name("7 - 12") == "7 - 12"
+
+
+def test_two_short_forms_that_would_read_the_same_both_stay_whole() -> None:
+    """#253: `Locker 7` and `Locker 9` would both shorten to `Locker`, so both stay whole."""
+    from karst41.door.chrome import short_name
+    assert short_name("Locker 7") == short_name("Locker 9") == "Locker"
+    hint = "x" * 30
+    ctx = [("E open", "Locker 7"), ("J open", "Locker 9")]
+    row = lesson_hint({"text": hint}, 78, ctx)
+    assert "E open Locker 7" in row and "J open Locker 9" in row
+    # Where the whole labels cannot fit, the normal drop order applies: a bare `Locker` never shows.
+    import re
+    tight = lesson_hint({"text": "y" * 38}, 78, ctx)  # Short forms would fit (76), whole labels not (80).
+    assert not re.search(r"Locker(?! [79])", tight), tight

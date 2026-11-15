@@ -89,6 +89,7 @@ class Display:
         result: list[Frame] = []
         if frame.type == "welcome":
             self.connected = True
+            self.release_seen = None  # #253: a new connection starts with no stamp; the server re-sends.
             self.keymap = data.get("keymap", {})
             settings = data.get("player", {}).get("settings", {}) if isinstance(data.get("player"), dict) else {}
             self.selected_keymap = settings.get("keymap", "arrows")

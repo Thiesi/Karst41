@@ -63,7 +63,10 @@ def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str
     # Short form (terminal UI 11, #253): the key and verb, then the name's
     # last whole word before any trailing parenthetical, never an ellipsis:
     # `E talk to Vantongeren`, `E jack in at terminal`, `E use door`.
-    short_ctx = [(prefix + ' ' + short_name(label)).rstrip() for prefix, label in context]
+    # Two short forms that would read the same both stay whole (#253).
+    shorts = [short_name(label) for _, label in context]
+    short_ctx = [(prefix + ' ' + (clean_text(label).strip() if shorts.count(short) > 1 else short)).rstrip()
+                 for (prefix, label), short in zip(context, shorts)]
     text, short = clean_text(str(lesson.get('text', ''))), clean_text(str(lesson.get('short', '')))
     heads = [text] + ([short] if short and short != text else [])
     for head in heads:
