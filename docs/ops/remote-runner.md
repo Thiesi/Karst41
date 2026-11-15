@@ -1,6 +1,6 @@
 # The remote runner: long local runs on the second workstation
 
-**Status:** adopted by the owner, 2026-11-14 (option A, in the technical lead's session).
+**Status:** adopted by the owner, 2026-11-14 (option A, in the technical lead's session). Dates are the owner's local time (CET).
 
 The development host is shared with other projects. Long local runs on it
 have to be fitted around other teams' emulator slots, and its timing numbers
@@ -317,7 +317,7 @@ a packet, the runner also puts them in the gist, even on a pass: the
 A request may also ask for diagnostic files from a run, for example to
 find out why a line never played: the console capture (`*.ans`), the raw
 `.ans` frames and `progress.log`. The runner adds them to the gist, with
-the same scrub and nothing else (the owner agreed on 2026-11-15). Gists
+the same scrub and nothing else (the owner agreed on 2026-11-15 CET, 2026-11-14 UTC, on #250). Gists
 take text only, so raw CP437 frames go in base64 as `NAME.ans.b64`,
 checked to decode back byte for byte (`base64 -d NAME.ans.b64 > NAME.ans`).
 
