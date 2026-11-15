@@ -440,7 +440,10 @@ kind is told apart by colour alone.
   danger or combat line whose `at` is at or before that stamp loses this
   protection. The stamp is on the same server clock as `at`, only moves
   forward for a caller, and never unprotects a line newer than itself, so
-  a new fight is protected in full. Today only the opening's training
+  a new fight is protected in full. The stamp is the `at` of the released
+  source's newest line, and the server sends it only when no other source
+  of a danger or combat line at or before that `at` can still act on the
+  caller. Today only the opening's training
   drone sends it: once the drone is down, skipped or inert (S48c2). Real
   combat sends none and keeps its 10 seconds.
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
@@ -807,8 +810,12 @@ targets or verbs keep separate groups.
 Do not append a generic `E act` group; Q keeps its job-panel help.
 Shorten E/J labels first, keeping at least one whole word of each name
 and never cutting a key or verb. The word kept is the name's last whole
-word before any trailing parenthetical: `Public terminal (Plaza 1)`
-becomes `terminal`, and `Dr. Vantongeren` becomes `Vantongeren`. If that cannot fit, drop J, then E.
+word before any trailing parenthetical, skipping words that are only
+digits or punctuation: `Public terminal (Plaza 1)` becomes `terminal`,
+`Dr. Vantongeren` becomes `Vantongeren`, and `Locker 7` becomes `Locker`.
+If no such word is left, the label is not shortened, and the drop order
+applies. Until S48c3 the general fitter still keeps the first word; only
+the lesson-hint row follows this rule (architecture 5.5). If that cannot fit, drop J, then E.
 Only then shorten the objective's target text; keep `Next:`, its verb
 and the current cost. This uses the existing hint row, not a new panel.
 
