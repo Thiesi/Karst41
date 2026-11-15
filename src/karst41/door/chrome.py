@@ -43,10 +43,12 @@ TRAILING_PAREN = re.compile(r'\s*\([^()]*\)\s*$')
 
 def short_name(label: str) -> str:
     """Terminal UI 11 (#253): a shortened E/J name keeps its last whole word
-    before any trailing parenthetical: `Public terminal (Plaza 1)` becomes
-    `terminal`, `Dr. Ilse Vantongeren` becomes `Vantongeren`."""
-    words = TRAILING_PAREN.sub('', clean_text(label)).split() or clean_text(label).split()
-    return words[-1] if words else ''
+    before any trailing parenthetical, skipping words that are only digits or
+    punctuation: `Public terminal (Plaza 1)` becomes `terminal`, `Locker 7`
+    becomes `Locker`, `Dr. Ilse Vantongeren` becomes `Vantongeren`. With no
+    such word left, the label stays whole and the normal drop order applies."""
+    words = [word for word in TRAILING_PAREN.sub('', clean_text(label)).split() if any(ch.isalpha() for ch in word)]
+    return words[-1] if words else clean_text(label).strip()
 
 
 def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str]]) -> str:

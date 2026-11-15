@@ -41,4 +41,11 @@ def released(session: Session, now: datetime, drone_can_act: Callable[[str], boo
         return None
     if (now - datetime.fromisoformat(session.danger_at)).total_seconds() >= DANGER_HOLD_SECONDS:
         return None
+    # #253: never while another source of a line at or before the stamp may
+    # still act. An untagged source can't be shown to have stopped, so any
+    # untagged line inside the ten seconds withholds the release.
+    other = session.danger_other_at
+    if other is not None and (now - datetime.fromisoformat(other)).total_seconds() < DANGER_HOLD_SECONDS:
+        return None
+    # The stamp is the `at` of the drone's newest line (`danger_at`), never "now".
     return None if drone_can_act(source[len(TRAINING):]) else session.danger_at

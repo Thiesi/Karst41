@@ -17,8 +17,8 @@
 ║ shift-left  sprint left                                                      ║
 ║ Page 1/8  PgUp/PgDn  Esc back                                                ║
 ╟──────────────────────────────────────────────────────────────────────────────╢
-║+ You arrive at Meridian Plaza.                                               ║
+║» You cross Meridian Plaza under the Ring. You hear tram bells and the        ║
+║  fountain. Wardens watch every corner.                                       ║
 ║√ You gain 25 XP.                                                             ║
-║· Tram bells from the hub.                                                    ║
 ║? help  E/J jack in at Public terminal (Plaza 1)  Tab target  F fire  X weapon║
 ╚══════════════════════════════════════════════════════════════════════════════ 

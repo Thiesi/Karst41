@@ -40,7 +40,9 @@ def test_after_drone_down_the_newest_lines_take_the_rows_at_80x24(info: DoorInfo
         game.step()
         if len(state["spoken"]) >= 7:
             break
-    assert game.core.characters.sim.views[client.session.id].previous["body"]["me"].get("danger_release")
+    stamp = game.core.characters.sim.views[client.session.id].previous["body"]["me"].get("danger_release")
+    drone_line = next(line for line in reversed(client.session.log_ring) if line.get("script") == "6.6")
+    assert stamp == drone_line["at"]  # The drone's newest line's `at`, never "now" (#253).
     rows = screen(game, client, model)
     shown = "\n".join(rows)
     assert "The cable reels the pistol back" in shown
@@ -116,3 +118,17 @@ def test_under_the_record_the_released_drone_lines_stay_unprotected_at_80x24(inf
     assert model.kind == "wake"
     assert "No record in hand" in shown
     assert not any(word in shown for word in ("Hit: Training drone", "Miss: Training drone", "hits you for")), shown
+
+
+def test_a_second_live_source_withholds_the_release(repo_root: Path) -> None:
+    """#253: no release while another (untagged) source's line at or before
+    the stamp is inside its ten seconds."""
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, fight
+    game = HeadlessServer(load_content(repo_root/"src/karst41/content"), character_state={})
+    client = game.connect(width=80, height=24)
+    session, views = client.session, game.core.characters.sim.views
+    pid, drone, actor = armed_and_warned(game, client)
+    game.core.combat.log(actor, "Someone hits you for 5.", True)  # Another source, mid-fight.
+    fight(game, client)
+    game.step(2)
+    assert "danger_release" not in views[session.id].previous["body"]["me"]

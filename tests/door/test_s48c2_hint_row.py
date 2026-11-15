@@ -59,3 +59,11 @@ def test_the_short_form_keeps_the_last_whole_word_before_a_trailing_parenthetica
     errand = {"text": "Card: Sodium Row. Take the NEON STAIR.", "short": "Card: Sodium Row. Take the NEON STAIR."}
     row = lesson_hint(errand, 78, [("E/J jack in at", "Public terminal (Plaza 1)")])
     assert "E/J jack in at terminal" in row and "1)" not in row
+
+
+def test_the_short_form_skips_digit_and_punctuation_words_and_keeps_a_label_with_none() -> None:
+    """#253: `Locker 7` becomes `Locker`; a label with no word left stays whole."""
+    from karst41.door.chrome import short_name
+    assert short_name("Locker 7") == "Locker"
+    assert short_name("Bay 12 (east)") == "Bay"
+    assert short_name("7 - 12") == "7 - 12"

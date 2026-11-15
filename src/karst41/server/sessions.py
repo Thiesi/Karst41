@@ -55,6 +55,9 @@ class Session:
     """What sent that line, when it can stop acting on the caller: `training:<pid>`
     for the caller's training drone (runner contract amendment 3). None is any
     other source, which holds the full ten seconds."""
+    danger_other_at: str | None = None
+    """Server-clock stamp of the newest danger or combat line from any untagged
+    source, which can never be shown to have stopped acting (#253)."""
     danger_release: str | None = None
     """The newest `me.danger_release` sent to this caller (terminal UI 2.5,
     #253): it only moves forward, and survives a reconnect."""
@@ -84,6 +87,8 @@ class Session:
                 if line.get("kind") in ("danger", "combat"):
                     self.danger_at = line.get("at") or self.danger_at
                     self.danger_source = original.get("_source")
+                    if not self.danger_source:
+                        self.danger_other_at = line.get("at") or self.danger_other_at
                 if not transient:  # P8: barks and ambience are never replayed.
                     self.log_ring.append(line)
                 lines.append(line)
@@ -233,6 +238,7 @@ class Sessions:
             # P8: the danger hold and the voice budget survive a reconnect.
             session.danger_at, session.voice_tick = previous.danger_at, previous.voice_tick
             session.danger_source, session.danger_release = previous.danger_source, previous.danger_release
+            session.danger_other_at = previous.danger_other_at
         self.active[session.id] = session
         return session
 

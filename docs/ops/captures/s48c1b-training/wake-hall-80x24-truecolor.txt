@@ -1,11 +1,11 @@
-╔═VATSIDE═Wake Hall═POCKET══════════════════════════════╤════════════01:52═════╗
+╔═Wake Hall═POCKET════════Crews end on a service restart. Use G to invite.═════╗
 ║                                                       │─ TARGET ─────────────║
 ║        ···················                            │ none   Tab picks     ║
 ║        ···················                            │─ NEARBY ─────────────║
-║        ··Θ·Θ·Θ·Θ··☻·······                            │ ☻ Sablier orderly ~  ║
-║        ···········☻·······                            │ ☻ Sablier orderly ~  ║
-║        ·····@·····$·······                            │ ☻ Dr. Ilse Vant... ~ ║
-║        ············☻······                            │                      ║
+║        ··Θ·Θ·Θ·Θ···☻······                            │ ☻ Sablier orderly ~  ║
+║        ············☻······                            │ ☻ Sablier orderly ~  ║
+║        ·····@·····$·······                            │                      ║
+║        ···················                            │                      ║
 ║        ···················                            │                      ║
 ║        ···················                            │                      ║
 ║        ···················                            │                      ║
@@ -17,8 +17,8 @@
 ║             ·············· ··············§···         │ SHK ░░░░░░░░░░ 0     ║
 ║                 ·········· ·················+         │ 200 ch   lease 0/90  ║
 ╟───────────────────────────────────────────────────────┴──────────────────────╢
-║√ Issued: sidearm, 50 rounds, baton, two patches, two rations.                ║
-║√ Issued: a Kestrel Issue Vest. It's on you already.                          ║
-║√ 200 chits. A card, on top: Vesper, the Tin Halo, Sodium Row.                ║
-║Crews end on a service restart. Use G to invite.  Ctrl-X leaves               ║
+║* Miss: Training drone. (x4)                                                  ║
+║* Hit: Training drone. (x2)                                                   ║
+║* The training drone falls silent. The tutorial terminal is ahead.            ║
+║? help  Tab target  F fire  X weapon  1-5 quick  V abilities  E interact      ║
 ╚══════════════════════════════════════════════════════════════════════════════ 

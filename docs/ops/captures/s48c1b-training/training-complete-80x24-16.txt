@@ -1,4 +1,4 @@
-╔═VATSIDE═Wake Hall═POCKET══════════════════════════════╤════════════01:48═════╗
+╔═VATSIDE═Wake Hall═POCKET══════════════════════════════╤════════════15:55═════╗
 ║       █·  ·  ·  ·  ·  ·  ·█                           │─ HERE ───────────────║
 ║       █· Θ Θ·Θ Θ  ·  ·  ··█                           │ + Corridor door      ║
 ║       █··  ·  ·  ·  ·  · ·█                           │─ TARGET ─────────────║
@@ -17,8 +17,8 @@
 ║                 · ·····  · ··········                 │ STA ██████████ 36    ║
 ║                   ·· ·  ·  ··········                 │ SHK ▌░░░░░░░░░ 5     ║
 ╟───────────────────────────────────────────────────────┴──────────────────────╢
-║* Miss: Training drone. (x3)                                                  ║
-║* The drone stops. It had been trying since Tuesday.                          ║
-║+ The cable reels the pistol back to the wall.                                ║
-║E use Corridor door  ? help  Tab target  F fire  X weapon  1-5 quick          ║
+║* Miss: Training drone.                                                       ║
+║* Hit: Training drone. (x2)                                                   ║
+║* The training drone falls silent. The tutorial terminal is ahead.            ║
+║E use Corridor door  ? help  Weapon 0.7s  Tab target  F fire  X weapon        ║
 ╚══════════════════════════════════════════════════════════════════════════════ 
