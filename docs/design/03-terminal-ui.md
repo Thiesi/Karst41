@@ -159,9 +159,11 @@ Rules:
   name shows whole, or cut as a whole-word prefix ending in `...` that
   keeps at least its first whole word. A cut name leaves out a leading
   `The`, `A` or `An` (`The Tin Halo` cut becomes `Tin...`). That minimum
-  is reserved before a notice in the header gets its share. If the
-  notice then doesn't fit whole, the gap before it shrinks to one cell
-  of the header's frame line, and then the notice is cut at a whole word
+  is reserved before a notice in the header gets its share. A notice in
+  the header takes the clock's place and may run along the header's
+  frame line to one cell before the corner. If the notice then doesn't
+  fit whole, the gap before it shrinks to one cell of the header's frame
+  line, and then the notice is cut at a whole word
   with `...`; the full notice stays on the toast. The safety and threat
   words (the safety word such as `CONTESTED` or `TRUCE`, then `PvP G5+`
   and `HUNTED`) are never dropped; heat, Marked and the event summary
