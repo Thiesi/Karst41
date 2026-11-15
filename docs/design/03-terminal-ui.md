@@ -156,13 +156,16 @@ Rules:
   contested ground, event summary); the clock at the right.
   Lower-priority segments drop first. When the district's name equals
   the zone's, ignoring case, the district segment is left out. The zone
-  name is never cut below its first whole word (a leading `The`, `A` or
-  `An` is skipped): it shows whole, or as a whole-word prefix ending in
-  `...`. That minimum is reserved before a notice in the header gets
-  its share. If the notice then doesn't fit whole, the gap before it
-  shrinks to one rule cell, and then the notice is cut at a whole word
+  name shows whole, or cut as a whole-word prefix ending in `...` that
+  keeps at least its first whole word. A cut name leaves out a leading
+  `The`, `A` or `An` (`The Tin Halo` cut becomes `Tin...`). That minimum
+  is reserved before a notice in the header gets its share. If the
+  notice then doesn't fit whole, the gap before it shrinks to one cell
+  of the header's frame line, and then the notice is cut at a whole word
   with `...`; the full notice stays on the toast. The safety and threat
-  words are never dropped (S48c3).
+  words are never dropped, and they come before the zone's minimum: if
+  both can't fit, the zone's first word is cut inside itself, as
+  section 6 allows for a single word too long for its field (S48c3b).
   The frame around it shows safety by line style (2.1); the sketch draws
   single lines throughout.
 - **Viewport**: width = columns - 2 outer borders - 1 divider - 22
@@ -386,7 +389,8 @@ TARGET and the pinned vitals.
 5. **NEARBY**: shape in colour (reverse when hostile), then name and
    relation tag; it shrinks first.
 6. **CREW** (with a crew): beacon `♦`, leader `+`, health, zone.
-7. **Pinned to the bottom**: name (and handle at 132x50 if it differs),
+7. **Pinned to the bottom**: name (and handle at 132x50 if it differs
+   and fits whole, section 6),
    grade, HP, STA and SHK bars, chits and the lease row. Until a Wake
    enters a name, the name row shows its gurney number (`No. 0431`), and
    the grade slot stays empty until the decant record is read. Grade 5
@@ -459,19 +463,30 @@ kind is told apart by colour alone.
   combat sends none and keeps its 10 seconds.
 - **The visible log shows whole entries,** never rows of one. It is
   filled in this order:
-  1. One row is reserved for the newest entry.
-  2. Protected danger and combat entries fill the remaining rows, newest
-     first, each whole.
+  1. One row is reserved for the newest entry. If the newest entry is
+     itself protected, it takes rows up to its full height instead (the
+     whole log if it needs it), so the freshest alert is never cut to
+     make room for an older one.
+  2. Older protected danger and combat entries fill the remaining rows,
+     newest first, each whole. One that doesn't fit whole is passed over,
+     and an older protected entry that fits may still show.
   3. The newest entry takes back any rows still free, up to its full
      height.
   4. Other entries fill what is left, newest first, each whole. The fill
-     stops at the first older entry that doesn't fit whole. The rows above
-     it stay blank, and no older entry takes them.
+     stops at the first of them that doesn't fit whole, and no older
+     unprotected entry shows.
 
-  The newest entry is the only one ever shown in part: its first rows
-  show, and the last of them ends with `… Ctrl-P`. Apart from protected
-  entries, the visible log is therefore always an unbroken run of the
-  newest entries, with no line missing from the middle (P12, S48c3).
+  The chosen entries display from the top of the log in arrival order,
+  newest last, and any free rows are left blank below them. For example, in a
+  four-row log holding, oldest first, a protected one-row combat line,
+  a one-row line A, a three-row line B and a one-row newest line: the
+  newest line and the combat line take two rows, B doesn't fit in the
+  two left, and the fill stops there. The log reads `combat, newest,
+  blank, blank`, and A is not shown. The newest
+  entry is the only one ever shown in part: its first rows show, and the
+  last of them ends with `… Ctrl-P`. Apart from protected entries and a
+  cut newest entry, the visible log is always an unbroken run of the
+  newest entries, with no line missing from the middle (P12, S48c3b).
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
   and a rule's price stated before you pay it, such as
   a truce zone's, section 2.1) are not world-log lines. A notice takes
@@ -745,10 +760,18 @@ are ordinary text. Arrow navigation cannot move the character.
     it fits. Otherwise it shows its last whole word, skipping honorifics
     and initials (`Dr.`, a single letter with a dot). If two rows across
     NEARBY and TARGET whose full names differ would then read the same,
-    both use the prefix.
+    both use the prefix. Rows not drawn, such as NEARBY rows cut off by a
+    short panel, don't count. A name with no word left to choose uses
+    the prefix.
+  - **The name row's handle** (2.4 item 7) is optional: it shows whole
+    or not at all. If `name · handle` and the grade don't fit, ` · handle`
+    is left out and the name and grade stay, as at 80x24. The full handle
+    stays in sitrep.
 
   Words that are only digits or punctuation are never chosen as the
-  short form (section 11) (S48c3).
+  short form. Section 11's E/J rule still keeps the first word in the
+  general fitter until S48c3c; these panel and header rules apply from
+  S48c3b (S48c3b).
 - A `view` message forces a full redraw; `Ctrl-L` clears and redraws.
 - Frame rate is bounded by view revisions: the client renders when a
   view or delta arrives, at most 10 times per second, and coalesces if it
