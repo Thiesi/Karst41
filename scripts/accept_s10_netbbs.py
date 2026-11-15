@@ -228,6 +228,21 @@ class NativeProbe:
         await wait(settled);await caller.write(b"e")
         await wait(lambda:wake.stage=="record" and "DECANT RECORD" in caller.screen.screen_text() and settled())
         if capture_wake:
+            # Technical lead (S48c2, amendment 3): P5 pauses at the record as
+            # a reader would, so its record lines (9.1/9.2) are said before
+            # the capture: no record line waiting and the speech gap over. No
+            # keys are sent. Only record lines can speak under the record, so
+            # an older anchor still waiting does not count.
+            from karst41.server.clock import TICK_HZ
+            from karst41.server.script import GAP_SECONDS
+            opening,clock=self.service.core.opening,self.service.core.clock
+            def record_heard()->bool:
+                state=opening.states.get(session.id)
+                voice=session.voice_tick
+                return state is None or (not any(opening.lines[q[0]][1].record for q in state["queue"])
+                    and (voice is None or clock.now_tick()-voice>=GAP_SECONDS*TICK_HZ))
+            await wait(record_heard,30)
+            await wait(settled)
             self.save(connection, f'wake-record-{width}x{height}-{session.caps["tier"]}')
         for index in range(archetype):
             await caller.write(b"\x1b[B")
