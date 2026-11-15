@@ -761,15 +761,17 @@ are ordinary text. Arrow navigation cannot move the character.
   with `...`. Short forms are built from the presented name only, so a
   covered character never shortens to its real name. In the side panel
   (both sizes, 22 inner cells, one cell of right margin):
-  - **HERE** keeps its glyph and gives the label 18 cells. The label
+  - **HERE** keeps its glyph, the same one the map draws for what is in
+    reach (an actor's presented glyph for an actor), and gives the label
+    18 cells. The label
     shows whole if it fits. Otherwise it shows its last whole word before
     a trailing parenthetical, keeping the parenthetical
     (`terminal (Plaza 1)`), then that word alone, then the prefix.
   - **NEARBY and TARGET** give the name 16 cells. The name shows whole if
     it fits. Otherwise it shows its last whole word, skipping honorifics
     and initials (`Dr.`, a single letter with a dot). If two rows across
-    NEARBY and TARGET whose full names differ would then read the same,
-    both use the prefix. Rows not drawn, such as NEARBY rows cut off by a
+    HERE, NEARBY and TARGET whose full names differ would then read the
+    same, both use the prefix. Rows not drawn, such as NEARBY rows cut off by a
     short panel, don't count. A name with no word left to choose uses
     the prefix.
   - **The name row's handle** (2.4 item 7) is optional: it shows whole
