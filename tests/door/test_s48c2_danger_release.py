@@ -89,3 +89,30 @@ def test_the_release_only_moves_forward_and_a_newer_line_stays_protected(info: D
     game.step(2)
     assert views[session.id].previous["body"]["me"]["danger_release"] == first
     assert "Someone hits you for 5." in "\n".join(screen(game, client, model))
+
+
+def test_under_the_record_the_released_drone_lines_stay_unprotected_at_80x24(info: DoorInfo, repo_root: Path) -> None:
+    """The presentation lead's 80x24 record frame: the Wake screen carries no
+    `me`, so the client keeps the newest stamp it has seen."""
+    from karst41.server.protocol import Frame
+    from tests.character_helpers import act, place
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, fight
+    game = HeadlessServer(load_content(repo_root/"src/karst41/content"), character_state={})
+    client = game.connect(width=80, height=24)
+    model = Display(replace(info, width=80, height=24, color_depth="256"), presentation=True)
+    armed_and_warned(game, client)
+    fight(game, client)
+    game.step(2)
+    screen(game, client, model)  # The zone view with the stamp.
+    place(game, client, "vatside-wake-hall", (37, 16))
+    act(game, client, Frame("key", {"k": "e", "t": 0}))  # The record, within the old ten seconds.
+    state = game.core.opening.states[client.session.id]
+    for _ in range(80):
+        game.step()
+        if "9.2" in state["spoken"]:
+            break
+    game.step(2)
+    shown = "\n".join(screen(game, client, model))
+    assert model.kind == "wake"
+    assert "No record in hand" in shown
+    assert not any(word in shown for word in ("Hit: Training drone", "Miss: Training drone", "hits you for")), shown

@@ -50,6 +50,7 @@ class Display:
         self.toast: tuple[str, str, float] | None = None
         self.notice_started = 0.0
         self.notice_pressed = self.notice_header = False
+        self.release_seen: float | None = None  # The newest `me.danger_release` seen (#253).
         # S44: a rule's price, stated before it is paid (terminal UI 2.1).
         self.notice_price = False  # The shown notice is a price notice.
         self.price_noticed = False  # The first-target notice, once per session.
@@ -82,6 +83,7 @@ class Display:
             self.open_help(log_rows(list(self.logs), self.layout.text_area.width), "SCROLLBACK")
 
     def receive(self, frame: Frame, now: float) -> list[Frame]:
+        self.danger_release()  # Keep the outgoing zone view's stamp (#253).
         old_hit = self.body.get("me",{}).get("hit_serial")
         data = frame.data
         result: list[Frame] = []
@@ -377,10 +379,15 @@ class Display:
                 self._show(*self.notice_queue.popleft(), now)
 
     def danger_release(self) -> float | None:
-        """`me.danger_release` from the zone view (nested under a Wake screen)."""
+        """The newest `me.danger_release` seen in a zone view (terminal UI 2.5,
+        #253). It only moves forward, so it still applies under a Wake screen
+        or a menu, whose bodies carry no `me`."""
         shown = self.body.get('body', {}) if self.kind == 'wake' else self.body
         stamp = (shown.get('me') or {}).get('danger_release') if isinstance(shown, dict) else None
-        return present_chrome.seconds({'at': stamp}) if stamp else None
+        value = present_chrome.seconds({'at': stamp}) if stamp else None
+        if value is not None and (self.release_seen is None or value > self.release_seen):
+            self.release_seen = value
+        return self.release_seen
 
     def _notice_to_header(self, now: float) -> bool:
         """Only declared fields protect prompts and current danger; no inference."""
