@@ -442,8 +442,8 @@ kind is told apart by colour alone.
   forward for a caller, and never unprotects a line newer than itself, so
   a new fight is protected in full. The stamp is the `at` of the released
   source's newest line, and the server sends it only when no other source
-  of a danger or combat line at or before that `at` can still act on the
-  caller. The client keeps the highest stamp it has seen on the
+  of a danger or combat line at or before that `at`, including one with
+  the same `at`, can still act on the caller. The client keeps the highest stamp it has seen on the
   connection and ignores a frame that omits the field. A new connection
   starts with none, and the server sends its current stamp again. Today
   only the opening's training

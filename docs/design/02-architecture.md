@@ -547,13 +547,14 @@ An unnamed target still owns its input, but its internal id is never a
 display label. Active channel progress owns the hint row. For focus
 hints, the client fits whole key-help groups after the E/J context,
 with the objective and current cost ahead of context (terminal UI 11).
-It shortens labels while retaining their last whole word before any
-trailing parenthetical (terminal UI 11; until S48c3 the general fitter
-still keeps the first word, and only the lesson-hint row follows this),
-then drops J and E
+It shortens labels while retaining their first word, then drops J and E
 in that order, before shortening objective target text. `Next:`, its
 verb and current cost remain. Help is first among remaining groups when
 it fits. The existing terminal cell-width and clipping helpers apply.
+The lesson-hint row (S48c2) already follows terminal UI 11's newer rule:
+it keeps each label's last whole word before any trailing parenthetical.
+The general fitter switches to that rule in S48c3, with the owner's P3
+approval.
 
 #### 5.5.3 Log kinds
 
