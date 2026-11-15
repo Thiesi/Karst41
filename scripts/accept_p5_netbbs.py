@@ -55,7 +55,8 @@ def _recorded_return_to(service: Any, session: Any, home: Any) -> None:
 
 accept_s10_netbbs.return_to = _recorded_return_to
 _probes: list['PresentationProbe'] = []
-WALK_KEYS = ['[A', '[B', '[C', '[D']
+FRAME_END = (b'\x1b[?25l', b'\x1b[?25h')  # door.chrome.cursor(): the last bytes of every rendered frame.
+WALK_KEYS = ['\x1b[A', '\x1b[B', '\x1b[C', '\x1b[D']
 # Technical lead (c2): a loop-driven step is compared as loops. Each step
 # is stored as segments: fixed `keys` (byte-identical on a rerun), and
 # loops, which match when their kind, goal and `may_press` set are equal
@@ -149,6 +150,12 @@ async def accept(root: Path, door_python: Path, show: bool,
 
                 async def settled() -> None:
                     await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
+                    # The ack reaches the server before the frame's bytes reach
+                    # this caller through NetBBS: wait until the last frame has
+                    # arrived whole (every render ends with the cursor
+                    # sequence), or a capture can be torn mid-frame (c2-p5-5's
+                    # contracts-80x24-256, diagnosed from the runner's bytes).
+                    await wait(lambda: caller.caller.output.endswith(FRAME_END))
 
                 def save(step: str) -> None:
                     label = f'{step}-{width}x{height}-{tier}'

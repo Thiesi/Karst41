@@ -247,6 +247,9 @@ class NativeProbe:
                 needle=opening.text(opening.lines[state["spoken"][-1]][1])[:30]
                 await wait(lambda:needle in caller.screen.screen_text())
             await wait(settled)
+            # The frame's bytes arrive after the ack: wait for the whole last
+            # frame (it ends with the cursor sequence) before the capture.
+            await wait(lambda:caller.output.endswith((b"\x1b[?25l",b"\x1b[?25h")))
             self.save(connection, f'wake-record-{width}x{height}-{session.caps["tier"]}')
         for index in range(archetype):
             await caller.write(b"\x1b[B")

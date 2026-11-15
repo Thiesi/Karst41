@@ -132,3 +132,20 @@ def test_a_second_live_source_withholds_the_release(repo_root: Path) -> None:
     fight(game, client)
     game.step(2)
     assert "danger_release" not in views[session.id].previous["body"]["me"]
+
+
+def test_a_second_source_line_in_the_same_tick_withholds_the_release(repo_root: Path) -> None:
+    """#253: a second source's line with the same `at` as the drone's 6.6
+    (the same tick) withholds the release, whichever came first."""
+    from karst41.server.danger import released
+    from tests.characters.test_s48c1b_lessons import armed_and_warned, fight
+    game = HeadlessServer(load_content(repo_root/"src/karst41/content"), character_state={})
+    client = game.connect(width=80, height=24)
+    session = client.session
+    armed_and_warned(game, client)
+    fight(game, client)
+    can_act = game.core.characters.training_drone_can_act
+    now = game.core.clock.now_utc()
+    assert session.danger_source.startswith("training:") and released(session, now, can_act) == session.danger_at
+    session.danger_other_at = session.danger_at  # Another source, stamped in the same tick.
+    assert released(session, now, can_act) is None
