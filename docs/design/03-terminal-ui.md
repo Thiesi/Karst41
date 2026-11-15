@@ -435,6 +435,20 @@ kind is told apart by colour alone.
   after any other part, so it never shows `.;` (S48c2).
 - Danger lines never coalesce with other kinds, and no other line pushes
   a danger or combat line out of the visible log within 10 seconds.
+  The protection ends early once the line's source can no longer act on
+  the caller. The server says so: when it sends `me.danger_release`, every
+  danger or combat line whose `at` is at or before that stamp loses this
+  protection. The stamp is on the same server clock as `at`, only moves
+  forward for a caller, and never unprotects a line newer than itself, so
+  a new fight is protected in full. The stamp is the `at` of the released
+  source's newest line, and the server sends it only when no other source
+  of a danger or combat line at or before that `at`, including one with
+  the same `at`, can still act on the caller. The client keeps the highest stamp it has seen on the
+  connection and ignores a frame that omits the field. A new connection
+  starts with none, and the server sends its current stamp again. Today
+  only the opening's training
+  drone sends it: once the drone is down, skipped or inert (S48c2). Real
+  combat sends none and keeps its 10 seconds.
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
   and a rule's price stated before you pay it, such as
   a truce zone's, section 2.1) are not world-log lines. A notice takes
@@ -797,8 +811,16 @@ When E and J select the same target with the same verb, show one `E/J`
 group (`E/Ctrl-O` in vi). Drop the J alias first if only E fits. Distinct
 targets or verbs keep separate groups.
 Do not append a generic `E act` group; Q keeps its job-panel help.
-Shorten E/J labels first, keeping at least the first word of each name
-and never cutting a key or verb. If that cannot fit, drop J, then E.
+Shorten E/J labels first, keeping at least one whole word of each name
+and never cutting a key or verb. The word kept is the name's last whole
+word before any trailing parenthetical, skipping words that are only
+digits or punctuation: `Public terminal (Plaza 1)` becomes `terminal`,
+`Dr. Vantongeren` becomes `Vantongeren`, and `Locker 7` becomes `Locker`.
+If no such word is left, the label stays whole. If two shortened labels
+on the row would read the same, both stay whole. If the shortened labels
+still cannot fit, drop J, then E. Until S48c3 the general fitter still
+keeps the first word; only the lesson-hint row follows this rule
+(architecture 5.5).
 Only then shorten the objective's target text; keep `Next:`, its verb
 and the current cost. This uses the existing hint row, not a new panel.
 
