@@ -199,6 +199,10 @@ async def accept(root: Path, door_python: Path, show: bool,
                     return state is None or (not state['queue'] and (
                         voice is None or clock.now_tick() - voice >= GAP_SECONDS * TICK_HZ))
                 await wait(heard_out, 60)
+                state = opening.states.get(session.id)
+                if state and state['spoken']:  # Log lines are not views: wait for the last one on screen.
+                    needle = opening.text(opening.lines[state['spoken'][-1]][1])[:30]
+                    await wait(lambda: needle in display.screen_text())
                 await settled()
                 assert display.cell(0, 0) == '╔'
                 save('wake-hall')

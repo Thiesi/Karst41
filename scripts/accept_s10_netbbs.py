@@ -242,6 +242,10 @@ class NativeProbe:
                 return state is None or (not any(opening.lines[q[0]][1].record for q in state["queue"])
                     and (voice is None or clock.now_tick()-voice>=GAP_SECONDS*TICK_HZ))
             await wait(record_heard,30)
+            state=opening.states.get(session.id)
+            if state and state["spoken"]:  # Log lines are not views: wait for the last one on screen.
+                needle=opening.text(opening.lines[state["spoken"][-1]][1])[:30]
+                await wait(lambda:needle in caller.screen.screen_text())
             await wait(settled)
             self.save(connection, f'wake-record-{width}x{height}-{session.caps["tier"]}')
         for index in range(archetype):
