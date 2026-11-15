@@ -17,8 +17,8 @@
 ║    │ j journal  d done  Esc/B back                                      │    ║
 ║    └────────────────────────────────────────────────────────────────────┘    ║
 ╟──────────────────────────────────────────────────────────────────────────────╢
-║» You cross Meridian Plaza under the Ring. You hear tram bells and the        ║
-║  fountain. Wardens watch every corner.                                       ║
+║+ You arrive at Meridian Plaza.                                               ║
 ║√ You gain 25 XP.                                                             ║
+║· Tram bells from the hub.                                                    ║
 ║? help  Esc/B returns; the world continues.                                   ║
 ╚══════════════════════════════════════════════════════════════════════════════ 
