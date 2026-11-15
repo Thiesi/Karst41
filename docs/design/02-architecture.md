@@ -395,8 +395,8 @@ objects[]: {..., role}               role by kind, not `text`/`muted` (P4)
 me: {..., district, pvp}             district id; whether PvP can reach you here (P4)
 me: {..., truce?, truce_text?}       public keeper short name and peace text (S38)
 me: {..., hunted?}                   a truce keeper still answers you, any zone (S44)
-me: {..., danger_release?}           server-clock stamp: danger/combat lines at or before it are no longer
-                                     protected (terminal UI 2.5), sent once their source can't act (S48c2)
+me: {..., danger_release?}           stamp on the clock of log `at`: danger/combat lines with `at` at or before it
+                                     lose terminal UI 2.5 protection; monotonic per caller (S48c2)
 charted: [[legend index | -1 | -3, ...], ...]  public layout without sight, see 5.5.5 (P6)
 looks: {theme, regions[], signs[], marks[], glints[], names{}}  place layer, masked, see 5.5.4 (P6)
 place: {places[{name, rect, at, text, view?}], here}   named places and the fixed camera (V3)
@@ -546,7 +546,10 @@ An unnamed target still owns its input, but its internal id is never a
 display label. Active channel progress owns the hint row. For focus
 hints, the client fits whole key-help groups after the E/J context,
 with the objective and current cost ahead of context (terminal UI 11).
-It shortens labels while retaining their first word, then drops J and E
+It shortens labels while retaining their last whole word before any
+trailing parenthetical (terminal UI 11; until S48c3 the general fitter
+still keeps the first word, and only the lesson-hint row follows this),
+then drops J and E
 in that order, before shortening objective target text. `Next:`, its
 verb and current cost remain. Help is first among remaining groups when
 it fits. The existing terminal cell-width and clipping helpers apply.

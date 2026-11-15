@@ -12,7 +12,8 @@ use the caller's existing name disclosure. Hidden exits remain own-tile
 only. No interaction ordering, game number, content, map or renderer
 changes are proposed. The existing zone hint row names the E/J targets.
 The shared chrome keeps the active objective and cost ahead of E/J
-context. It shortens labels while retaining their first word, drops J
+context. It shortens labels while retaining their first word (see the
+#253 note below), drops J
 and then E if needed, and only then shortens objective target text.
 Keys, verbs, `Next:` and the current cost remain intact. Remaining help
 groups stay whole, with help first when it fits. Channels own the row.
@@ -94,7 +95,9 @@ findings. Broader S19 native acceptance exposed
 missing `Next:` objective feedback. The leads confirmed that existing
 terminal UI 11 gives the objective and current cost priority over context.
 The fitter now applies that order and retains the first word of shortened
-E/J names. The four S19 acceptance assertions are unchanged. The packet
+E/J names. (Terminal UI 11 later changed this to the last whole word
+before any trailing parenthetical, in #253. The general fitter follows in
+S48c3, with the owner's P3 approval.) The four S19 acceptance assertions are unchanged. The packet
 contains fresh source-matched captures and check receipts for renewed
 technical and final wording review. `hint-regression.json` keeps the
 earlier failure evidence and its resolution. An additional review found

@@ -435,6 +435,14 @@ kind is told apart by colour alone.
   after any other part, so it never shows `.;` (S48c2).
 - Danger lines never coalesce with other kinds, and no other line pushes
   a danger or combat line out of the visible log within 10 seconds.
+  The protection ends early once the line's source can no longer act on
+  the caller. The server says so: when it sends `me.danger_release`, every
+  danger or combat line whose `at` is at or before that stamp loses this
+  protection. The stamp is on the same server clock as `at`, only moves
+  forward for a caller, and never unprotects a line newer than itself, so
+  a new fight is protected in full. Today only the opening's training
+  drone sends it: once the drone is down, skipped or inert (S48c2). Real
+  combat sends none and keeps its 10 seconds.
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
   and a rule's price stated before you pay it, such as
   a truce zone's, section 2.1) are not world-log lines. A notice takes
