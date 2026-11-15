@@ -396,7 +396,8 @@ me: {..., district, pvp}             district id; whether PvP can reach you here
 me: {..., truce?, truce_text?}       public keeper short name and peace text (S38)
 me: {..., hunted?}                   a truce keeper still answers you, any zone (S44)
 me: {..., danger_release?}           stamp on the clock of log `at`: danger/combat lines with `at` at or before it
-                                     lose terminal UI 2.5 protection; monotonic per caller (S48c2)
+                                     lose terminal UI 2.5 protection; monotonic per caller; the client keeps
+                                     the highest seen per connection and ignores absence (S48c2)
 charted: [[legend index | -1 | -3, ...], ...]  public layout without sight, see 5.5.5 (P6)
 looks: {theme, regions[], signs[], marks[], glints[], names{}}  place layer, masked, see 5.5.4 (P6)
 place: {places[{name, rect, at, text, view?}], here}   named places and the fixed camera (V3)

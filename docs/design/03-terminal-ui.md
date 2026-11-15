@@ -443,7 +443,10 @@ kind is told apart by colour alone.
   a new fight is protected in full. The stamp is the `at` of the released
   source's newest line, and the server sends it only when no other source
   of a danger or combat line at or before that `at` can still act on the
-  caller. Today only the opening's training
+  caller. The client keeps the highest stamp it has seen on the
+  connection and ignores a frame that omits the field. A new connection
+  starts with none, and the server sends its current stamp again. Today
+  only the opening's training
   drone sends it: once the drone is down, skipped or inert (S48c2). Real
   combat sends none and keeps its 10 seconds.
 - **Notices** (kind `notice`: restarts, maintenance, news from the node,
@@ -813,7 +816,8 @@ and never cutting a key or verb. The word kept is the name's last whole
 word before any trailing parenthetical, skipping words that are only
 digits or punctuation: `Public terminal (Plaza 1)` becomes `terminal`,
 `Dr. Vantongeren` becomes `Vantongeren`, and `Locker 7` becomes `Locker`.
-If no such word is left, the label stays whole. If the shortened labels
+If no such word is left, the label stays whole. If two shortened labels
+on the row would read the same, both stay whole. If the shortened labels
 still cannot fit, drop J, then E. Until S48c3 the general fitter still
 keeps the first word; only the lesson-hint row follows this rule
 (architecture 5.5).
