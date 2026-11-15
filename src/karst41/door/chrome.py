@@ -120,9 +120,11 @@ def person_word(name: str) -> str:
     return words[-1] if words else ''
 
 
-def panel_names(names: list[str], budgets: list[int]) -> list[str]:
+def panel_names(names: list[str], budgets: list[int], kinds: list[str] | None = None) -> list[str]:
     """Terminal UI 6 (#261): the side panel's name rows, NEARBY and TARGET
     together, from presented names only. Pass only the rows that are drawn.
+    A `here` row shortens by the HERE rule (`here_label`), and joins the
+    same collision set (#260).
 
     Each row shows its full name when it fits, else its last whole word
     (`person_word`). Two rows that would then read the same while their full
@@ -131,15 +133,37 @@ def panel_names(names: list[str], budgets: list[int]) -> list[str]:
     choose uses the prefix.
     """
     names = [clean_text(name).strip() for name in names]
+    kinds = kinds or ['name'] * len(names)
     shown = []
-    for name, budget in zip(names, budgets):
+    for name, budget, kind in zip(names, budgets, kinds):
+        if kind == 'here':
+            shown.append(here_label(name, budget))
+            continue
         word = person_word(name)
         shown.append(name if display_width(name) <= budget
                      else word if word and display_width(word) <= budget else word_prefix(name, budget))
-    collide = [any(shown[i] == shown[j] and names[i] != names[j] for j in range(len(names)) if j != i)
-               for i in range(len(names))]
-    return [word_prefix(name, budget) if clash and text != name else text
-            for name, budget, text, clash in zip(names, budgets, shown, collide)]
+    def clashes(texts: list[str]) -> list[bool]:
+        return [any(texts[i] == texts[j] and names[i] != names[j] for j in range(len(names)) if j != i)
+                for i in range(len(names))]
+
+    shown = [word_prefix(name, budget) if clash and text != name else text
+             for name, budget, text, clash in zip(names, budgets, shown, clashes(shown))]
+    # Last step (#260): prefixes that still collide show their ends instead.
+    return [word_suffix(name, budget) if clash and text != name else text
+            for name, budget, text, clash in zip(names, budgets, shown, clashes(shown))]
+
+
+def word_suffix(text: str, budget: int) -> str:
+    """`...` plus as many whole words from the end of `text` as fit (#260):
+    `Enforcer Drone 12` in 16 cells is `...Drone 12`."""
+    words = clean_text(text).split()
+    shown = ''
+    for word in reversed(words):
+        candidate = (word + ' ' + shown).strip()
+        if display_width('...' + candidate) > budget:
+            break
+        shown = candidate
+    return '...' + shown if shown else word_prefix(text, budget)
 
 
 def lesson_hint(lesson: dict[str, Any], width: int, context: list[tuple[str, str]]) -> str:

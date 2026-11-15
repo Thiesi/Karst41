@@ -212,6 +212,14 @@ def test_a_covered_npc_never_shortens_to_its_real_name(info, repo_root, size):
                                                      'lease_days': 0, 'legal_at': None}})
     text = '\n'.join(rows)
     assert 'regular' in text and 'Warden' not in text and 'Plainclothes' not in text
+    # In reach, HERE shows the cover and the presented glyph, never the real ones.
+    game.core.world.enter(caller, zone.id, game.core.world.free_tile(zone.id, (npc.x - 1, npc.y)))
+    client.session.needs_full_view = True
+    game.step(2)
+    sent = game.core.characters.sim.views[client.session.id].previous['body']
+    assert (sent.get('focus') or {}).get('id') == npc.id
+    here = drawing.at_hand(sent)
+    assert here[0] == '☻ ' + cover and 'Warden' not in ' '.join(here)
 
 
 def test_threat_words_come_before_the_zones_first_word(info):
@@ -224,3 +232,35 @@ def test_threat_words_come_before_the_zones_first_word(info):
         assert word in top
     first = top.split()[0]
     assert first.startswith('Supercal') and first.endswith('...') and 'Yard' not in top
+
+
+def test_here_joins_the_collision_set():
+    # #260: HERE, NEARBY and TARGET are one set. HERE's short form for
+    # `Mr. Kim Vantongeren` would read `Vantongeren` beside two of them.
+    names = ['Mr. Kim Vantongeren', 'Dr. Ilse Vantongeren', 'Mr. Kim Vantongeren']
+    assert panel_names(names, [18, 16, 16], ['here', 'name', 'name']) == ['Mr. Kim...', 'Dr. Ilse...', 'Mr. Kim...']
+    # Alone, HERE keeps its own rule (the parenthetical, then the word).
+    assert panel_names(['Public terminal (Plaza 1)', 'Okafor'], [18, 16], ['here', 'name']) == \
+        ['terminal (Plaza 1)', 'Okafor']
+    # A HERE short form equal to a NEARBY row's full name moves too.
+    assert panel_names(['Dr. Ilse Vantongeren', 'Vantongeren'], [18, 16], ['here', 'name']) == \
+        ['Dr. Ilse...', 'Vantongeren']
+
+
+def test_here_draws_an_actors_presented_glyph():
+    body = {'focus': {'id': 'npc:1', 'label': 'Dr. Ilse Vantongeren', 'verb': 'talk to'},
+            'actors': [{'id': 'npc:1', 'x': 1, 'y': 1, 'class': 'civilian', 'glyph_id': 'actor-npc', 'role': 'npc_neutral'}],
+            'objects': []}
+    assert drawing.at_hand(body) == ['☻ Dr. Ilse Vantongeren']
+    body['actors'][0]['glyph_id'] = 'actor-drone'
+    assert drawing.at_hand(body) == ['τ Dr. Ilse Vantongeren']
+    # An object still draws its own map glyph, and a bare focus keeps `■`.
+    assert drawing.at_hand({'focus': {'id': 'x', 'label': 'Locker'}, 'actors': [], 'objects': []}) == ['■ Locker']
+
+
+def test_prefixes_that_still_collide_show_their_ends():
+    # #260's last step: `Drone` (12 and 13 are digits), then `Enforcer...`
+    # for both, so each shows `...` and its last whole words.
+    assert panel_names(['Enforcer Drone 12', 'Enforcer Drone 13'], [16, 16]) == ['...Drone 12', '...Drone 13']
+    # Prefixes that already differ stay prefixes.
+    assert panel_names(['Dr. Ilse Vantongeren', 'Mr. Kim Vantongeren'], [16, 16]) == ['Dr. Ilse...', 'Mr. Kim...']

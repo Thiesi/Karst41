@@ -355,3 +355,10 @@ def test_p12_protected_reach_back_is_bounded(monkeypatch, height):
     rows = chrome.visible_rows(flood, 78, height, 5)
     assert digested == [log_window(height), log_window(height) + LOG_PROTECT_EXTRA]
     assert 'Too far back.' not in {entry.text for entry, _, _ in rows}
+
+
+def test_260_a_protected_misfit_neither_shows_nor_stops_step_4():
+    # A three-row protected entry doesn't fit; the one-row older unprotected
+    # line that fits still shows (#260 at d49491d).
+    assert select_entries([1, 3, 1], [False, True, False], 3) == [1, 0, 1]
+    assert select_entries([1, 1, 3, 1], [False, False, True, False], 3) == [1, 1, 0, 1]

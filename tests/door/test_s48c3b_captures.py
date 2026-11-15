@@ -136,6 +136,8 @@ def test_nearby_collision_falls_back_to_the_prefix(info, repo_root, request, wid
     pin(request, 'collision', terminal, width, height, tier)
     text = terminal.screen_text()
     assert 'Dr. Ilse...' in text and 'Mr. Kim...' in text
+    # HERE joins the set (#260) and draws the actor's own glyph.
+    assert '☻ Mr. Kim...' in text and '■ Vantongeren' not in text and '☻ Vantongeren' not in text
 
 
 def test_nearby_collision_changes_as_rows_are_drawn_or_hidden(info, repo_root, request):

@@ -230,15 +230,12 @@ def people(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Pain
             glyph = '≡'
         theme = places.theme((obj['x'], obj['y'])) if places else None
         buffer.put(*at, glyph, paint.on_theme(role, theme, bold=True) if theme else paint(role, bold=True))
-    shapes = {'actor-self': '@', 'actor-player': '☺', 'actor-npc': '☻', 'actor-drone': 'τ'}
     for entry in body.get('actors', []):
         at = inside(entry)
         if at is None:
             continue
         self = entry.get('role') == 'player_self'
-        glyph_id = entry.get('glyph_id', 'actor-self' if self else 'actor-drone' if entry.get('class') == 'drone'
-                             else 'actor-player' if entry.get('class') == 'caller' else 'actor-npc')
-        glyph = shapes.get(glyph_id, entry.get('glyph', '?'))
+        glyph = actor_shape(entry)
         jacked = entry.get('jacked', False)
         role = entry.get('role', 'npc_neutral')
         style = paint(role, bold=True, reverse=self or relation.get(entry['id']) == '!')
@@ -262,6 +259,17 @@ def people(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Pain
             buffer.put(*at, '♦', paint('player_crew', bold=True))
 
 
+ACTOR_SHAPES = {'actor-self': '@', 'actor-player': '☺', 'actor-npc': '☻', 'actor-drone': 'τ'}
+
+
+def actor_shape(entry: dict[str, Any]) -> str:
+    """The glyph the map draws for an actor, from its presented facts only."""
+    self = entry.get('role') == 'player_self'
+    glyph_id = entry.get('glyph_id', 'actor-self' if self else 'actor-drone' if entry.get('class') == 'drone'
+                         else 'actor-player' if entry.get('class') == 'caller' else 'actor-npc')
+    return ACTOR_SHAPES.get(glyph_id, entry.get('glyph', '?'))
+
+
 def at_hand(body: dict[str, Any]) -> list[str]:
     """#106: P3 focus plus visible adjacent cover only. Never scan objects/exits."""
     names = []
@@ -271,7 +279,10 @@ def at_hand(body: dict[str, Any]) -> list[str]:
         if focus and focus.get('label') and focus['label'] not in labels:
             labels.add(focus['label'])
             obj = next((obj for obj in body.get('objects', []) if obj['id'] == focus.get('id')), None)
-            if obj:
+            actor = next((a for a in body.get('actors', []) if a['id'] == focus.get('id')), None)
+            if actor and not obj:
+                shape = actor_shape(actor)  # UI 6 (#260): the actor's presented glyph, as the map draws it.
+            elif obj:
                 shape = THINGS.get(obj.get('kind'), (obj.get('glyph', '■'), ''))[0]
                 if obj.get('state', {}).get('open') is False and obj.get('kind') in ('door', 'gate', 'shutter', 'apartment_door'):
                     shape = '≡'
@@ -366,22 +377,27 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
             line(str(objective.get("next_action", "")), "panel_strong")
             if objective.get("cost") and layout.height >= 30:
                 line(str(objective["cost"]), "panel_label")
+    # UI 6 (#260): HERE's, TARGET's and the drawn NEARBY rows' names are
+    # fitted together once all are known, so a short form never collides.
+    names: list[tuple[int, int, str, int, Style, str]] = []  # x, y, name, budget, style, kind
     hand = at_hand(body)
     if hand:
         section("HERE")
-        for name in hand:
-            line(fit_here(name, w - 2), "panel_text")  # One cell of right margin (UI 6).
+        for entry in hand:
+            if active and y < limit:
+                shape, _, label = clean_text(entry).partition(' ')
+                buffer.put(x + 1, y, shape + ' ', paint("panel_text"))  # The space styled as before.
+                left = 1 + display_width(shape) + 1
+                names.append((x + left, y, label, w - left - 1, paint("panel_text"), "here"))  # One cell of margin.
+                y += 1
     limit += target_reserve
     target = body.get("target")
-    # UI 6 (#261): TARGET's and the drawn NEARBY rows' names are fitted
-    # together once both are known, so a short form never collides.
-    names: list[tuple[int, int, str, int, Style]] = []  # x, y, name, budget, style
     section("TARGET")
     if target:
         tag = TAGS.get({"hostile": "!", "allied": "+"}.get(target.get("relation", ""), "~"), "neutral")
         if active and y < limit:
             names.append((x + 1, y, str(target["name"]), TARGET_NAME_CELLS,
-                          paint(target.get("name_role", "panel_text"), bold=True)))
+                          paint(target.get("name_role", "panel_text"), bold=True), "name"))
             y += 1
         if y < limit:
             health = f"{target['hp']:g}" if "hp" in target else f"{target.get('hp_percent', target.get('hp_pct', 0))}%"
@@ -404,7 +420,7 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
             if y >= limit:
                 break
             actor = actors.get(entry['id'], {})
-            glyph = {'actor-drone': 'τ', 'actor-player': '☺'}.get(actor.get('glyph_id'), '☻')
+            glyph = actor_shape(actor) if actor else '☻'
             hostile = entry.get("relation") == "!"
             jacked = entry.get('jacked', False)
             style = paint(entry.get('role', 'npc_neutral'), bold=True, reverse=hostile and not jacked)
@@ -416,11 +432,11 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
             suffix = (' jacked' if jacked else '') + ' ' + relation
             budget = w - 4 - len(suffix)  # 16 cells beside ` ~`.
             names.append((x + 3, y, str(entry.get('name', 'Someone')), budget,
-                          paint("log_danger" if hostile else "panel_text")))
+                          paint("log_danger" if hostile else "panel_text"), "name"))
             suffixes[y] = suffix
             y += 1
-    fitted = panel_names([name for _, _, name, _, _ in names], [budget for _, _, _, budget, _ in names])
-    for (nx, ny, _, _, style), text in zip(names, fitted):
+    fitted = panel_names([row[2] for row in names], [row[3] for row in names], [row[5] for row in names])
+    for (nx, ny, _, _, style, _), text in zip(names, fitted):
         buffer.put(nx, ny, text + suffixes.get(ny, ''), style)
     limit = vy - 1
     if crew and y < limit - 1:
