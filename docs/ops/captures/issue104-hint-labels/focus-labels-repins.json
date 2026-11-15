@@ -22,7 +22,7 @@
         ]
       ],
       "reason": "§4.12 renames, #220",
-      "pr": null
+      "pr": 252
     },
     {
       "removed": [],
@@ -37,7 +37,7 @@
         ]
       ],
       "reason": "S48c2 talkers",
-      "pr": null
+      "pr": 252
     }
   ]
 }

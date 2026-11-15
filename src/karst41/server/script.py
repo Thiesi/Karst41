@@ -20,7 +20,9 @@ read and the hall left (only the errand, a per-character flag, goes on).
   beat's anchor (6.2), if still owed, plays first instead and may speak
   under the record (fourth amendment, 2026-11-15, owner-approved), and a
   non-anchor follower of a line from before the record is stale and never
-  queued (technical lead).
+  queued (technical lead). Other owed anchors (3.1, 3.3) follow 9.9, and
+  the kit waits for them: 9.10 comes its delay after the last of them
+  (fifth amendment, 2026-11-15, owner-approved).
 - Quiet for speech: a target set, an ICE warned, a menu or text page open,
   jacked in, or within P8's ten-second danger hold. The drone lesson's
   lines hold only while the drone can still act: down, skipped or inert
@@ -56,7 +58,7 @@ SCRIPT_ID = "wake-opening"
 
 def fresh() -> dict[str, Any]:
     """A runner state, as stored in the wake record and later in `progress`."""
-    return {"beat": 0, "spoken": [], "fired": [], "armed": [], "queue": [], "facts": [], "hints": [],
+    return {"beat": 0, "spoken": [], "fired": [], "armed": [], "deferred": [], "queue": [], "facts": [], "hints": [],
             "beat_tick": None, "steps": 0, "pos": None, "read": False, "done": False}
 
 
@@ -90,6 +92,7 @@ class Opening:
         if not self.script or state.get("done"):
             return
         state.setdefault("armed", [])  # States saved before the fix 1 amendment.
+        state["deferred"] = []  # Resume drops what waited on owed anchors, like waiting lines.
         if state.get("queue"):  # Resume: waiting non-anchors are dropped (technical lead, ruling b).
             state["queue"] = [q for q in state["queue"] if self.lines[q[0]][1].anchor]
         if state.get("beat_tick") is None:
@@ -211,6 +214,25 @@ class Opening:
         index, ln = self.lines[lid]
         return index == self.drone_beat and ln.anchor and self.past_record(state, lid)
 
+    def owed_anchors(self, state: dict[str, Any], lid: str) -> bool:
+        """Amendment 5 (owner-approved 2026-11-15): after the record, a timed
+        event line chained to a line of the record or later (9.10 after 9.9)
+        waits while anchors from before the record are still owed (3.1, 3.3)."""
+        return self.lines[lid][0] >= self.record_beat <= state["beat"] and any(
+            self.lines[q[0]][1].anchor and self.lines[q[0]][0] < self.record_beat for q in state["queue"])
+
+    def release(self, session: Session, state: dict[str, Any]) -> None:
+        """Queue deferred lines once no owed anchor waits: each `delay` after
+        the last of them was spoken; later links keep their own spacing."""
+        deferred = state.get("deferred")
+        if not deferred or any(self.lines[q[0]][1].anchor and self.lines[q[0]][0] < self.record_beat
+                               for q in state["queue"]):
+            return
+        state["deferred"] = []
+        now = self.core.clock.now_tick()
+        for lid in deferred:
+            self.queue_line(session, state, lid, front=True, due=now + round(self.lines[lid][1].delay * TICK_HZ))
+
     def begin(self, session: Session, state: dict[str, Any], index: int) -> None:
         state["beat"], state["beat_tick"], state["steps"] = index, self.core.clock.now_tick(), 0
         # Waiting speech of earlier beats is dropped unless it is an anchor. A
@@ -276,11 +298,17 @@ class Opening:
                 continue  # Its own trigger never fired (another archetype's line).
             if follower not in state["fired"]:
                 state["fired"].append(follower)
-                if self.eligible(state, nxt) and not self.stale(state, follower):
-                    # Ahead of older anchors, as its lead was: 9.9 follows 9.8
-                    # before an owed 3.1/3.3 (first-ten-minutes, Pacing).
-                    self.queue_line(session, state, follower, front=True,
-                                    due=self.core.clock.now_tick() + round(nxt.delay * TICK_HZ))
+                if not self.eligible(state, nxt) or self.stale(state, follower):
+                    continue
+                if nxt.kind != "speech" and self.owed_anchors(state, follower):
+                    # Amendment 5: the kit waits for owed lease anchors.
+                    state.setdefault("deferred", []).append(follower)
+                    continue
+                # Ahead of older anchors, as its lead was: 9.9 follows 9.8
+                # before an owed 3.1/3.3 (first-ten-minutes, Pacing).
+                self.queue_line(session, state, follower, front=True,
+                                due=self.core.clock.now_tick() + round(nxt.delay * TICK_HZ))
+        self.release(session, state)
 
     def quiet(self, session: Session, ln: s.ScriptLine, tick: int) -> bool:
         """Speech only (creative lead, fix 1)."""
@@ -326,8 +354,9 @@ class Opening:
                 continue
             actor = avatar.actor
             in_hall = actor.zone == self.script.zone
-            if not in_hall and state["queue"]:
+            if not in_hall and (state["queue"] or state.get("deferred")):
                 state["queue"] = []  # Nothing from the hall plays outside it (creative lead, fix 3).
+                state["deferred"] = []
             self.poll(session, state, actor, in_hall, tick)
             if state["queue"] and in_hall:
                 self.speak_next(session, state, tick)

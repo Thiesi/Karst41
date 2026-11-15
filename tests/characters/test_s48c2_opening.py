@@ -556,7 +556,7 @@ def test_a_valueless_polled_trigger_fires_only_its_own_line(repo_root, name: str
 def test_owed_lease_anchors_wait_under_the_record_and_follow_9_9(game: HeadlessServer) -> None:
     """First-ten-minutes, Pacing (worked example): 3.1 and 3.3, still owed
     at the record, do not speak under it; they follow 9.8 and 9.9. Only 6.2
-    goes first (amendment 4)."""
+    goes first (amendment 4). The kit waits for them (amendment 5)."""
     client = game.connect()
     session, clock = client.session, game.core.clock
     state = game.core.opening.states[session.id]
@@ -583,7 +583,14 @@ def test_owed_lease_anchors_wait_under_the_record_and_follow_9_9(game: HeadlessS
     act(game, client, Frame("line", {"id": wake.prompt_id, "text": "Noor"}))
     game.step(1)
     game.commit_characters()
-    for _ in range(600):
+    place(game, client, HALL, DOOR)  # Where 10.1 and 10.2 are said.
+    at = {}
+    for _ in range(900):
         game.step()
-        heard += [line.get("script") for line in said(game, client)]
-    assert heard.index("9.2") < heard.index("9.8") < heard.index("9.9") < heard.index("3.1") < heard.index("3.3")
+        for line in said(game, client):
+            heard.append(line.get("script"))
+            at.setdefault(line.get("script"), clock.now_tick())
+    order = ["9.2", "9.8", "9.9", "3.1", "3.3", "9.10", "9.10h", "9.11", "10.1"]
+    assert [lid for lid in heard if lid in order] == order  # Amendment 5: one Vantongeren block, then the kit.
+    assert at["9.10"] - at["3.3"] == 25  # 2.5 s after the last of her lines.
+    assert (at["9.10h"] - at["9.10"], at["9.11"] - at["9.10"]) == (25, 50)  # The kit keeps its spacing.
