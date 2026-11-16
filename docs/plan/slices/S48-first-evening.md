@@ -186,13 +186,20 @@ the one before it and merges main in. The H1 gate stays on the last one.
   inert (creative lead's beat, technical lead's mechanics).
 - **S48c2**: the opening's script. This covers the runner, the hint row,
   staging and the #220 §4.12 text.
-- **S48c3**, panel and paint:
-  - the `»` door glyph, the §2.4 panel rows, help page 1, and the
-    painted floor line and marks;
-  - the orderlies;
-  - the door-side signal for the in-hall Ctrl-P hint;
-  - the whole-word NEARBY cut;
-  - the short recruiter pitches (#242).
+- **S48c3**, panel and paint, in three PRs (technical lead, 2026-11-15):
+  - **S48c3a** (#259, merged): #249 and the beat-6 drone B (movement
+    wins; literal B skips), the opening runner's per-connection cleanup,
+    and the crew notice held until the first non-pocket zone (#254).
+  - **S48c3b**, fit and log rules: the log fill stops at the first
+    misfit (#256); names never cut inside a word in the header, HERE,
+    NEARBY and TARGET, the header stutter, and the name row's handle
+    shown whole or not at all (#261); the short recruiter pitches
+    (#242); the lease row and no Signatory XP row (#236); the door-side
+    signal for the in-hall Ctrl-P hint. Canon: terminal UI 2, 2.5 and 6.
+  - **S48c3c**, hall paint and focus: the `»` door glyph, the §2.4 panel
+    rows, help page 1, the painted floor line and marks; the orderlies;
+    focus_hint on section 11's short form. This is the one P3 digest
+    change, which needs the owner's approval.
 - **S48d**: a voice in the walls (part 5).
 - **S48e**: the walk and the native evidence. This build is the H1
   session.
@@ -490,7 +497,7 @@ runner contract with the creative lead's fixes.
 - **Ctrl-P read-back:** c2 ships the stated fallback (once on Clinic Row
   after the shift hint). The in-hall trigger ("the first time a spoken
   line is cut or pushed out of view") is a door-side signal; the
-  technical lead deferred it to S48c3 (panel and paint, already door-side
+  technical lead deferred it to S48c3b (fit and log rules, already door-side
   work). A deferral, not a dropped beat.
 - **Template reward lines** (creative lead): after 9.10, Hardline's vest,
   Cantor's First Ear (with Steady) and Operator's Mule, named from the

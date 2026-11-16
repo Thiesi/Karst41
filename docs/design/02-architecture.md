@@ -285,7 +285,17 @@ forms. Cancelling a line prompt sends `intent {name: "prompt_cancel",
 args: {id}}`, never an empty line submission. Delta add/replace/remove
 operations use JSON pointers against the last `{kind, body}` view; an
 invalid patch or base mismatch requests `intent {name: "resync", args:
-{}}` without partially changing the displayed view.
+{}}` without partially changing the displayed view. The client reports
+the first spoken line it couldn't show whole with `intent {name:
+"log_missed", args: {}}`, at most once per connection (S48c3b): a speech
+entry that arrived on this connection and is cut as the newest entry, or
+that is no longer the newest and has never been drawn whole (one hidden
+by 2.5's stop rule before it ever showed counts). Replayed
+history on attach never counts. The server decides what, if anything, to
+show (today only the opening's Ctrl-P read-back hint, in the Wake Hall)
+and ignores the intent silently otherwise. The server holds the limit
+too: it honours the first `log_missed` per connection and drops the rest,
+and the hint's once-only state lives on the character, server-side.
 
 S03 wire spellings: `line.id` identifies the prompt, `caps.tier` is
 `"16"`, `"256"` or `"truecolor"`, and `caps.unicode` is `true`.
@@ -553,7 +563,7 @@ verb and current cost remain. Help is first among remaining groups when
 it fits. The existing terminal cell-width and clipping helpers apply.
 The lesson-hint row (S48c2) already follows terminal UI 11's newer rule:
 it keeps each label's last whole word before any trailing parenthetical.
-The general fitter switches to that rule in S48c3, with the owner's P3
+The general fitter switches to that rule in S48c3c, with the owner's P3
 approval.
 
 #### 5.5.3 Log kinds
