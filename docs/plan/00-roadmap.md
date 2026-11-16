@@ -49,12 +49,12 @@ game. After M4 it is worth a public release as 0.x. M5 and M6 make it
 
 | Label | Meaning |
 |---|---|
-| **Fable** | Claude Fable 5.1. Design-heavy or ambiguous; cross-cutting judgement; anything that changes the design doc's shape. |
+| **Fable** | Claude Fable 5.1. Design-heavy or ambiguous; cross-cutting judgement; anything that changes the design doc's shape. ANSI art composition (owner, 2026-11-16). |
 | **Opus** | Claude Opus 5. Systems work with real design freedom inside a fixed spec: server subsystems, the renderer, the simulation. |
 | **Sonnet** | Claude Sonnet. Mechanical, well-specified work: data conversion, loaders, CLIs, tests from a list, content from a sketch. |
 | **Astra** | ChatGPT Astra 6. Independent second opinion: protocol and security review, balance review, spec critique before a slice is started. Not for writing slices that touch the design doc. |
 | **Gemini** | Gemini via Antigravity. Bulk content generation with a long context (many zone maps or dialogue files from the gazetteer and personae docs), where the whole world bible fits in the prompt. Output goes through the validator and a Sonnet review. |
-| **Human** | The user or an artist. ANSI art passes, playtests, the final call on balance. |
+| **Human** | The user. Playtests, the look at the headline art on a real terminal, the final call on balance. |
 
 A slice names one primary model and may name a reviewer.
 
@@ -102,7 +102,7 @@ not a numeric execution order. Cross-milestone dependencies are explicit.
 | S30 | Onboarding and help: hint system, help pages, first-run screen, session-limit UX, colour-blind palettes, settings | Sonnet | S07, S09, S13, S19 |
 | S31 | NetBBS >= 7.45 integration: supervised preset, guest-safe admission, install guide, packaging, first release (Season 0, the alpha) | Sonnet | S48, S47, S49, S50, S28, S29, S32 (part A), S30, S33 |
 | S32 | Federation readiness audit (design only): origin/authority invariants, protocol reservations, a written bridge design against NetBBS #168 | Fable, Astra review | S21; S49 for part A (alpha), S26 for part B |
-| S33 | ANSI art pack: title, sigils, vignettes, the Ring, Wake Hall, dead screen, transitions | Opus composition, Human pass | S04 |
+| S33 | ANSI art pack: title, sigils, vignettes, the Ring, Wake Hall, dead screen, transitions | Fable composition, Opus loader; owner's look at the four headline pieces | S04 |
 | S34 | Lasting crews: persistent rosters, offline invitations, notes, handoffs (planned, #125) | Codex | S22, S19, S23 |
 | S35 | The away report: persisted public records and the login screen (planned, #125) | Codex | S34 |
 | S36 | Tags: one short public mark per character (planned, #125) | Codex | S08, S09, P6 |

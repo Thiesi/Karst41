@@ -353,7 +353,7 @@ decisions; **3** after representative-location approval.
 | S30 | plumbing yes | **subdivide; presentation requirements** | S30a now: session-limit UX, reconnect, `unicode_style` refusal, hint engine, settings persistence and intents, help plumbing, S25 repair help. S30b after P5 to P8: deutan and protan for the final role set, art mode and log verbosity settings, legend help, first-run and Wake layout, human first-time pass. |
 | S31 | no | **add dependencies and acceptance** | Depends on P10 and the final human gate H4. Its step 7 includes the CP437 control-code check and every D6 glyph. Keep full presentation sign-off out of the release slice: H4 is its own gate issue that S31 depends on. |
 | S32 | yes | **continue; one note** | Design-only. Add the additive view fields (`looks`, `focus`, log `kind`) to the protocol reservations it audits. |
-| S33 | tooling yes | **subdivide; wait for D4, D6, D8** | S33a loader, sidecars, `art-check`, fallbacks, tests now. S33b composition, sizes and screen wiring after the D8 playtest; vignette count and sizes revisited against district themes; sigil fit re-checked against the new side panel. |
+| S33 | tooling yes | **subdivide; wait for D4, D6, D8** | S33a loader, sidecars, `art-check`, fallbacks, tests now (the engineer). S33b composition (Fable, from the presentation lead's briefs; owner, 2026-11-16), sizes and screen wiring after the D8 playtest; vignette count and sizes revisited against district themes; sigil fit re-checked against the new side panel. |
 
 ### 6.2 Earlier slices
 

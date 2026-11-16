@@ -1,7 +1,7 @@
 # S33 — ANSI art pack: title, sigils, vignettes, the Ring, Wake Hall, dead screen, transitions
 
 **Status:** planned
-**Primary model:** Opus (composition and `.ans` authoring) · Sonnet (sidecars, loader, fallbacks) · **Reviewer:** Human (view every piece on a real terminal at three tiers)
+**Primary model:** Fable (composition and `.ans` authoring, owner 2026-11-16) · Opus (sidecars, loader, fallbacks) · **Reviewers:** the presentation lead (a brief per piece before composition; acceptance at every tier shipped, 16 colours always included, with the text fallback at 80x24); the owner (the four most visible pieces on a real terminal)
 **Depends on:** S04 · **Milestone:** M6
 **Issue:** https://github.com/Thiesi/Karst41/issues/33
 
@@ -10,14 +10,16 @@
 Ship the game's visual identity as ANSI art blocks the client can show
 at every tier, with a loader that measures them, a sidecar that
 declares their variants, and a text fallback for every piece so a
-missing or over-wide file never breaks a screen. Agents are poor at
-art; the process here assumes a human pass on the four most visible
-pieces and treats everything else as optional polish.
+missing or over-wide file never breaks a screen. Fable composes every
+piece (owner, 2026-11-16, after its favicon work for another project).
+The owner looks at the four most visible pieces on a real terminal
+before they ship.
 
 ## Spec references
 
-- `docs/design/04-assets.md` §4 (the piece list with sizes and tiers,
-  the recommended process, human review, image-to-ANSI alternative),
+- `docs/design/04-assets.md` §4 (the piece list with sizes and tiers;
+  the process: the presentation lead's brief, Fable's composition, the
+  presentation lead's acceptance, the owner's look),
   §8 (naming: `art-<name>`, `-256`, `-16`, `-w132`).
 - `docs/design/01-entities.md` §1.15 (art asset: `.ans` plus sidecar
   `width, height, min_tier, palette variants`).
@@ -69,14 +71,12 @@ row per line, plus `<id>.json` sidecar:
   or any key), Scour zone header (the Ring, top of the viewport when
   height ≥ 40), Wake, dead, jack-in transition (three frames at 150 ms,
   skippable), Blacksite Level 1 entry.
-- Human pass: title, the Ring, Wake Hall, dead screen are reviewed by
-  the user on a real terminal (SyncTERM-class over Telnet, an SSH
-  client, and the web transport) at truecolor, 256, and 16 colours;
-  feedback applied before merge.
-- Image-to-ANSI path (optional): `scripts/img2ans.py` converting a PNG
-  to the fixed palette with the block-glyph set, for vignettes produced
-  by an image model; output goes through `art-check.py` like any other
-  piece.
+- Owner's look: the title, the Ring, Wake Hall and the dead screen are
+  viewed by the owner on a real terminal (SyncTERM-class over Telnet, an
+  SSH client, and the web transport) at truecolor, 256 and 16 colours,
+  after the presentation lead has accepted them. Anything sent back is
+  fixed before merge. Fable composes every piece, so there is no
+  image-model path.
 
 ## Out of scope
 
@@ -130,13 +130,17 @@ and the NetBBS web transport:
    frames: it cuts.
 7. Delete `art-title.ans` and re-enter: the tagline text appears
    instead, no error.
-8. The user signs off the four human-review pieces.
+8. The presentation lead accepts every piece against its brief at every
+   tier it ships, 16 colours included, and its text fallback from an
+   80x24 capture. The owner then looks at the four headline pieces on a
+   real terminal, and anything sent back is fixed.
 
 ## Definition of done
 
 - All pieces present in all declared variants and passing `art-check`;
-  tests green; human sign-off recorded in the PR; slice file marked
-  done with PR number.
+  tests green; the presentation lead's acceptance of every piece and
+  the owner's look at the four headline pieces recorded in the PR; slice
+  file marked done with PR number.
 
 ## Implementer notes
 
