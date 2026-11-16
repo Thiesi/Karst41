@@ -111,9 +111,11 @@ def select_lazy(count: int, rows_of: Callable[[int], Sequence[Any]],
     fill what's left, newest first and whole only; the newest takes back
     free rows; other entries fill the rest, newest first and whole only.
     A protected newest entry takes rows up to its full height first. Only
-    the newest entry is ever shown in part. An entry that doesn't fit whole
-    is skipped and the pass goes on to older ones, as steps 2 and 4 say:
-    "fill the remaining rows", "fill whatever is left".
+    the newest entry is ever shown in part. In step 2 a protected entry
+    that doesn't fit whole is skipped and older protected ones still fill.
+    Step 4 stops at the first older entry that doesn't fit whole and leaves
+    the rows above it blank (#256), so the log is an unbroken run of the
+    newest entries plus any protected ones.
 
     Work is bounded: `rows_of` (the wrap) is called newest first, only
     for entries the passes reach, and each pass stops once the rows are
@@ -140,8 +142,13 @@ def select_lazy(count: int, rows_of: Callable[[int], Sequence[Any]],
         for index in range(newest - 1, -1 if want_protected else oldest - 1, -1):
             if left <= 0:
                 break
-            if protected(index) != want_protected or size(index) > left:
-                continue
+            if want_protected:
+                if not protected(index) or size(index) > left:
+                    continue
+            elif protected(index):
+                continue  # Step 2's, placed or passed over.
+            elif size(index) > left:
+                break  # #256: stop; never skip to an older entry that fits.
             shown[index] = size(index)
             left -= size(index)
         return left
@@ -167,7 +174,8 @@ def log_cut(rows: list[str], shown: int, width: int) -> list[str]:
     return fit(rows, width, shown, LOG_CUT)
 
 
-def default_log_rows(lines: Sequence[dict[str, Any]], width: int, height: int) -> list[dict[str, str]]:
+def default_log_rows(lines: Sequence[dict[str, Any]], width: int, height: int,
+                     whole: set[int] | None = None) -> list[dict[str, str]]:
     """The default renderer's log under rule 5: whole entries, newest always shown.
 
     Its lines carry no arrival time, so nothing is protected here (P12
@@ -183,6 +191,9 @@ def default_log_rows(lines: Sequence[dict[str, Any]], width: int, height: int) -
         return wrapped[index]
 
     shown = select_lazy(len(lines), rows_of, lambda index: False, height)
+    if whole is not None:  # S48c3b: the `_seq` of raw lines drawn whole (Ctrl-P read-back).
+        whole.update(lines[index]['_seq'] for index, count in shown.items()
+                     if count >= len(wrapped[index]) and isinstance(lines[index].get('_seq'), int))
     out: list[dict[str, str]] = []
     for index in sorted(shown):
         rows, count = wrapped[index], shown[index]

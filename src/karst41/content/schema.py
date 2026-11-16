@@ -666,6 +666,7 @@ class WakeCard:
     id: str
     name: str
     pitch: str
+    pitch_short: str = ""  # Required by the validator (entities 1.20, #242).
     faction: str | None = None
     schema: int = CONTENT_SCHEMA
 

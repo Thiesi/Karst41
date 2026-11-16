@@ -189,11 +189,33 @@ def test_p12_select_entries_rules():
     assert select_entries([1, 3], [True, True], 3) == [0, 3]
     assert select_entries([5], [False], 3) == [3]
     assert select_entries([1, 2, 1], [True, False, False], 3) == [1, 0, 1]
-    # Steps 2 and 4 fill whatever is left: an entry too tall to fit whole is
-    # skipped and an older, shorter one still fills the free row.
-    assert select_entries([1, 3, 1], [False, False, False], 3) == [1, 0, 1]
-    assert select_entries([1, 3, 1, 1], [False, False, False, False], 3) == [1, 0, 1, 1]
+    # Step 2 fills whatever is left: a protected entry too tall to fit whole
+    # is skipped and an older protected one still fills the free row.
     assert select_entries([1, 3, 1], [True, True, False], 3) == [1, 0, 1]
+    # Step 4 stops at the first older entry that doesn't fit whole (#256):
+    # the rows above it stay blank, with no older one-row entry under it.
+    assert select_entries([1, 3, 1], [False, False, False], 3) == [0, 0, 1]
+    assert select_entries([1, 3, 1, 1], [False, False, False, False], 3) == [0, 0, 1, 1]
+
+
+def test_256_an_older_entry_that_does_not_fit_ends_the_log():
+    # 9_10 at 80x24: the two-row 9.8 doesn't fit the one free row, so 9.7
+    # under it no longer shows; the newest (the kit) is unchanged.
+    assert select_entries([1, 2, 1, 1], [False] * 4, 3) == [0, 0, 1, 1]
+    # A protected entry still shows whole, above or below the stop.
+    assert select_entries([2, 1, 2, 1, 1], [True, False, False, False, False], 4) == [2, 0, 0, 1, 1]
+    assert select_entries([1, 2, 1, 2], [False, True, False, False], 4) == [0, 2, 0, 2]
+    # The newest entry keeps its reserved row and takes back free rows.
+    assert select_entries([3, 4], [False, False], 3) == [0, 3]
+    assert select_entries([1, 1, 1], [False] * 3, 5) == [1, 1, 1]
+    # Terminal UI 2.5's example: combat, A, three-row B, newest in four rows
+    # reads `combat, newest, blank, blank`; A is not shown.
+    assert select_entries([1, 1, 3, 1], [True, False, False, False], 4) == [1, 0, 0, 1]
+    # Step 4 stops only at an unprotected misfit: a protected one that step 2
+    # passed over doesn't end the fill.
+    assert select_entries([1, 3, 1], [False, True, False], 3) == [1, 0, 1]
+    # A protected newest entry takes its full height first.
+    assert select_entries([1, 1, 3], [False, False, True], 3) == [0, 0, 3]
 
 
 def speech(text: str, second: int, arrived: float = 0) -> dict:
@@ -287,10 +309,11 @@ def test_p12_default_log_wraps_a_bounded_number_of_entries(monkeypatch, height):
     assert len(default_log_rows(ring('Short.'), 78, height)) == height
     assert len(calls) == height
     calls.clear()
-    # Entries too tall to fit: the skip-ahead stops at its lookback bound.
+    # Entries too tall to fit: step 4 stops at the first one (#256), so only
+    # the newest and that one are wrapped, well inside the lookback bound.
     lines = [*ring(' '.join(['word'] * 200))[1:], {'kind': 'system', 'channel': 'system', 'text': 'Now.'}]
     assert len(default_log_rows(lines, 78, height)) == 1  # nothing older fits whole
-    assert len(calls) == LOG_LOOKBACK_PER_ROW * height + 1
+    assert len(calls) == 2 <= LOG_LOOKBACK_PER_ROW * height + 1
 
 
 @pytest.mark.parametrize('height', [3, 8])
@@ -305,7 +328,7 @@ def test_p12_presentation_log_digests_and_wraps_a_bounded_window(monkeypatch, he
     digested.clear(), wrapped.clear()
     lines = [*ring(' '.join(['word'] * 200))[1:], {'kind': 'system', 'text': 'Now.'}]
     assert len(chrome.visible_rows(lines, 78, height, 1000)) == 1
-    assert digested == [log_window(height)] and len(wrapped) == LOG_LOOKBACK_PER_ROW * height + 1
+    assert digested == [log_window(height)] and len(wrapped) == 2  # Step 4 stops at the first (#256).
 
 
 def test_p12_bounded_window_never_drops_a_protected_entry():
@@ -332,3 +355,10 @@ def test_p12_protected_reach_back_is_bounded(monkeypatch, height):
     rows = chrome.visible_rows(flood, 78, height, 5)
     assert digested == [log_window(height), log_window(height) + LOG_PROTECT_EXTRA]
     assert 'Too far back.' not in {entry.text for entry, _, _ in rows}
+
+
+def test_260_a_protected_misfit_neither_shows_nor_stops_step_4():
+    # A three-row protected entry doesn't fit; the one-row older unprotected
+    # line that fits still shows (#260 at d49491d).
+    assert select_entries([1, 3, 1], [False, True, False], 3) == [1, 0, 1]
+    assert select_entries([1, 1, 3, 1], [False, False, True, False], 3) == [1, 1, 0, 1]

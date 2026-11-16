@@ -63,6 +63,10 @@ def fresh() -> dict[str, Any]:
             "beat_tick": None, "steps": 0, "pos": None, "read": False, "done": False}
 
 
+READ_BACK = "read-back"  # The one-time Ctrl-P row (S48c3b).
+READ_BACK_SECONDS = 8
+
+
 class Opening:
     def __init__(self, core: Any) -> None:
         self.core, self.game = core, core.characters
@@ -70,6 +74,7 @@ class Opening:
         self.states: dict[str, dict[str, Any]] = {}
         self.showing: dict[str, tuple[str, int]] = {}
         self.walked: dict[str, list[Any]] = {}
+        self.missed_heard: set[str] = set()  # Connections that sent `log_missed` (S48c3b).
         self.lines: dict[str, tuple[int, s.ScriptLine]] = {}
         self.after: dict[str, list[str]] = {}
         self.record_beat = len(self.script.beats) if self.script else 0
@@ -120,7 +125,32 @@ class Opening:
         # connection's only (review 6889691584); the flags live on the character.
         self.showing.pop(session.id, None)
         self.walked.pop(session.id, None)
+        self.missed_heard.discard(session.id)
         return self.states.pop(session.id, None)
+
+    def log_missed(self, session: Session) -> None:
+        """The door saw a spoken line cut or pushed out of view before it was
+        drawn whole (architecture 3, S48c3b): the in-hall Ctrl-P read-back.
+
+        Only while the opening is live, in the hall, and once per character:
+        the flag rides in the runner state, which goes on with the character,
+        so Clinic Row's fallback never shows it again. Anything else is
+        ignored silently.
+        """
+        if session.id in self.missed_heard:
+            return  # The first per connection is honoured; the rest are dropped.
+        self.missed_heard.add(session.id)
+        state = self.states.get(session.id)
+        if not self.script or state is None or state.get("done") or READ_BACK in state["hints"]:
+            return
+        player = self.game.players.get(session.player_id)
+        avatar = self.game.sim.avatars.get(session.user_id)
+        if (player is None or READ_BACK in player.progress.get("hints_seen", [])
+                or avatar is None or avatar.actor.zone != self.script.zone
+                or not any(h.id == READ_BACK for h in self.script.hints)):
+            return
+        state["hints"].append(READ_BACK)
+        self.showing[session.id] = READ_BACK, self.core.clock.now_tick() + READ_BACK_SECONDS * TICK_HZ
 
     def live(self, pid: str) -> bool:
         """A live script owns the opening's events for this player (technical lead, fix 1)."""
@@ -464,6 +494,13 @@ class Opening:
                 body["lesson"] = {"text": text}
             return
         player = self.game.players.get(session.player_id)
+        keymap = next((k for k in self.game.content.keymaps.keymaps if k.id == session.keymap_id), None) \
+            if self.game.content.keymaps else None
+        showing = self.showing.get(session.id)
+        if showing and showing[0] == READ_BACK and self.core.clock.now_tick() < showing[1]:
+            # The in-hall read-back (S48c3b), over a lesson hint for its 8 s.
+            body["lesson"] = {"text": resolve_keys(next(h.text for h in self.script.hints if h.id == READ_BACK), keymap)}
+            return
         text = self.hint(session, player)
         if text:
             body["lesson"] = {"text": text}
@@ -472,8 +509,6 @@ class Opening:
             return
         avatar = self.game.sim.avatars.get(session.user_id)
         zone = avatar.actor.zone if avatar else None
-        keymap = next((k for k in self.game.content.keymaps.keymaps if k.id == session.keymap_id), None) \
-            if self.game.content.keymaps else None
         once = self.once_hint(session, player, zone, avatar) if player.progress.get("opening") is not None else ""
         if once:
             body["lesson"] = {"text": resolve_keys(once, keymap)}
@@ -486,6 +521,8 @@ class Opening:
     def once_hint(self, session: Session, player: Any, zone: str | None, avatar: Any) -> str:
         """One-time rows, kept as per-character flags (creative lead): never runner state."""
         seen = player.progress.setdefault("hints_seen", [])
+        if READ_BACK in (player.progress.get("opening") or {}).get("hints", []) and READ_BACK not in seen:
+            seen.append(READ_BACK)  # Shown in the hall already (S48c3b): never again.
         tick = self.core.clock.now_tick()
         showing = self.showing.get(session.id)
         if showing:

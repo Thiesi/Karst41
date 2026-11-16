@@ -208,6 +208,8 @@ async def run(info: DoorInfo, terminal: Terminal) -> None:
                     terminal.write(output)
                     if ack:
                         await send([ack])
+                if model.outbox:
+                    await send(model.take_outbox())
                 # Data and keys wake immediately; idle rendering stays asleep.
                 delay = max(0.001, min(1.0, model.last_render + 0.1 - now)) if model.dirty else 1.0
                 try:

@@ -85,7 +85,9 @@ def test_ui_2_5_notice_moves_to_header_for_declared_threat_or_input_then_returns
     rows = term.screen_text().splitlines()
     assert 'Maintenance soon.' in rows[model.layout.header.y]
     assert 'Maintenance soon.' not in rows[model.layout.hint.y]
-    assert rows[model.layout.header.y][:model.layout.header.right].endswith('Maintenance soon.')
+    # Terminal UI 2 (#260): a notice in the header takes the clock's place and
+    # may run along the header's frame line to one cell before the corner.
+    assert rows[model.layout.header.y][:width - 2].endswith('Maintenance soon.')
     assert rows[model.layout.header.y].endswith('╗')
     if reason in ('line_prompt', 'key_prompt'):
         assert 'Answer' in rows[model.layout.hint.y]
@@ -107,6 +109,10 @@ def test_ui_2_5_notice_moves_to_header_for_declared_threat_or_input_then_returns
     rows = term.screen_text().splitlines()
     assert 'Maintenance soon.' in rows[model.layout.hint.y]
     assert 'Maintenance soon.' not in rows[model.layout.header.y]
+    # Back on the hint line, the clock is in its own slot again: the widening
+    # belongs to the notice only and never leaks into the normal header.
+    clock = body['me'].get('clock', '')
+    assert clock and rows[model.layout.header.y][:model.layout.header.right].endswith(clock)
 
 
 @pytest.mark.parametrize('key_at', [2, 10, None])

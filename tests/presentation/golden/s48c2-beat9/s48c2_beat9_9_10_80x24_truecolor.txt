@@ -15,10 +15,10 @@
 ║                                  ··········@+         │ HP  ██████████ 130   ║
 ║                                   ···········         │ STA ██████████ 70    ║
 ║                                   ·······☻···         │ SHK ░░░░░░░░░░ 0     ║
-║                                                       │ 200 ch   lease 0/90  ║
+║                                                       │ 200 ch   day 1/90    ║
 ╟───────────────────────────────────────────────────────┴──────────────────────╢
-║" Okafor: And a name. The roll wants one.                                     ║
 ║" Vantongeren: Keep your own record.                                          ║
 ║√ Issued: sidearm, 50 rounds, baton, two patches, two rations.                ║
+║                                                                              ║
 ║Name (Enter keeps default):                                                   ║
 ╚══════════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,1 @@
+Ninety days, right? Then what? The corps want you on patrol, the badges want you on a plaza. Sable wants you paid. You'll never be safe with us and you'll never be broke. Mr. Reyes says hello. He says that to everyone. Take the card.

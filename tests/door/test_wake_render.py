@@ -11,6 +11,7 @@ from tests.fake_terminal import FakeTerminal
 from tests.harness import HeadlessServer
 from tests.character_helpers import create
 from karst41.server.wake import cards
+from karst41.layout import compute
 
 
 @pytest.mark.parametrize("width,height",[(80,24),(132,50)])
@@ -155,3 +156,26 @@ def test_the_record_header_carries_the_halls_real_safety_word(info: DoorInfo, re
     terminal.write(model.render(0)[0])
     header = terminal.screen_text().splitlines()[0]
     assert "POCKET" in header and "SAFE" not in header, header
+
+
+@pytest.mark.parametrize('width,height', [(80, 24), (132, 50)])
+@pytest.mark.parametrize('tier', ['16', '256', 'truecolor'])
+def test_242_each_card_shows_its_pitch_whole(info: DoorInfo, repo_root: Path, width: int, height: int,
+                                             tier: str, golden) -> None:
+    # #242 acceptance (class C): at 80x24 each card shows its short pitch, at
+    # 132x50 its full pitch; neither is cut.
+    content = load_content(repo_root/'src/karst41/content')
+    for cursor, card in enumerate(content.wake_cards.values()):
+        body = cards(content, cursor, width, height)
+        model = Display(replace(info, width=width, height=height, color_depth=tier))
+        model.receive(Frame('welcome', {'palette': asdict(content.palette),
+            'keymap': asdict(content.keymaps)}), 0)
+        model.receive(Frame('view', {'rev': 1, 'kind': 'menu', 'body': body}), 1)
+        terminal = FakeTerminal(width, height)
+        terminal.write(model.render(1)[0])
+        golden(f'wake_card_{card.id}_{width}x{height}', terminal, tier, trim=True)
+        area = compute(width, height).menu.detail
+        rows = terminal.screen_text().splitlines()[area.y:area.y + area.height]
+        shown = ' '.join(' '.join(row[area.x:area.x + area.width] for row in rows).split())
+        text = content.text[card.pitch_short if width == 80 else card.pitch].body
+        assert shown == ' '.join(text.split())  # Every word, in order: nothing is cut.

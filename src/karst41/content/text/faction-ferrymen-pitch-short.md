@@ -1,0 +1,1 @@
+You've never seen the sky. Not the Ring through a gap in the towers. All of it, at night, when a fall's coming down. Everything worth having came from up there, and we go and get it. Salvage pays better than chits. Take the card, and bring boots.

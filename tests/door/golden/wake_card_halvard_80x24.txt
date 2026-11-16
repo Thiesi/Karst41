@@ -1,0 +1,24 @@
+┌─ Karst · Wide界 ─────────────────────────────────────────────────────────────┐
+│    ┌─ THE WAKE - Recruiter cards ───────────────────────────────────────┐    │
+│    │ Choice                                                             │    │
+│    │ Halvard-Ostrom                                                     │    │
+│    │ Sablier                                                            │    │
+│    │ Kestrel                                                            │    │
+│    │ Wardens                                                            │    │
+│    │ Ninefold Choir                                                     │    │
+│    │ Red Sable                                                          │    │
+│    │ Unmoored                                                           │    │
+│    │ Ferrymen                                                           │    │
+│    │ Take no card                                                       │    │
+│    │ Most of the Wake Hall came off our templates. We built this city,  │    │
+│    │ cut the cables that saved it, and kept the shaft shut for          │    │
+│    │ forty-one years. What's under us isn't a mystery. It's a hazard,   │    │
+│    │ and hazards get managed. Good gear, good clinic. Take the card.    │    │
+│    │ enter take a card  Esc/B put the cards down                        │    │
+│    └────────────────────────────────────────────────────────────────────┘    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│Enter take a card  Esc/B put the cards down                                   │
+└──────────────────────────────────────────────────────────────────────────────

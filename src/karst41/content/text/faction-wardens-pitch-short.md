@@ -1,0 +1,1 @@
+Look around. The lights are on. Nobody in the Core has been shot for something they didn't choose in nineteen years. That's us. A Sablier policy, a real brass badge, the only pension in Karst. Get your signature first. Take the card.

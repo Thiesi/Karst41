@@ -33,7 +33,7 @@ from karst41.content.loader import ContentTree, load_content
 from karst41.door.cells import display_width as text_width
 from karst41.door.fit import TALK_LABEL_CELLS, TALK_LINE_ROWS, wrap_text
 from karst41 import truce_text
-from karst41.layout import compute
+from karst41.layout import card_detail_fits, compute
 from karst41.npc_presentation import channels as npc_channels
 
 __all__ = ["Problem", "validate", "exit_warnings", "route_door_warnings", "door_wall_axis", "main"]
@@ -1279,6 +1279,18 @@ class _Validator:
                 self.report("starts", sid, "rig slots cannot be negative")
         for cid, card in self.each("wake_cards"):
             self.ref("text", card.pitch, ("wake_cards", cid), "recruiter pitch")
+            # Entities 1.20 (#242): two lengths, each fitting its card detail
+            # area, so neither is ever cut on screen.
+            if not card.pitch_short:
+                self.report("wake_cards", cid, "a card with a pitch needs a pitch_short")
+            else:
+                self.ref("text", card.pitch_short, ("wake_cards", cid), "recruiter short pitch")
+                short = self.t.text.get(card.pitch_short)
+                if short is not None and not card_detail_fits(short.body, 80, 24):
+                    self.report("wake_cards", cid, "pitch_short must fit the 80x24 card detail area")
+            full = self.t.text.get(card.pitch)
+            if full is not None and not card_detail_fits(full.body, 132, 50):
+                self.report("wake_cards", cid, "pitch must fit the 132x50 card detail area")
             if card.faction:
                 self.ref("factions", card.faction, ("wake_cards", cid), "recruiter faction")
 

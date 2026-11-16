@@ -1,0 +1,1 @@
+Everything you eat came through my yard. Who runs this city? Not the view, not the badges. The timetable. Kestrel pays on time, in chits we print. You'll walk the Scour with a rifle and come back. Don't ask about the Dispatcher. Take the card.

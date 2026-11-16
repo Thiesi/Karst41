@@ -1,0 +1,24 @@
+┌─ Karst · Wide界 ─────────────────────────────────────────────────────────────┐
+│    ┌─ THE WAKE - Recruiter cards ───────────────────────────────────────┐    │
+│    │ Choice                                                             │    │
+│    │ Halvard-Ostrom                                                     │    │
+│    │ Sablier                                                            │    │
+│    │ Kestrel                                                            │    │
+│    │ Wardens                                                            │    │
+│    │ Ninefold Choir                                                     │    │
+│    │ Red Sable                                                          │    │
+│    │ Unmoored                                                           │    │
+│    │ Ferrymen                                                           │    │
+│    │ Take no card                                                       │    │
+│    │ Look around. The lights are on. Nobody in the Core has been shot   │    │
+│    │ for something they didn't choose in nineteen years. That's us. A   │    │
+│    │ Sablier policy, a real brass badge, the only pension in Karst. Get │    │
+│    │ your signature first. Take the card.                               │    │
+│    │ enter take a card  Esc/B put the cards down                        │    │
+│    └────────────────────────────────────────────────────────────────────┘    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                                                                              │
+│                                                                              │
+│Enter take a card  Esc/B put the cards down                                   │
+└──────────────────────────────────────────────────────────────────────────────

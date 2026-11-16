@@ -5,6 +5,7 @@ legacy pagination policies, separately from drawable rectangles.
 """
 
 from dataclasses import dataclass
+import textwrap
 from typing import Literal
 
 LayoutTier = Literal["current"]
@@ -147,3 +148,33 @@ def compute(width: int, height: int, tier: LayoutTier = "current") -> Layout:
         wake_detail_width=(min(width - 6, 110) - 5) // 2 if wide else min(width - 10, 66),
         encounter_width=max(20, width // 2 - 12 if wide else width - 16),
         private_core_width=52 if wide else 66)
+
+
+def wrapped(text: str, width: int, hyphens: bool = True) -> list[str]:
+    """Server menu text: each paragraph wrapped at `width`, then a blank row.
+
+    `hyphens=False` keeps hyphenated words whole ("forty-one"), as the card
+    detail needs (#242); other menus keep their existing wrap.
+    """
+    return [line for paragraph in text.split("\n\n")
+            for line in [*textwrap.wrap(paragraph.replace("\n", " "), max(12, width), break_on_hyphens=hyphens), ""]]
+
+
+def card_detail(text: str, width: int, height: int) -> list[str]:
+    """A recruiter pitch wrapped for the card detail area at this size."""
+    return wrapped(text, card_detail_size(width, height)[0], hyphens=False)
+
+
+def card_detail_size(width: int, height: int) -> tuple[int, int]:
+    """The recruiter card detail area, columns and rows (entities 1.20, #242)."""
+    layout = compute(width, height)
+    return layout.wake_detail_width, layout.menu.detail.height
+
+
+def card_detail_fits(text: str, width: int, height: int) -> bool:
+    """`text` wrapped at the card detail width takes no more rows than it has."""
+    lines = card_detail(text, width, height)
+    rows = card_detail_size(width, height)[1]
+    while lines and not lines[-1]:
+        lines.pop()
+    return len(lines) <= rows

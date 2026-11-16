@@ -2,16 +2,11 @@
 
 from copy import deepcopy
 from dataclasses import dataclass, field
-import textwrap
 from typing import Any
 
-from karst41.layout import compute as screen_layout
+from karst41.layout import card_detail, card_detail_fits, compute as screen_layout, wrapped
 from karst41.content.loader import ContentTree
 from karst41.server.rules.character import ARCHETYPES, default_name, gurney_name
-
-
-def wrapped(text: str, width: int) -> list[str]:
-    return [line for paragraph in text.split("\n\n") for line in [*textwrap.wrap(paragraph.replace("\n", " "), max(12, width)), ""]]
 
 
 def pages(lines: list[str], count: int) -> list[list[str]]:
@@ -69,10 +64,17 @@ def cards(content: ContentTree, cursor: int, width: int, height: int, ask: bool 
     rows = [{"id": card.id, "cells": [card.name]} for card in deck] + [{"id": rid, "cells": [label]} for rid, label, _, _ in extra]
     cursor = min(cursor, len(rows) - 1)
     if cursor < len(deck):
-        detail, verb = content.text[deck[cursor].pitch].body, "take a card"
+        # Entities 1.20 (#242): the full pitch when it fits the detail area,
+        # else the recruiter's own short speech. Neither is ever cut.
+        card = deck[cursor]
+        detail = content.text[card.pitch].body
+        if card.pitch_short and not card_detail_fits(detail, width, height):
+            detail = content.text[card.pitch_short].body
+        lines, verb = card_detail(detail, width, height), "take a card"
     else:
         _, _, verb, detail = extra[cursor - len(deck)]
-    return menu("THE WAKE - Recruiter cards", rows, cursor, "\n".join(wrapped(detail, detail_width)),
+        lines = wrapped(detail, detail_width)
+    return menu("THE WAKE - Recruiter cards", rows, cursor, "\n".join(lines),
                 # Words: presentation lead, S48c1a (imperative, names the object).
                 f"Enter {verb}  Esc/B put the cards down", verb, "put the cards down")
 
