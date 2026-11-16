@@ -1,7 +1,7 @@
 # S33 — ANSI art pack: title, sigils, vignettes, the Ring, Wake Hall, dead screen, transitions
 
 **Status:** planned
-**Primary model:** Opus (composition and `.ans` authoring) · Sonnet (sidecars, loader, fallbacks) · **Reviewer:** Human (view every piece on a real terminal at three tiers)
+**Primary model:** Fable (composition and `.ans` authoring, owner 2026-11-16) · Opus (sidecars, loader, fallbacks) · **Reviewers:** the presentation lead (direction and acceptance at every tier); the owner (the four most visible pieces on a real terminal)
 **Depends on:** S04 · **Milestone:** M6
 **Issue:** https://github.com/Thiesi/Karst41/issues/33
 
@@ -10,9 +10,10 @@
 Ship the game's visual identity as ANSI art blocks the client can show
 at every tier, with a loader that measures them, a sidecar that
 declares their variants, and a text fallback for every piece so a
-missing or over-wide file never breaks a screen. Agents are poor at
-art; the process here assumes a human pass on the four most visible
-pieces and treats everything else as optional polish.
+missing or over-wide file never breaks a screen. Fable composes every
+piece (owner, 2026-11-16, after its favicon work for another project).
+The owner looks at the four most visible pieces on a real terminal
+before they ship.
 
 ## Spec references
 
@@ -69,14 +70,12 @@ row per line, plus `<id>.json` sidecar:
   or any key), Scour zone header (the Ring, top of the viewport when
   height ≥ 40), Wake, dead, jack-in transition (three frames at 150 ms,
   skippable), Blacksite Level 1 entry.
-- Human pass: title, the Ring, Wake Hall, dead screen are reviewed by
-  the user on a real terminal (SyncTERM-class over Telnet, an SSH
-  client, and the web transport) at truecolor, 256, and 16 colours;
-  feedback applied before merge.
-- Image-to-ANSI path (optional): `scripts/img2ans.py` converting a PNG
-  to the fixed palette with the block-glyph set, for vignettes produced
-  by an image model; output goes through `art-check.py` like any other
-  piece.
+- Owner's look: the title, the Ring, Wake Hall and the dead screen are
+  viewed by the owner on a real terminal (SyncTERM-class over Telnet, an
+  SSH client, and the web transport) at truecolor, 256 and 16 colours,
+  after the presentation lead has accepted them. Anything sent back is
+  fixed before merge. Fable composes every piece, so there is no
+  image-model path.
 
 ## Out of scope
 

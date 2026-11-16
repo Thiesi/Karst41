@@ -102,7 +102,7 @@ not a numeric execution order. Cross-milestone dependencies are explicit.
 | S30 | Onboarding and help: hint system, help pages, first-run screen, session-limit UX, colour-blind palettes, settings | Sonnet | S07, S09, S13, S19 |
 | S31 | NetBBS >= 7.45 integration: supervised preset, guest-safe admission, install guide, packaging, first release (Season 0, the alpha) | Sonnet | S48, S47, S49, S50, S28, S29, S32 (part A), S30, S33 |
 | S32 | Federation readiness audit (design only): origin/authority invariants, protocol reservations, a written bridge design against NetBBS #168 | Fable, Astra review | S21; S49 for part A (alpha), S26 for part B |
-| S33 | ANSI art pack: title, sigils, vignettes, the Ring, Wake Hall, dead screen, transitions | Opus composition, Human pass | S04 |
+| S33 | ANSI art pack: title, sigils, vignettes, the Ring, Wake Hall, dead screen, transitions | Fable composition, Opus loader; owner's look at the four headline pieces | S04 |
 | S34 | Lasting crews: persistent rosters, offline invitations, notes, handoffs (planned, #125) | Codex | S22, S19, S23 |
 | S35 | The away report: persisted public records and the login screen (planned, #125) | Codex | S34 |
 | S36 | Tags: one short public mark per character (planned, #125) | Codex | S08, S09, P6 |
