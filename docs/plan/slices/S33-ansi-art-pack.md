@@ -1,7 +1,7 @@
 # S33 — ANSI art pack: title, sigils, vignettes, the Ring, Wake Hall, dead screen, transitions
 
 **Status:** planned
-**Primary model:** Fable (composition and `.ans` authoring, owner 2026-11-16) · Opus (sidecars, loader, fallbacks) · **Reviewers:** the presentation lead (direction and acceptance at every tier); the owner (the four most visible pieces on a real terminal)
+**Primary model:** Fable (composition and `.ans` authoring, owner 2026-11-16) · Opus (sidecars, loader, fallbacks) · **Reviewers:** the presentation lead (a brief per piece before composition; acceptance at every tier shipped, 16 colours always included, with the text fallback at 80x24); the owner (the four most visible pieces on a real terminal)
 **Depends on:** S04 · **Milestone:** M6
 **Issue:** https://github.com/Thiesi/Karst41/issues/33
 

@@ -104,11 +104,14 @@ The 16-colour place card's format (sizes, fallback to the text card,
 validation) is fixed before any card is authored, with the scene track
 (V3).
 
-Process: Fable composes every piece, its layout and palette
+Process: the presentation lead writes a short brief for each piece
+(the #68 direction, the Tin Halo target, palette roles and the
+16-colour limits). Fable then composes the piece, its layout and palette
 assignments, as `.ans` at each tier it ships. The engineer generates the
-JSON sidecar, the loader and the fallbacks. The presentation lead sets
-the direction and accepts each piece from captures at 256 and 16
-colours. The owner views the four most visible pieces (title, Ring,
+JSON sidecar, the loader and the fallbacks. The presentation lead
+accepts each piece against its brief, from captures at every tier it
+ships, 16 colours always included, and accepts its text fallback with
+it, from an 80x24 capture. The owner views the four most visible pieces (title, Ring,
 Wake Hall, dead screen) on a real terminal before they ship. That is a
 look, not a hand pass, and it can send a piece back. Every piece is
 checked at 16 colours.
