@@ -112,7 +112,9 @@ JSON sidecar, the loader and the fallbacks. The presentation lead
 accepts each piece against its brief, from captures at every tier it
 ships, 16 colours always included, and accepts its text fallback with
 it, from an 80x24 capture. The owner views the four most visible pieces (title, Ring,
-Wake Hall, dead screen) on a real terminal before they ship. That is a
+Wake Hall, dead screen) on a real terminal (a SyncTERM-class Telnet
+client, an SSH client and the web transport, at every tier) before they
+ship. That is a
 look, not a hand pass, and it can send a piece back. Every piece is
 checked at 16 colours.
 

@@ -17,8 +17,9 @@ before they ship.
 
 ## Spec references
 
-- `docs/design/04-assets.md` §4 (the piece list with sizes and tiers,
-  the recommended process, human review, image-to-ANSI alternative),
+- `docs/design/04-assets.md` §4 (the piece list with sizes and tiers;
+  the process: the presentation lead's brief, Fable's composition, the
+  presentation lead's acceptance, the owner's look),
   §8 (naming: `art-<name>`, `-256`, `-16`, `-w132`).
 - `docs/design/01-entities.md` §1.15 (art asset: `.ans` plus sidecar
   `width, height, min_tier, palette variants`).
@@ -129,13 +130,17 @@ and the NetBBS web transport:
    frames: it cuts.
 7. Delete `art-title.ans` and re-enter: the tagline text appears
    instead, no error.
-8. The user signs off the four human-review pieces.
+8. The presentation lead accepts every piece against its brief at every
+   tier it ships, 16 colours included, and its text fallback from an
+   80x24 capture. The owner then looks at the four headline pieces on a
+   real terminal, and anything sent back is fixed.
 
 ## Definition of done
 
 - All pieces present in all declared variants and passing `art-check`;
-  tests green; human sign-off recorded in the PR; slice file marked
-  done with PR number.
+  tests green; the presentation lead's acceptance of every piece and
+  the owner's look at the four headline pieces recorded in the PR; slice
+  file marked done with PR number.
 
 ## Implementer notes
 

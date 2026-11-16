@@ -49,12 +49,12 @@ game. After M4 it is worth a public release as 0.x. M5 and M6 make it
 
 | Label | Meaning |
 |---|---|
-| **Fable** | Claude Fable 5.1. Design-heavy or ambiguous; cross-cutting judgement; anything that changes the design doc's shape. |
+| **Fable** | Claude Fable 5.1. Design-heavy or ambiguous; cross-cutting judgement; anything that changes the design doc's shape. ANSI art composition (owner, 2026-11-16). |
 | **Opus** | Claude Opus 5. Systems work with real design freedom inside a fixed spec: server subsystems, the renderer, the simulation. |
 | **Sonnet** | Claude Sonnet. Mechanical, well-specified work: data conversion, loaders, CLIs, tests from a list, content from a sketch. |
 | **Astra** | ChatGPT Astra 6. Independent second opinion: protocol and security review, balance review, spec critique before a slice is started. Not for writing slices that touch the design doc. |
 | **Gemini** | Gemini via Antigravity. Bulk content generation with a long context (many zone maps or dialogue files from the gazetteer and personae docs), where the whole world bible fits in the prompt. Output goes through the validator and a Sonnet review. |
-| **Human** | The user or an artist. ANSI art passes, playtests, the final call on balance. |
+| **Human** | The user. Playtests, the look at the headline art on a real terminal, the final call on balance. |
 
 A slice names one primary model and may name a reviewer.
 
