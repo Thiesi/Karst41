@@ -270,6 +270,86 @@ def actor_shape(entry: dict[str, Any]) -> str:
     return ACTOR_SHAPES.get(glyph_id, entry.get('glyph', '?'))
 
 
+# Terminal UI 10 (S48c3c): a word for every shape the legend can name. The
+# words are the first-ten-minutes symbol table's (§6); names come from HERE
+# and NEARBY's own sources, so nothing undisclosed can reach the legend.
+THING_WORDS = {"vat": "decant vat", "vendor": "desk, table or counter", "bank": "bank counter",
+               "terminal": "terminal", "descent_console": "terminal", "relay": "relay", "light": "light",
+               "hardware": "street hardware", "cache": "dropped goods", "beacon": "crew beacon",
+               "door": "door inside a place", "apartment_door": "door inside a place", "gate": "gate",
+               "shutter": "shutter", "exit": "way out", "hazard": "hazard"}
+TILE_WORDS = {"wall": "wall", "door": "door inside a place", "locked-door": "locked door", "exit": "way out",
+              "hazard": "hazard", "water": "water"}
+LINE_MARKS = '│─└┐┌┘├┤┬┴┼'  # One legend entry for the whole painted line.
+
+
+def screen_legend(body: dict[str, Any]) -> list[tuple[str, str]]:
+    """The shapes drawn in this zone frame, nearest the caller first (UI 10).
+
+    Built only from what the frame draws: visible actors under their
+    presented NEARBY names, visible objects, drawn tiles (seen, remembered
+    or charted) and the place's painted line. A hidden exit, a covered NPC's
+    true name or anything out of sight is never in the view, so never here.
+    """
+    vp, grid, legend = body['viewport'], body.get('tiles', []), body.get('legend', [])
+    memory, charted = body.get('remembered', []), body.get('charted', [])
+    me = next((a for a in body.get('actors', []) if a.get('role') == 'player_self'), None)
+    here = (me['x'], me['y']) if me else (vp['x'] + vp['w'] // 2, vp['y'] + vp['h'] // 2)
+    found: dict[tuple[str, str], float] = {}
+
+    def add(glyph: str, word: str, x: int, y: int) -> None:
+        distance = max(abs(x - here[0]), abs(y - here[1]))
+        if distance < found.get((glyph, word), 1e9):
+            found[(glyph, word)] = distance
+
+    if me is not None:
+        found[('@', 'you')] = -1
+    names = {n['id']: str(n.get('name', '')) for n in body.get('nearby', [])}
+    for actor in body.get('actors', []):
+        if actor is not me and actor['id'] in names and names[actor['id']]:
+            add(actor_shape(actor), names[actor['id']], actor['x'], actor['y'])
+    for obj in body.get('objects', []):
+        kind = obj.get('kind', '')
+        if kind in THING_WORDS:
+            glyph = THINGS.get(kind, (obj.get('glyph', '?'), ''))[0]
+            if obj.get('state', {}).get('open') is False and kind in ('door', 'gate', 'shutter', 'apartment_door'):
+                glyph = '≡'
+            add(glyph, THING_WORDS[kind], obj['x'], obj['y'])
+    authored = (body.get('looks') or {}).get('names', {})
+    covers = {'cover-1': ('░', 'light cover'), 'cover-2': ('▒', 'cover'), 'cover-3': ('▓', 'heavy cover')}
+    marks = {(mark['at'][0] + i, mark['at'][1]): ch for mark in (body.get('looks') or {}).get('marks', [])
+             for i, ch in enumerate(mark.get('text', ''))}
+    line_glyphs: set[str] = set()
+    line_near = 1e9
+    for y, row in enumerate(grid):
+        recall = memory[y] if y < len(memory) else []
+        chart = charted[y] if y < len(charted) else []
+        for x, value in enumerate(row):
+            index = (recall[x] if value == -2 and x < len(recall) and recall[x] >= 0 else
+                     chart[x] if value < 0 and x < len(chart) else value)
+            at = (vp['x'] + x, vp['y'] + y)
+            if index == CHARTED_GROUND or 0 <= index < len(legend) and legend[index]['id'] == 'floor':
+                if marks.get(at, ' ') in LINE_MARKS:
+                    line_glyphs.add(marks[at])
+                    line_near = min(line_near, max(abs(at[0] - here[0]), abs(at[1] - here[1])))
+                continue
+            if not 0 <= index < len(legend):
+                continue
+            tile = legend[index]['id']
+            if tile in covers:
+                glyph, word = covers[tile]
+                add(glyph, authored.get(tile, word), *at)
+            elif tile in TILE_WORDS:
+                # A wall is a blank facade cell above 16 colours; the legend
+                # shows it as `█` with its word, as the symbol table does.
+                glyph = '█' if tile == 'wall' else '≡' if tile == 'locked-door' \
+                    else THINGS.get(tile, (legend[index].get('glyph', '?'), ''))[0]
+                add(glyph, TILE_WORDS[tile], *at)
+    if line_glyphs:
+        found[(''.join(g for g in LINE_MARKS if g in line_glyphs), 'painted line')] = line_near
+    return [key for key, _ in sorted(found.items(), key=lambda item: (item[1], item[0]))]
+
+
 def at_hand(body: dict[str, Any]) -> list[str]:
     """#106: P3 focus plus visible adjacent cover only. Never scan objects/exits."""
     names = []
@@ -339,7 +419,10 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
     top, bottom = layout.side.y, layout.side.y + layout.side.height - 1
     me = body["me"]
     wide = layout.height >= 40
-    has_sheet = me.get("grade") is not None
+    # 2.4 (S48c3c): the chits and lease row shows from the first frame, an
+    # unread body included; only the grade slot waits for the record.
+    has_sheet = me.get("chits") is not None
+    graded = me.get("grade") is not None
     vitals = 5 if has_sheet else 4  # 2.4: no Signatory XP row at either size.
     vy = bottom - vitals + 1
     y = top
@@ -457,7 +540,7 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
     elif display_width(name) > room:
         name = word_prefix(name, room)
     buffer.put(x + 1, vy, name, paint(me.get("name_role", "panel_strong") if paint.has(me.get("name_role", "")) else "panel_strong", bold=True))
-    if has_sheet:
+    if graded:
         buffer.put(x + w - 4, vy, f"G{me['grade']}", paint("panel_label"))
     chrome.bar(buffer, paint, x + 1, vy + 1, "HP", me["hp"], me["hp_max"], "bar_hp" if me["hp"] > me["hp_max"] // 3 else "bar_trace", f"{int(me['hp'])}")
     chrome.bar(buffer, paint, x + 1, vy + 2, "STA", me["sta"], me["sta_max"], "bar_sta", f"{int(me['sta'])}")

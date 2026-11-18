@@ -6,6 +6,10 @@
   "safety": "pocket",
   "lean": null,
   "sight_radius": 10,
+  "charted": true,
+  "public": [
+    [0, 0, 21, 20]
+  ],
   "spawn": [
     6,
     5

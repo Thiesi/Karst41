@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "vatside-wake-hall",
+  "theme": "vat-interior",
+  "signs": [
+    {"at": [2, 0], "text": " DECANT ", "role": "thing_sign_sablier"},
+    {"at": [22, 11], "text": " RANGE ", "role": "thing_sign_sablier"},
+    {"at": [31, 11], "text": " ISSUE ", "role": "thing_sign_sablier"}
+  ],
+  "marks": [
+    {"line": [[7, 6], [7, 13]], "glyph": "│", "role": "paint"},
+    {"at": [7, 14], "text": "└", "role": "paint"},
+    {"line": [[8, 14], [19, 14]], "glyph": "─", "role": "paint"},
+    {"line": [[21, 14], [36, 14]], "glyph": "─", "role": "paint"},
+    {"at": [37, 14], "text": "┐", "role": "paint"},
+    {"at": [37, 15], "text": "│", "role": "paint"},
+    {"at": [37, 16], "text": "└", "role": "paint"},
+    {"at": [9, 11], "text": "CARDS", "role": "paint"},
+    {"at": [24, 17], "text": "CLINIC ROW →", "role": "paint"}
+  ]
+}

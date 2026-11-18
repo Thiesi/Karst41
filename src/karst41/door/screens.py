@@ -24,6 +24,69 @@ def first_run() -> dict[str, Any]:
         "You need no special words to use a terminal."], "page": 1, "pages": 1}
 
 
+KEY_NAMES = {'up': '↑', 'down': '↓', 'left': '←', 'right': '→', 'tab': 'Tab', 'escape': 'Esc'}
+# Terminal UI 10: the keys in use in a zone, in this order, with the action
+# labels the keymap itself declares (walk and run name the four moves).
+ZONE_KEYS = ('target_next', 'fire', 'interact', 'jack', 'map', 'character', 'contracts', 'scrollback',
+             'help', 'leave')
+LEASE_MARK = 'sig 12/90  Signatory: you may rent and join'  # Terminal UI 10, verbatim.
+
+
+def key_name(key: str) -> str:
+    if key.startswith('ctrl-'):
+        return 'Ctrl-' + key[5:].upper()
+    if key.startswith('shift-'):
+        return 'Shift-' + key_name(key[6:])
+    return KEY_NAMES.get(key, key)
+
+
+def this_screen(legend: list[tuple[str, str]], keymap: dict[str, Any], keymap_id: str,
+                width: int, rows: int) -> tuple[list[str], list[str]]:
+    """Help's first page in a zone (terminal UI 10): keys, then the legend.
+
+    Returns page 1 (exactly `rows` lines, so the next page starts clean)
+    and, when the legend overflowed, the full legend for page 2. Page 1
+    never scrolls: it keeps the nearest shapes and ends with `+n more`.
+    """
+    table = next((t for t in keymap.get('keymaps', []) if t.get('id') == keymap_id), {})
+    bindings, labels = table.get('bindings', {}), keymap.get('actions', {})
+    def first(action: str) -> str:
+        keys = bindings.get(action) or []
+        if not keys:
+            return ''
+        key = keys[0]
+        # A letter bound in both cases reads as the capital, like the hint
+        # row (`F fire`); a case-sensitive one (vi `k`, `K`) keeps its case.
+        if len(key) == 1 and key.lower() in keys and key.upper() in keys:
+            return key.upper()
+        return key_name(key)
+    groups = []
+    walk = ''.join(first(a) for a in ('move_up', 'move_down', 'move_left', 'move_right'))
+    if walk:
+        groups.append(walk + ' walk')
+    run = ''.join(first(a) for a in ('sprint_up', 'sprint_down', 'sprint_left', 'sprint_right'))
+    if run:
+        groups.append((run if not run.startswith('Shift-') else 'Shift-arrows') + ' run')
+    groups += [first(a) + ' ' + labels.get(a, {}).get('label', a) for a in ZONE_KEYS if first(a)]
+    keys: list[str] = ['']
+    for group in groups:
+        joined = (keys[-1] + '  ' + group).strip()
+        if len(joined) <= width or not keys[-1]:
+            keys[-1] = joined
+        else:
+            keys.append(group)
+    entries = [f'{glyph}  {word}' for glyph, word in legend]
+    head = ['THIS SCREEN', *keys, '', 'In view']
+    tail = ['', LEASE_MARK]
+    room = max(0, rows - len(head) - len(tail))
+    overflow = len(entries) > room
+    shown = entries[:max(0, room - 1)] + [f'+{len(entries) - max(0, room - 1)} more'] if overflow else entries
+    page = (head + shown + tail)[:rows]
+    page += [''] * (rows - len(page))
+    rest = ['IN VIEW (all)', *entries, ''] if overflow else []
+    return page, rest
+
+
 def help_pages(keymap: dict[str, Any]) -> list[str]:
     lines = ["Ctrl-X then Y leaves. Ctrl-L redraws. Esc/B returns.",
              "Menus show actions first. Select a row, then its action key.",
