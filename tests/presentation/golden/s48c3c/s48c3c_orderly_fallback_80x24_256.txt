@@ -1,0 +1,24 @@
+╔═Sablier orderly - Wake Hall orderly═SAFE═══════════════════════════Noor══════╗
+║    ┌─ Sablier orderly - Wake Hall orderly ──────────────────────────────┐    ║
+║    │                                                                    │    ║
+║    │ Four today. Vat three's slow again.                                │    ║
+║    │                                                                    │    ║
+║    │ Esc/B  Leave                                                       │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    └────────────────────────────────────────────────────────────────────┘    ║
+╟──────────────────────────────────────────────────────────────────────────────╢
+║" Sablier orderly: She'll talk whether you stand there or not. Walk.          ║
+║" Sablier orderly: Gurney's yours till the next one. That's about an hour.    ║
+║" Sablier orderly: Four today. Vat three's slow again.                        ║
+║? help  Move or Esc/B leaves                                                  ║
+╚══════════════════════════════════════════════════════════════════════════════

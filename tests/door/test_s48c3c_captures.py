@@ -137,6 +137,26 @@ def test_help_page_one_names_a_way_out_in_view(info, repo_root, request, width, 
     assert '»  way out' in page and 'door inside a place' not in page
 
 
+def test_the_orderlies_fallback_talk_page(info, repo_root, request):
+    # S48c3c-2 (presentation lead's fit and wording check): the fourth visit
+    # reads the fallback line, at 80x24 in 256 colours.
+    from tests.test_dialogue_runtime import press
+    from tests.test_s48c3c2_orderlies import AFTER, orderlies, stand_by, visit
+    plain = replace(info, raw={**info.raw, 'handle': 'Noor'})
+    game, client = wake(repo_root, 80, 24)
+    game.step(30)  # The spawners fill the hall.
+    for _ in range(3):
+        visit(game, client)
+    stand_by(game, client, orderlies(game)[0])
+    press(game, client, 'e')
+    game.commit_commerce()
+    game.step(2)
+    assert game.core.dialogue.menus[client.session.id].line == AFTER
+    terminal, _ = frame(game, client, plain, 80, 24, '256')
+    pin(request, 'orderly_fallback', terminal, 80, 24, '256')
+    assert AFTER in terminal.screen_text() and 'Sablier orderly' in terminal.screen_text()
+
+
 @pytest.mark.parametrize('width,height,tier', CASES)
 @pytest.mark.parametrize(('zone', 'tile', 'mark'), [('vatside-clinics', (3, 3), 'MERIDIAN PLAZA →'),
                                                     ('core-plaza', (87, 3), '← NEON STAIR'),
