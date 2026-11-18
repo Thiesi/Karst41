@@ -317,8 +317,12 @@ def screen_legend(body: dict[str, Any]) -> list[tuple[str, str]]:
     for actor in body.get('actors', []):
         if actor is not me and actor['id'] in names and names[actor['id']]:
             add(actor_shape(actor), names[actor['id']], actor['x'], actor['y'])
+    outs = [list(cell) for cell in body.get('outs', [])]
     for obj in body.get('objects', []):
         kind = obj.get('kind', '')
+        if [obj['x'], obj['y']] in outs:
+            add('»', 'way out', obj['x'], obj['y'])  # The street door is drawn `»`, never `+` (#265).
+            continue
         if kind in THING_WORDS:
             glyph = THINGS.get(kind, (obj.get('glyph', '?'), ''))[0]
             if obj.get('state', {}).get('open') is False and kind in ('door', 'gate', 'shutter', 'apartment_door'):
@@ -330,7 +334,6 @@ def screen_legend(body: dict[str, Any]) -> list[tuple[str, str]]:
              for i, ch in enumerate(mark.get('text', ''))}
     line_glyphs: set[str] = set()
     line_near = 1e9
-    outs = [list(cell) for cell in body.get('outs', [])]
     for y, row in enumerate(grid):
         recall = memory[y] if y < len(memory) else []
         chart = charted[y] if y < len(charted) else []

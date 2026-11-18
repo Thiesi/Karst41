@@ -1,4 +1,5 @@
-"""S48c3c-1 acceptance captures for the presentation lead.
+"""S48c3c acceptance captures for the presentation lead: c3c-1's, and
+c3c-2's charted gurney frame and help page 1 with a way out in view.
 
 Headless, through the presentation door and the production Core, a Wake
 before the record (an unread body) in the hall:
@@ -68,6 +69,13 @@ def test_the_gurney_frame(info, repo_root, request, width, height, tier):
     text = terminal.screen_text()
     assert 'DECANT' in text and '0 ch     day 1/90' in text and 'No. ' in text
     assert '│' in '\n'.join(map_rows(terminal, model))  # The line starts beside the gurney.
+    # S48c3c-2 (presentation lead's condition): the first room is charted, so
+    # from the gurney the line runs on to the corridor door with no gap. The
+    # door cell is charted ground (5.5.5: its class is learned by walking).
+    body = model.body
+    vx, vy = body['viewport']['x'], body['viewport']['y']
+    assert all(body['charted'][14 - vy][x - vx] != -1 for x in range(7, 21))
+    assert any('└' + '─' * 12 in row for row in map_rows(terminal, model))
 
 
 @pytest.mark.parametrize('width,height,tier', CASES)
@@ -114,6 +122,19 @@ def test_help_page_one_in_the_hall(info, repo_root, request, width, height, tier
     text = terminal.screen_text()
     assert 'THIS SCREEN' in text and 'painted line' in text and 'Wide' not in text
     assert 'day 1/90  Under lease: day 1 of 90. No renting or joining yet' in text
+
+
+@pytest.mark.parametrize('width,height,tier', CASES)
+def test_help_page_one_names_a_way_out_in_view(info, repo_root, request, width, height, tier):
+    # S48c3c-2 (presentation lead's ask): beside the street door, page 1
+    # names the `»` it draws, and never the door object under it as `+`.
+    plain = replace(info, raw={**info.raw, 'handle': 'Noor'})
+    game, client = wake(repo_root, width, height)
+    place(game, client, HALL, (37, 16))
+    terminal, _ = frame(game, client, plain, width, height, tier, keys=('?',))
+    pin(request, 'help_way_out', terminal, width, height, tier)
+    page = terminal.screen_text().split('Page 1/')[0]
+    assert '»  way out' in page and 'door inside a place' not in page
 
 
 @pytest.mark.parametrize('width,height,tier', CASES)

@@ -10,6 +10,15 @@
     6,
     5
   ],
+  "charted": true,
+  "public": [
+    [
+      0,
+      0,
+      21,
+      20
+    ]
+  ],
   "exits": [
     {
       "id": "to-clinics",

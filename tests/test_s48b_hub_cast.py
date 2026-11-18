@@ -45,7 +45,8 @@ def test_s48b_moved_talkers_are_active_and_the_rest_stay_dormant(content):
     assert 'orderly' not in ''.join(MOVED)  # The orderlies wait for S48c with O1.
     assert not set(WAKE_HALL) & set(cast.members['dialogue'])
     hall = content.bundles['s48-wake-hall']
-    assert hall.status == 'active' and sorted(hall.members['dialogue']) == sorted(WAKE_HALL)
+    # S48c3c-2 adds the orderlies' record (O1 to O3) to the hall's bundle.
+    assert hall.status == 'active' and sorted(hall.members['dialogue']) == sorted([*WAKE_HALL, 'sablier-orderly'])
     assert all(content.active('dialogue', t) for t in WAKE_HALL)
     speakers = {content.npcs[t].dialogue: t for t in content.npcs if content.npcs[t].dialogue in WAKE_HALL}
     assert speakers == {talker: template for talker, (template, _) in WAKE_HALL.items()}

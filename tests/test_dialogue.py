@@ -40,6 +40,7 @@ CONDITION_CASES = (
     ('not_legal', Facts(), Facts(legal=True)),
     ('signatory', Facts(grade=5), Facts(grade=4)),
     ('not_signatory', Facts(grade=4), Facts(legal=True)),
+    ('visits_below 2', Facts(visits={'vesper': 1}), Facts(visits={'vesper': 2})),  # S48c3c-2
 )
 
 

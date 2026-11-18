@@ -1775,6 +1775,8 @@ class _Validator:
                 self.report(*owner, f"{label}: {arg!r} is not one of {', '.join(s.BALANCES)}", name)
             elif kind == "STATE" and arg not in s.SERVICE_STATES:
                 self.report(*owner, f"{label}: {arg!r} is not one of {', '.join(s.SERVICE_STATES)}", name)
+            elif kind == "VISITS" and not (arg.isascii() and arg.isdigit() and len(arg) == 1 and arg != "0"):
+                self.report(*owner, f"{label}: {arg!r} is not a whole number from 1 to 9", name)
             elif kind == "ARCH" and arg not in s.ARCHETYPES:
                 self.report(*owner, f"{label}: {arg!r} is not an archetype", name)
 
@@ -2090,6 +2092,12 @@ class _Validator:
                                 f"({TALK_WIDTH} cells); at most {TALK_LINE_ROWS}", ln.id)
                 for cond in ln.when:
                     self.condition(cond, owner, f"line {ln.id}")
+            # S48c3c-2: an ask's answer is never picked by ordinary selection,
+            # so it cannot be one of a counting talker's visit lines.
+            answers = {offer.ref for offer in node.offers if offer.kind == 'ask'}
+            for ln in node.lines:
+                if ln.id in answers and any(cond.split()[:1] == ['visits_below'] for cond in ln.when):
+                    self.report(*owner, f"line {ln.id}: an ask's answer line cannot use visits_below", ln.id)
             if node.lines and node.lines[-1].tag and not node.lines[-1].required:
                 self.report(*owner, 'the fallback cannot be an optional weighted voice')
             for bark in node.barks:

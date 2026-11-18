@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "id": "sablier-orderly",
+  "name": "Sablier orderly",
+  "faction": "sablier",
+  "title": "Wake Hall orderly",
+  "terminal": false,
+  "machine_mind": false,
+  "lines": [
+    {
+      "id": "o1",
+      "text": "Line's on the floor. It only goes one way.",
+      "when": [
+        "visits_below 1"
+      ],
+      "required": true
+    },
+    {
+      "id": "o2",
+      "text": "She'll talk whether you stand there or not. Walk.",
+      "when": [
+        "visits_below 2"
+      ],
+      "required": true
+    },
+    {
+      "id": "o3",
+      "text": "Gurney's yours till the next one. That's about an hour.",
+      "when": [
+        "visits_below 3"
+      ],
+      "required": true
+    },
+    {
+      "id": "after",
+      "text": "Four today. Vat three's slow again.",
+      "when": [],
+      "required": true
+    }
+  ],
+  "offers": [],
+  "barks": [
+    {
+      "text": "Four today. Vat three's slow again.",
+      "weight": 1,
+      "min_interval_seconds": 90
+    }
+  ]
+}

@@ -81,7 +81,7 @@ def cards(content: ContentTree, cursor: int, width: int, height: int, ask: bool 
 
 # S48 (#220): the stages that show a menu over the hall; `hall` is play.
 MENU_STAGES = ("record", "name", "saving")
-SAVED = ("stage", "archetype", "name", "cursor", "screen", "page", "serial", "card", "lessons", "met", "tile", "source",
+SAVED = ("stage", "archetype", "name", "cursor", "screen", "page", "serial", "card", "lessons", "met", "visits", "tile", "source",
          "opening")
 
 
@@ -111,6 +111,8 @@ class Wake:
     card: str | None = None
     lessons: dict[str, Any] = field(default_factory=dict)
     met: list[str] = field(default_factory=list)
+    visits: dict[str, int] = field(default_factory=dict)
+    """Talk-page opens per counting talker (S48c3c-2), applied at creation."""
     tile: list[int] | None = None
     source: str = ""
     opening: dict[str, Any] = field(default_factory=dict)

@@ -1290,6 +1290,7 @@ DIALOGUE_CONDITIONS: dict[str, tuple[str, ...]] = {
     "not_legal": (),
     "signatory": (),
     "not_signatory": (),
+    "visits_below": ("VISITS",),  # S48c3c-2: talk-page opens before this one, N 1-9.
 }
 """The closed condition set and each condition's argument kinds."""
 

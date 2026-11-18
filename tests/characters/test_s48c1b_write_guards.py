@@ -134,6 +134,8 @@ OTHER = {
     "characters.py::Characters.take_card::queue:identity": WAKE_RECORD,
     "characters.py::Characters.lesson::identities": WAKE_RECORD + "; lesson facts (S48c1b)",
     "characters.py::Characters.lesson::queue:identity": WAKE_RECORD + "; lesson facts (S48c1b)",
+    "dialogue_runtime.py::Dialogue.open::identities": WAKE_RECORD + "; an unread body's held visit counts (S48c3c-2)",
+    "dialogue_runtime.py::Dialogue.open::queue:identity": WAKE_RECORD + "; an unread body's held visit counts (S48c3c-2)",
     # Commerce and its effects.
     "commerce.py::Commerce.settle::outbox": "guard 2 itself",
     "commerce.py::Commerce.propose::outbox": "guard 2: propose refuses an unread body",

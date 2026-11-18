@@ -1034,6 +1034,7 @@ slice change:
 | `service_state ID STATE` | current bounded work-order state |
 | `legal` / `not_legal` | personhood only: `legal_at` is set. A Signatory without it is `not_legal` |
 | `signatory` / `not_signatory` | may rent and join: grade 5 or `legal_at` is set (game design §3.4). A `legal_at` stamped early under the old grade 5 rule counts; `legal` alone does not mean day 90 has passed |
+| `visits_below N` | the caller has opened this talker's page fewer than N times before (N 1–9) |
 
 Tagged ambient lines use game design §13.4's seeded weights. Required
 instructions and one line from each voice register in a finale cannot

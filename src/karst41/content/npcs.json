@@ -221,7 +221,8 @@
           }
         }
       ],
-      "xp": 0
+      "xp": 0,
+      "dialogue": "sablier-orderly"
     },
     {
       "id": "npc-sablier-guard",

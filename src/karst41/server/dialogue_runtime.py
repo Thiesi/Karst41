@@ -11,7 +11,7 @@ from karst41.server.ambience import Ambience
 from karst41.server.clock import TICK_HZ
 from karst41.server.commerce import CommerceMenu
 from karst41.server.contracts.panels import Panel as ContractPanel
-from karst41.server.dialogue import Facts, eligible_offers, evaluate
+from karst41.server.dialogue import Facts, eligible_offers, evaluate, visit_cap
 from karst41.server.factions import relation
 from karst41.server.interaction import Focus, Interaction, interact, key_action
 from karst41.server.views import presentation
@@ -123,7 +123,8 @@ class Dialogue:
             evidence=frozenset(contracts.state.journal.get(player.id, ())), receipts=receipts,
             services={sid: node.state for sid, node in contracts.state.services.nodes.items()},
             season_stage=season.stage, chronicle=dict(season.choices or {}),
-            events=frozenset(eid for eid in self.content.events if contracts.event_active(eid)))
+            events=frozenset(eid for eid in self.content.events if contracts.event_active(eid)),
+            visits=dict(player.progress.get('talk_visits', {})))
 
     def contacts(self, zone: Any) -> list[Contact]:
         found = []
@@ -198,11 +199,18 @@ class Dialogue:
         self.publish(session)
         return True
 
-    def undo_meeting(self, player: Any, talker: str) -> None:
-        """Compensate a committed introduction that never reached the caller."""
+    def undo_meeting(self, player: Any, talker: str, *, forget: bool = True, visits: int | None = None) -> None:
+        """Compensate a committed introduction or visit that never reached the caller.
+
+        `forget` takes the talker out of `met_talkers` (a first meeting);
+        `visits` restores the visit count read before the open (S48c3c-2).
+        """
         def restore() -> None:
             progress = deepcopy(player.progress)
-            progress['met_talkers'] = sorted(set(progress.get('met_talkers', ())) - {talker})
+            if forget:
+                progress['met_talkers'] = sorted(set(progress.get('met_talkers', ())) - {talker})
+            if visits is not None:
+                progress['talk_visits'] = {**progress.get('talk_visits', {}), talker: visits}
             self.commerce.settle(player, {'progress': progress}, self.commerce.items,
                                  self.commerce.caches, self.commerce.serial, lambda success: None)
         try:
@@ -230,7 +238,13 @@ class Dialogue:
             self.game.lesson(player, "talk_opened", talker.id)
         facts = self.facts(session, talker)
         line = evaluate(talker, facts, self.world.zones[contact.zone].rng).text
-        if talker.id in facts.met:
+        # S48c3c-2: a counting talker (its lines use `visits_below`) advances
+        # the caller's count on each open, up to its cap, and only when the
+        # line reaches the caller. Past the cap an open writes nothing.
+        seen = facts.visits.get(talker.id, 0)
+        counting = seen < visit_cap(talker)
+        met = talker.id in facts.met
+        if met and not counting:
             self.show(session, contact, line, tick)
             return
         player = self.game.players[session.player_id]
@@ -240,10 +254,16 @@ class Dialogue:
             if talker.id not in wake.met:
                 wake.met.append(talker.id)
             player.progress['met_talkers'] = sorted(set(wake.met))
-            self.show(session, contact, line, tick)
+            if self.show(session, contact, line, tick) and counting:
+                wake.visits[talker.id] = seen+1
+                player.progress['talk_visits'] = dict(wake.visits)
+                self.game.identities[session.user_id]['wake'] = wake.saved()
+                self.game.queue('identity', session.user_id)
             return
         progress = deepcopy(player.progress)
         progress['met_talkers'] = sorted((facts.met & self.content.dialogue.keys()) | {talker.id})
+        if counting:
+            progress['talk_visits'] = {**progress.get('talk_visits', {}), talker.id: seen+1}
         def committed(success: bool) -> None:
             if success:
                 # A read-only inventory may have opened during the write.
@@ -252,7 +272,7 @@ class Dialogue:
                         and session.id not in self.commerce.menus):
                     if self.show(session, contact, line, tick):
                         return
-                self.undo_meeting(player, talker.id)
+                self.undo_meeting(player, talker.id, forget=not met, visits=seen if counting else None)
             else:
                 self.commerce.toast(session, 'The introduction could not be saved. Try again.')
         if not self.commerce.settle(player, {'progress': progress}, self.commerce.items,
