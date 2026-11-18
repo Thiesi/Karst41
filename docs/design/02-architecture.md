@@ -409,6 +409,9 @@ me: {..., danger_release?}           stamp on the clock of log `at`: danger/comb
                                      lose terminal UI 2.5 protection; monotonic per caller; the client keeps
                                      the highest seen per connection and ignores absence (S48c2)
 charted: [[legend index | -1 | -3, ...], ...]  public layout without sight, see 5.5.5 (P6)
+outs: [[x, y], ...]                  drawn or charted exit cells flagged `out`: drawn `»` (terminal UI 2.2);
+                                     the tile and its interaction are unchanged, and a hidden exit is never
+                                     listed (S48c3c)
 looks: {theme, regions[], signs[], marks[], glints[], names{}}  place layer, masked, see 5.5.4 (P6)
 place: {places[{name, rect, at, text, view?}], here}   named places and the fixed camera (V3)
 scene: {lights[], pieces[]}          set dressing for the picture, masked (V3)
