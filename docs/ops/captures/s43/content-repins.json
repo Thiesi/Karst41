@@ -1,15 +1,15 @@
 {
   "core-plaza-idle": {
     "frame_sha256": "e44dd1de21e77ee0bf7d7a89ce71bd1daa2925aeb3ca0d4c957880af00074a19",
-    "body_sha256": "f340f7dad70a4c725f2dbeedd9afc95f230eceef2b204d0bbd9db4a18afc62cf",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
-    "pr": 252
+    "body_sha256": "d9a01b9d61f3f2b17f78e160154aa4dce06bd052dcb051f8532f9c36298f83fc",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged; #266 S48c3c-1: the view body carries the plaza\u2019s two new street marks (\u2190 NEON STAIR, NEON STAIR \u2193); traces, inputs and moves unchanged",
+    "pr": 266
   },
   "core-plaza-walk": {
     "frame_sha256": "30e2b0d2c5caa914d6e72acf8c230b542477534374e443f56eee1c213133b069",
-    "body_sha256": "0ab5b6e13909913cc3d30c55aaab12e082d1179248722597b12b6f58b06da60d",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
-    "pr": 252
+    "body_sha256": "4c8f60bc0b2f9a0cbe37cc5c0d96b3e00edfd7a0bb0d69f987222f2488a1e26f",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged; #266 S48c3c-1: the view body carries the plaza\u2019s two new street marks (\u2190 NEON STAIR, NEON STAIR \u2193); traces, inputs and moves unchanged",
+    "pr": 266
   },
   "core-precinct-idle": {
     "body_sha256": "5f5ff03277491617be28a5db355330c2f076d7d9ea8c65b4447a57bc9da22a20",
@@ -81,15 +81,15 @@
   },
   "vatside-clinics-idle": {
     "frame_sha256": "a32ee20e9776ac689b58bd8092d994db303da4f474d35a21aa942fcfcdcf9218",
-    "body_sha256": "b4fdf96279b2c98eee192706f1817bca4e0da1e77d02de412258b32668518d3b",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
-    "pr": 252
+    "body_sha256": "349ec56ee85c0be62f8215a1deb28b4040176f36c03c4abf701391fa3bd01fd4",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged; #266 S48c3c-1: the view body carries Clinic Row\u2019s new street mark (MERIDIAN PLAZA \u2192); traces, inputs and moves unchanged",
+    "pr": 266
   },
   "vatside-clinics-walk": {
     "frame_sha256": "d96c5c1f6e88d82ca39ad9911a267b88ef3b7856771c1d64fffbd8c2152c5604",
-    "body_sha256": "5e618be0f43445042513895caad42856dacc4a7eea2d64eebff9377bcb65e818",
-    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged",
-    "pr": 252
+    "body_sha256": "4b89c3a94d36a894ef8f586b6af205fc5b86b392b9e26d3dab4f31cfea16a390",
+    "reason": "#237 S48b hub cast: new talker posts in view; #241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2: the Wake Hall talkers (Okafor, Vantongeren) spawn during character creation, so every later NPC id moves by two; frames and bodies match main with NPC ids masked and lists sorted (scripts/compare_s43_normalised.py --ids); traces, inputs and moves unchanged; #266 S48c3c-1: the view body carries Clinic Row\u2019s new street mark (MERIDIAN PLAZA \u2192); traces, inputs and moves unchanged",
+    "pr": 266
   },
   "vatside-vat-row-idle": {
     "body_sha256": "e74ec8213e17d6d746ab59c4bd5c2b4e1885a9944f811929661edc4330ca3c19",
@@ -103,14 +103,14 @@
     "pr": 252
   },
   "vatside-wake-hall-idle": {
-    "body_sha256": "67ac3ddc2625c180a76c660d6cb736e7c679fd7f57afb6861917661b72080302",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2 restages the Wake Hall: Okafor and Vantongeren at their posts in view (content change); traces, inputs and moves unchanged",
-    "pr": 252
+    "body_sha256": "ab455d11663f736f89ada987b6697f6d6291b1e351a927d365e6059d9f1b9a31",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2 restages the Wake Hall: Okafor and Vantongeren at their posts in view (content change); traces, inputs and moves unchanged; #266 S48c3c-1: the Wake Hall gains a place record (looks); the body carries it, and the walk frame draws its walls, signs and painted line; traces, inputs and moves unchanged",
+    "pr": 266
   },
   "vatside-wake-hall-walk": {
-    "frame_sha256": "b1e123c27c03dba3e5aa196d77343dac97675ab34d733ed4ac1c8e59f91ce30b",
-    "body_sha256": "3b610df670f5f2940e8982cc20323b466d5043678605fac995f0d03848109ad1",
-    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2 restages the Wake Hall: Okafor and Vantongeren at their posts in view (content change); traces, inputs and moves unchanged",
-    "pr": 252
+    "frame_sha256": "fd9e19b3c1c8053a9cedb836b047c53255fc6a28e284a70ae4960c326d4a2213",
+    "body_sha256": "b69187e04403ded679427442f09008b12ac4c1d432ad2631149d49cd286102cd",
+    "reason": "#241 S48c1a setup path: bodies match the capture with base/rev normalised; traces, inputs and moves unchanged; #252 S48c2 restages the Wake Hall: Okafor and Vantongeren at their posts in view (content change); traces, inputs and moves unchanged; #266 S48c3c-1: the Wake Hall gains a place record (looks); the body carries it, and the walk frame draws its walls, signs and painted line; traces, inputs and moves unchanged",
+    "pr": 266
   }
 }
