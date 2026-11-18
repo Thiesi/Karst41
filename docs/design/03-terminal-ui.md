@@ -841,11 +841,12 @@ use, so a hidden exit, a covered NPC's true name, or anything out of
 sight never appears in it. Every entry gives glyph and word, never colour
 alone. The page fits one 80x24 screen, keys come from the caller's
 keymap, and the existing pages follow unchanged. Its legend names the
-lease mark as it stands for the caller, with their own numbers (2.4,
-game design 3.4):
-`day 1/90  Under lease: day 1 of 90. No renting or joining yet`, then
-`sig 12/90  Signatory: you may rent and join`, then
-`on the roll  Your name is on the civic roll` (S48c3c). If the legend
+lease mark with only the one line that matches the caller's state, in
+2.4's precedence and with the caller's own count (game design 3.4):
+under lease, `day 1/90  Under lease: day 1 of 90. No renting or joining
+yet`; at grade 5, `sig 12/90  Signatory: you may rent and join`; at
+personhood, `on the roll  Your name is on the civic roll`. The numbers
+shown here are examples (S48c3c). If the legend
 would not fit, it lists the shapes nearest the caller first and ends
 with a `+n more` line, and the full legend follows on the next page;
 page 1 never scrolls. Every menu's action bar
