@@ -117,3 +117,21 @@ def test_a_covered_npc_shows_only_its_cover_in_the_legend(info, repo_root):
     model.key('?', 2)
     text = '\n'.join(str(line) for line in model.local_lines)
     assert 'Sodium regular' in text and 'Warden' not in text and 'Plainclothes' not in text
+
+
+def test_a_remembered_cell_is_named_from_memory_not_live_state():
+    # The door at (3,0) is out of sight: the grid says "remembered" (-2) and
+    # memory holds its class as last seen (an open door). Live object state is
+    # only ever sent for objects in sight, so a door closed since then can't
+    # rename the remembered cell.
+    legend = [{'id': 'floor', 'glyph': '·'}, {'id': 'door', 'glyph': '+'}, {'id': 'locked-door', 'glyph': '='}]
+    remembered_open = body([[0, 0, 0, -2]], legend, remembered=[[0, 0, 0, 1]], actors=[ME])
+    assert ('+', 'door inside a place') in screen_legend(remembered_open)
+    assert ('≡', 'locked door') not in screen_legend(remembered_open)
+    # The same door in sight and now shut is named from its live state.
+    shut = body([[0, 0, 0, 1]], legend, actors=[ME],
+                objects=[{'id': 'd', 'x': 3, 'y': 0, 'kind': 'door', 'state': {'open': False}}])
+    assert ('≡', 'door inside a place') in screen_legend(shut)
+    # A cell remembered as locked stays locked in the legend.
+    remembered_locked = body([[0, 0, 0, -2]], legend, remembered=[[0, 0, 0, 2]], actors=[ME])
+    assert ('≡', 'locked door') in screen_legend(remembered_locked)

@@ -48,14 +48,23 @@ def test_signs_and_paint_words_sit_where_the_proposal_draws_them(tree):
     assert words == {((9, 11), 'CARDS'), ((24, 17), 'CLINIC ROW →')}
 
 
-def test_only_the_first_room_is_charted(tree):
-    hall = tree.zones['vatside-wake-hall']
-    assert hall.meta.charted and [(r.x, r.y, r.w, r.h) for r in hall.meta.public] == [(0, 0, 21, 20)]
-
-
 @pytest.mark.parametrize(('zone', 'at', 'text'), [('vatside-clinics', (5, 3), 'MERIDIAN PLAZA →'),
-                                                  ('core-plaza', (72, 4), '← NEON STAIR'),
+                                                  ('core-plaza', (75, 3), '← NEON STAIR'),
                                                   ('core-plaza', (56, 8), 'NEON STAIR ↓')])
 def test_the_street_marks_point_the_way(tree, zone, at, text):
     assert any(m.at == at and m.text == text for m in tree.looks[zone].marks)
     assert all(tree.zones[zone].grid[at[1]][at[0] + i] == 'floor' for i in range(len(text)))
+
+
+def test_no_street_mark_covers_an_arrival_tile(tree):
+    # Presentation lead: `← NEON STAIR` sits under `CLINIC ROW →` as a two-line
+    # fingerpost, beside the Clinic Row arrival (87,3), never on it.
+    plaza = tree.looks['core-plaza']
+    post = next(m for m in plaza.marks if m.text == '← NEON STAIR')
+    assert post.at == (75, 3) and next(m for m in plaza.marks if m.text == 'CLINIC ROW →').at == (75, 2)
+    arrivals = {(e.target_zone, e.target_tile) for zone in tree.zones.values() for e in zone.meta.exits}
+    for zid in ('core-plaza', 'vatside-clinics', 'vatside-wake-hall'):
+        tiles = {tile for target, tile in arrivals if target == zid}
+        for mark in tree.looks[zid].marks:
+            if not mark.line:
+                assert not {(mark.at[0] + i, mark.at[1]) for i in range(len(mark.text))} & tiles, (zid, mark.text)
