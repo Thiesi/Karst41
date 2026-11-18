@@ -52,7 +52,7 @@ after their id.
 | spawn | Tile, optional | passable preview/initial entry tile |
 | sector | sector id, optional | native/portable rig's district entry; terminals may override with `params.sector` |
 | layouts | list of ZoneLayout, optional | named service/event geometry variants |
-| exits | list of Exit | id, tile, target zone, target tile, kind (street, door, tram, ladder, lift, gate, cable), requirement, optional alternatives and locked_text, hidden, optional relay |
+| exits | list of Exit | id, tile, target zone, target tile, kind (street, door, tram, ladder, lift, gate, cable), requirement, optional alternatives and locked_text, hidden, optional relay, optional `out` (a way out of a place onto the street: drawn `»`, terminal UI 2.2; S48c3c) |
 | spawners | list of Spawner | id, tile or region, npc template, count, respawn seconds, condition, poses_as (covered spawners only) |
 | objects | list of ObjectSpec | id, tile, kind (door, terminal, vendor, vat, relay, cache, tram_stop, apartment_door, light, hardware, descent_console, workshop, bank, turret, camera, shutter, cable_car, pump, lift, patrol_beacon, gate, gantry), params, essential (clinic, public vat, public uplink) |
 | pockets | list of Pocket | rectangles that are `pocket` safety inside a contested zone; each a Region with `lit` and `charted` (bools, default false), as for the zone. A charted pocket's rectangle joins the zone's public region, under the same checks |
