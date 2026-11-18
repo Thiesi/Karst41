@@ -13,6 +13,7 @@
   "exits": [
     {
       "id": "to-clinics",
+      "out": true,
       "tile": [
         38,
         16

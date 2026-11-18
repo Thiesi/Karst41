@@ -240,6 +240,14 @@
       ],
       "text": "VAT ROW →",
       "role": "paint"
+    },
+    {
+      "at": [
+        5,
+        3
+      ],
+      "text": "MERIDIAN PLAZA →",
+      "role": "paint"
     }
   ],
   "names": {

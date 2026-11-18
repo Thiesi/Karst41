@@ -136,10 +136,11 @@ an object. Five content changes do it:
    A Sablier clinic is kept up: every sign whole, no worn letters, no
    flicker. Arrows are CP437's four (`← → ↑ ↓`) and never diagonal,
    here and in the street paint of 4.10.
-4. **The hall is charted** (terminal UI 2.3), with the two rooms on the
-   way as its public region. The player sees the room, the line and the
-   door before taking a step. The sealed north-east room stays out of
-   the region and is never drawn.
+4. **The hall is charted** (terminal UI 2.3), with the first room as its
+   public region; the room behind the corridor door is learned by
+   walking in (architecture 5.5.5). The player sees the first room, the
+   line up to the corridor door and that door before taking a step. The
+   sealed north-east room stays out of the region and is never drawn.
 5. **The street door is drawn `»`** [decided, item 16]: `»` marks a way
    out of a place, `+` a door inside one. The corridor door stays `+`.
    The tile now agrees with HERE, which already says `» Clinic Row`.

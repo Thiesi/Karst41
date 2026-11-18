@@ -11,7 +11,7 @@ from karst41.door import chrome
 from karst41.door.doorinfo import DoorInfo
 from karst41.door.layout import compute
 from karst41.door.palette import Palette, resolve_tier
-from karst41.door.screens import SessionWarnings, first_run, help_pages, title
+from karst41.door.screens import SessionWarnings, first_run, help_pages, lease_line, this_screen, title
 from karst41.door.views import LinePrompt, Renderer, render_menu, render_text
 from karst41.door.views.zone import render_zone
 from karst41.door.views.lattice import render_lattice
@@ -20,6 +20,7 @@ from karst41.door.present.context import Context
 from karst41.door.present.paint import Paint
 from karst41.door.present import screen as presentation_screen
 from karst41.door.present import chrome as present_chrome
+from karst41.door.present import zone as present_zone
 from karst41.door.present.chrome import NOTICE_SECONDS, PROTECT_SECONDS
 from karst41.server.protocol import Frame, VIEW_KINDS
 
@@ -229,10 +230,28 @@ class Display:
                 raise ValueError("unsupported delta operation")
 
     def open_help(self, lines: list[str | dict[str, str]] | None = None, heading: str = "HELP") -> None:
-        self.local_lines = lines if lines is not None else help_pages(self.keymap)
+        if lines is None:
+            lines = [*self._this_screen(), *help_pages(self.keymap)]
+        self.local_lines = lines
         self.local_page = 0
         self.local = {"title": heading}
         self.dirty = True
+
+    def _this_screen(self) -> list[str]:
+        """Terminal UI 10: in a zone, help's first page is This screen."""
+        shown = self.body.get('body', {}) if self.kind == 'wake' else self.body
+        kind = self.body.get('kind') if self.kind == 'wake' else self.kind
+        if kind != 'zone' or 'viewport' not in shown:
+            return []
+        rows = max(1, self.layout.text_area.height)
+        width = (self.layout.full_text_area if self.presentation else self.layout.text_area).width
+        me = shown.get('me', {})
+        lease = lease_line(present_zone.lease_row(me)) if me.get('lease_days') is not None or me.get('legal_at') else ''
+        page, rest = this_screen(present_zone.screen_legend(shown), self.keymap, self.selected_keymap, width, rows,
+                                 lease)
+        if rest:
+            rest += [''] * (-len(rest) % rows)  # The full legend, then the existing pages on a fresh page.
+        return page + rest
 
     def refused(self, reason: str) -> None:
         self.connected = False

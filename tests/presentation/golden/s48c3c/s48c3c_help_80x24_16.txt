@@ -1,0 +1,24 @@
+╔═HELP═POCKET════════════════════════════════════════════════════════Noor══════╗
+║ HELP                                                                         ║
+║ THIS SCREEN                                                                  ║
+║ ↑↓←→ walk  Shift-arrows run  Tab target next  F fire / attack  E interact    ║
+║ J jack in/out  M map  P character  Q contracts  Ctrl-P log scrollback        ║
+║ ? help  Ctrl-X leave door                                                    ║
+║                                                                              ║
+║ In view                                                                      ║
+║ @  you                                                                       ║
+║ │─└  painted line                                                            ║
+║ Θ  decant vat                                                                ║
+║ $  desk, table or counter                                                    ║
+║ █  wall                                                                      ║
+║ ☻  Sablier orderly                                                           ║
+║ ☻  Dr. Ilse Vantongeren                                                      ║
+║                                                                              ║
+║ day 1/90  Under lease: day 1 of 90. No renting or joining yet                ║
+║ Page 1/9  PgUp/PgDn  Esc back                                                ║
+╟──────────────────────────────────────────────────────────────────────────────╢
+║» You wake on a gurney under a number.                                        ║
+║" Vantongeren: Open your eyes slowly. The light's cheap and it stays on.      ║
+║                                                                              ║
+║? help  Tab target  F fire  X weapon  1-5 quick  V abilities  E interact      ║
+╚══════════════════════════════════════════════════════════════════════════════

@@ -224,6 +224,7 @@ class Exit:
     relay: str | None = None  # Game 7.7 optional gate/cable passage.
     alternatives: tuple[Requirement, ...] = ()  # Game 5.6: complete OR credentials.
     locked_text: str | None = None
+    out: bool = False  # Entities (#265): a way out of a place onto the street, drawn `»`.
 
 
 @dataclass(frozen=True)

@@ -48,7 +48,9 @@ def projection(content: ContentTree) -> dict[str, Any]:
                 for x in range(zone.template.width)
                 if (zone.passable((x, y)), zone.opaque((x, y))) !=
                    (zone.tiles[zone.tile_id((x, y))].passable, zone.tiles[zone.tile_id((x, y))].opaque)],
-            'exits': [{key: value for key, value in asdict(ex).items() if key != 'locked_text'}
+            # `out` (#265) only chooses the drawn glyph: its tile and
+            # interaction are unchanged, so, like locked_text, it isn't a rule.
+            'exits': [{key: value for key, value in asdict(ex).items() if key not in ('locked_text', 'out')}
                       for ex in sorted(meta.exits, key=lambda ex: ex.id)],
             'objects': [{'id': obj.id, 'kind': obj.kind, 'tile': obj.tile,
                          'essential': obj.essential,

@@ -558,6 +558,8 @@ class _Validator:
             label = f"exit {ex.id}"
             if ex.id in seen:
                 self.report(*owner, f"{label}: duplicate exit id", ex.id)
+            if ex.out and ex.hidden:
+                self.report(*owner, f"{label}: an `out` exit is never hidden (#265)", ex.id)
             seen.add(ex.id)
             if not self.passable(zone, ex.tile):
                 self.report(*owner, f"{label}: tile {list(ex.tile)} is not a passable tile in {zone.id}", ex.id)
