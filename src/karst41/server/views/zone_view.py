@@ -135,6 +135,13 @@ def build(actor: Actor, zone: ZoneInstance, perception: Perception, content: Con
                 "escape": list(layer.layout.alternate_routes)} for layer in zone.layers.values()
                if any(tile in visible for tile in layer.layout.warning_tiles)]
     escapes = [ex.id for ex in zone.template.meta.exits if not ex.hidden and ex.tile in visible]
+    # Architecture 5.4 (#265): `out` exit cells this view already discloses in
+    # `tiles` as visible now or remembered. Never a withheld or charted-only
+    # cell, never a hidden exit.
+    outs = [list(ex.tile) for ex in zone.template.meta.exits
+            if ex.out and not ex.hidden and (ex.tile in visible or ex.tile in remembered)
+            and viewport["x"] <= ex.tile[0] < viewport["x"] + viewport["w"]
+            and viewport["y"] <= ex.tile[1] < viewport["y"] + viewport["h"]]
     def nearby_relation(other: Actor) -> str:
         if presentation.covered(other, actor, content):
             return '!' if cover_relation and cover_relation(actor, other, True) == 'hostile' else '~'
@@ -165,6 +172,8 @@ def build(actor: Actor, zone: ZoneInstance, perception: Perception, content: Con
             "crew": [], "event": None, "objective": None, "hazards": hazards,
             "service": None, "escape": {"routes": escapes, "action": "Ctrl-X leaves"},
             "hint": "Move: arrows  Shift: sprint  E interact  M map  ? help  Ctrl-X leave"}
+    if outs:
+        result["outs"] = outs  # Only when there is one, so no other view's body changes.
     if perception.public_template is not zone.template:
         perception.public_template = zone.template
         perception.public = public_tiles(zone.template)

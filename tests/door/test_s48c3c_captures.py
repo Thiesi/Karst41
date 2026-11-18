@@ -129,3 +129,27 @@ def test_the_street_marks(info, repo_root, request, width, height, tier, zone, t
     name = {'MERIDIAN PLAZA →': 'clinics_mark', '← NEON STAIR': 'plaza_fingerpost', 'NEON STAIR ↓': 'plaza_turn'}[mark]
     pin(request, name, terminal, width, height, tier)
     assert mark in '\n'.join(map_rows(terminal, model))
+
+
+@pytest.mark.parametrize('width,height,tier', CASES)
+@pytest.mark.parametrize(('zone', 'stand', 'door', 'name'), [
+    (HALL, (35, 16), (38, 16), 'way_out_hall'),
+    ('sodium-tin-halo', (4, 3), (2, 2), 'way_out_halo')])
+def test_a_way_out_is_drawn(info, repo_root, request, width, height, tier, zone, stand, door, name):
+    # Terminal UI 2.2 (#265): the street door is `»` once seen; the corridor
+    # door and every door into a place stay `+`.
+    from karst41.door.present.zone import origin
+    content = load_content(repo_root/'src/karst41/content')
+    game = HeadlessServer(content, character_state={})
+    client = game.connect(width=width, height=height)
+    if zone != HALL:
+        create(game, client, card='none')
+    else:
+        game.step(2)
+    assert next(ex for ex in content.zones[zone].meta.exits if ex.out).tile == door
+    place(game, client, zone, game.core.world.free_tile(zone, stand))
+    terminal, model = frame(game, client, info, width, height, tier)
+    pin(request, name, terminal, width, height, tier)
+    body = model.body
+    ox, oy = origin(body, model.layout)
+    assert terminal.screen_text().splitlines()[oy + door[1] - body['viewport']['y']][ox + door[0] - body['viewport']['x']] == '»'

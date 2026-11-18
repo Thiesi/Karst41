@@ -12,6 +12,7 @@
   "exits": [
     {
       "id": "to-blocks",
+      "out": true,
       "tile": [
         2,
         2

@@ -230,6 +230,15 @@ def people(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Pain
             glyph = '≡'
         theme = places.theme((obj['x'], obj['y'])) if places else None
         buffer.put(*at, glyph, paint.on_theme(role, theme, bold=True) if theme else paint(role, bold=True))
+    # Terminal UI 2.2, architecture 5.4 (#265): a way out of a place is drawn
+    # `»`. The view lists only cells it already discloses as seen or
+    # remembered; the tile and its interaction are unchanged.
+    for x, y in body.get('outs', []):
+        at = inside({'x': x, 'y': y})
+        if at is not None:
+            theme = places.theme((x, y)) if places else None
+            role = 'thing_exit'
+            buffer.put(*at, '»', paint.on_theme(role, theme, bold=True) if theme else paint(role, bold=True))
     for entry in body.get('actors', []):
         at = inside(entry)
         if at is None:
@@ -321,6 +330,7 @@ def screen_legend(body: dict[str, Any]) -> list[tuple[str, str]]:
              for i, ch in enumerate(mark.get('text', ''))}
     line_glyphs: set[str] = set()
     line_near = 1e9
+    outs = [list(cell) for cell in body.get('outs', [])]
     for y, row in enumerate(grid):
         recall = memory[y] if y < len(memory) else []
         chart = charted[y] if y < len(charted) else []
@@ -334,6 +344,9 @@ def screen_legend(body: dict[str, Any]) -> list[tuple[str, str]]:
                     line_near = min(line_near, max(abs(at[0] - here[0]), abs(at[1] - here[1])))
                 continue
             if not 0 <= index < len(legend):
+                continue
+            if list(at) in outs:
+                add('»', 'way out', *at)  # Drawn `»` (#265), named as drawn.
                 continue
             tile = legend[index]['id']
             if tile in covers:

@@ -12,6 +12,7 @@
   "exits": [
     {
       "id": "to-sodium-row",
+      "out": true,
       "tile": [
         2,
         2
