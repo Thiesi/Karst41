@@ -11,7 +11,7 @@ from karst41.door import chrome
 from karst41.door.doorinfo import DoorInfo
 from karst41.door.layout import compute
 from karst41.door.palette import Palette, resolve_tier
-from karst41.door.screens import SessionWarnings, first_run, help_pages, this_screen, title
+from karst41.door.screens import SessionWarnings, first_run, help_pages, lease_line, this_screen, title
 from karst41.door.views import LinePrompt, Renderer, render_menu, render_text
 from karst41.door.views.zone import render_zone
 from karst41.door.views.lattice import render_lattice
@@ -245,7 +245,10 @@ class Display:
             return []
         rows = max(1, self.layout.text_area.height)
         width = (self.layout.full_text_area if self.presentation else self.layout.text_area).width
-        page, rest = this_screen(present_zone.screen_legend(shown), self.keymap, self.selected_keymap, width, rows)
+        me = shown.get('me', {})
+        lease = lease_line(present_zone.lease_row(me)) if me.get('lease_days') is not None or me.get('legal_at') else ''
+        page, rest = this_screen(present_zone.screen_legend(shown), self.keymap, self.selected_keymap, width, rows,
+                                 lease)
         if rest:
             rest += [''] * (-len(rest) % rows)  # The full legend, then the existing pages on a fresh page.
         return page + rest

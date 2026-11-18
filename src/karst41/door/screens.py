@@ -29,7 +29,18 @@ KEY_NAMES = {'up': '↑', 'down': '↓', 'left': '←', 'right': '→', 'tab': '
 # labels the keymap itself declares (walk and run name the four moves).
 ZONE_KEYS = ('target_next', 'fire', 'interact', 'jack', 'map', 'character', 'contracts', 'scrollback',
              'help', 'leave')
-LEASE_MARK = 'sig 12/90  Signatory: you may rent and join'  # Terminal UI 10, verbatim.
+def lease_line(row: str) -> str:
+    """Terminal UI 10 (#265): the legend names the caller's own lease mark.
+
+    `row` is the 2.4 lease row (`day n/90`, `sig n/90`, `on the roll`), so
+    the precedence is the row's; each state has its canon meaning.
+    """
+    if row == 'on the roll':
+        return 'on the roll  Your name is on the civic roll'
+    if row.startswith('sig '):
+        return f'{row}  Signatory: you may rent and join'
+    day = row.split()[-1].split('/')[0] if row.startswith('day ') else '1'
+    return f'{row}  Under lease: day {day} of 90. No renting or joining yet'
 
 
 def key_name(key: str) -> str:
@@ -41,7 +52,7 @@ def key_name(key: str) -> str:
 
 
 def this_screen(legend: list[tuple[str, str]], keymap: dict[str, Any], keymap_id: str,
-                width: int, rows: int) -> tuple[list[str], list[str]]:
+                width: int, rows: int, lease: str = '') -> tuple[list[str], list[str]]:
     """Help's first page in a zone (terminal UI 10): keys, then the legend.
 
     Returns page 1 (exactly `rows` lines, so the next page starts clean)
@@ -77,7 +88,7 @@ def this_screen(legend: list[tuple[str, str]], keymap: dict[str, Any], keymap_id
             keys.append(group)
     entries = [f'{glyph}  {word}' for glyph, word in legend]
     head = ['THIS SCREEN', *keys, '', 'In view']
-    tail = ['', LEASE_MARK]
+    tail = ['', lease] if lease else []
     room = max(0, rows - len(head) - len(tail))
     overflow = len(entries) > room
     shown = entries[:max(0, room - 1)] + [f'+{len(entries) - max(0, room - 1)} more'] if overflow else entries

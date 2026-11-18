@@ -85,18 +85,35 @@ def test_the_first_frame_after_the_corridor_door(info, repo_root, request, width
     place(game, client, HALL, (21, 13))
     terminal, model = frame(game, client, info, width, height, tier)
     pin(request, 'after_door', terminal, width, height, tier)
+    # Sight reaches 10 cells: the line goes on east from the door, but its
+    # turn at (37,14) is 17 cells further and not yet in view.
+    assert any('+──' in row for row in map_rows(terminal, model))
+
+
+@pytest.mark.parametrize('width,height,tier', CASES)
+def test_the_east_room_shows_the_turn_the_signs_and_the_way_out(info, repo_root, request, width, height, tier):
+    game, client = wake(repo_root, width, height)
+    place(game, client, HALL, (30, 15))
+    terminal, model = frame(game, client, info, width, height, tier)
+    pin(request, 'east_room', terminal, width, height, tier)
     rows = '\n'.join(map_rows(terminal, model))
-    assert '┐' in rows or '└' in rows  # The line's turn toward the street door is in view.
+    for seen in ('┐', 'RANGE', 'ISSUE', 'CLINIC ROW →'):
+        assert seen in rows, seen
 
 
 @pytest.mark.parametrize('width,height,tier', CASES)
 def test_help_page_one_in_the_hall(info, repo_root, request, width, height, tier):
+    # The opening's own state (presentation lead): an unread body, `No. 0001`
+    # on day 1, under a plain handle rather than the wide-name fixture.
+    plain = replace(info, raw={**info.raw, 'handle': 'Noor'})
     game, client = wake(repo_root, width, height)
     place(game, client, HALL, (6, 6))
-    terminal, _ = frame(game, client, info, width, height, tier, keys=('?',))
+    assert game.core.characters.players[client.session.player_id].name == 'No. 0001'
+    terminal, _ = frame(game, client, plain, width, height, tier, keys=('?',))
     pin(request, 'help', terminal, width, height, tier)
     text = terminal.screen_text()
-    assert 'THIS SCREEN' in text and 'painted line' in text and 'Signatory: you may rent and join' in text
+    assert 'THIS SCREEN' in text and 'painted line' in text and 'Wide' not in text
+    assert 'day 1/90  Under lease: day 1 of 90. No renting or joining yet' in text
 
 
 @pytest.mark.parametrize('width,height,tier', CASES)

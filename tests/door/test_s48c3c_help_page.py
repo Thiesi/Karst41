@@ -14,7 +14,7 @@ import pytest
 from karst41.content.loader import load_content
 from karst41.door.model import Display
 from karst41.door.present.zone import screen_legend
-from karst41.door.screens import LEASE_MARK, help_pages, this_screen
+from karst41.door.screens import help_pages, lease_line, this_screen
 from karst41.place import CHARTED_GROUND
 from karst41.server.protocol import Frame
 from tests.character_helpers import create, place
@@ -59,8 +59,8 @@ def test_actors_use_their_presented_nearby_names_and_glyphs():
 
 def test_page_one_fits_never_scrolls_and_overflows_to_page_two(repo_root):
     many = [(chr(0x41 + i), f'thing {i}') for i in range(20)]
-    page, rest = this_screen(many, keymap(repo_root), 'arrows', 76, 15)
-    assert len(page) == 15 and page[0] == 'THIS SCREEN' and page[-1] == LEASE_MARK
+    page, rest = this_screen(many, keymap(repo_root), 'arrows', 76, 15, lease_line('day 1/90'))
+    assert len(page) == 15 and page[0] == 'THIS SCREEN' and page[-1] == lease_line('day 1/90')
     assert any(line.startswith('+') and line.endswith(' more') for line in page)
     assert rest[0] == 'IN VIEW (all)' and rest[1:21] == [f'{g}  {w}' for g, w in many]
     page, rest = this_screen(many[:3], keymap(repo_root), 'arrows', 76, 15)
@@ -93,7 +93,9 @@ def test_question_mark_opens_this_screen_then_the_existing_pages(info, repo_root
     model.key('?', 2)
     rows = model.layout.text_area.height
     lines = model.local_lines
-    assert lines[0] == 'THIS SCREEN' and LEASE_MARK in lines[:rows]
+    # The opening's own state: an unread body on its first day.
+    assert lines[0] == 'THIS SCREEN'
+    assert 'day 1/90  Under lease: day 1 of 90. No renting or joining yet' in lines[:rows]
     assert '│─└  painted line' in lines[:rows] and 'Θ  decant vat' in lines[:rows]
     tail = help_pages(model.keymap)
     assert lines[-len(tail):] == tail  # The existing pages follow unchanged.
@@ -135,3 +137,15 @@ def test_a_remembered_cell_is_named_from_memory_not_live_state():
     # A cell remembered as locked stays locked in the legend.
     remembered_locked = body([[0, 0, 0, -2]], legend, remembered=[[0, 0, 0, 2]], actors=[ME])
     assert ('≡', 'locked door') in screen_legend(remembered_locked)
+
+
+@pytest.mark.parametrize(('me', 'line'), [
+    ({'lease_days': 0, 'grade': None}, 'day 1/90  Under lease: day 1 of 90. No renting or joining yet'),
+    ({'lease_days': 11, 'grade': 4}, 'day 12/90  Under lease: day 12 of 90. No renting or joining yet'),
+    ({'lease_days': 11, 'grade': 5}, 'sig 12/90  Signatory: you may rent and join'),
+    ({'lease_days': 40, 'grade': 6, 'legal_at': '2026-11-18T00:00:00+00:00'}, 'on the roll  Your name is on the civic roll'),
+])
+def test_the_legend_names_the_callers_own_lease_mark(me, line):
+    # Terminal UI 10 (#265), with the 2.4 lease row's precedence and numbers.
+    from karst41.door.present.zone import lease_row
+    assert lease_line(lease_row(me)) == line

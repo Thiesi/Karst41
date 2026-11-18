@@ -1,4 +1,4 @@
-╔═HELP═POCKET══════════════════════════════════════════════════════Wide界══════╗
+╔═HELP═POCKET════════════════════════════════════════════════════════Noor══════╗
 ║ HELP                                                                         ║
 ║ THIS SCREEN                                                                  ║
 ║ ↑↓←→ walk  Shift-arrows run  Tab target next  F fire / attack  E interact    ║
@@ -14,7 +14,7 @@
 ║ ☻  Sablier orderly                                                           ║
 ║ ☻  Dr. Ilse Vantongeren                                                      ║
 ║                                                                              ║
-║ sig 12/90  Signatory: you may rent and join                                  ║
+║ day 1/90  Under lease: day 1 of 90. No renting or joining yet                ║
 ║ Page 1/9  PgUp/PgDn  Esc back                                                ║
 ╟──────────────────────────────────────────────────────────────────────────────╢
 ║» You wake on a gurney under a number.                                        ║
