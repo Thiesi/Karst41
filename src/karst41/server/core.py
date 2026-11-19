@@ -353,10 +353,12 @@ class Core:
         action = key_action(self.keymap, session, frame)
         if self.opening is not None and action:
             self.opening.key_used(session, action)
-        if self.walls is not None and session.role == "caller" and not action.startswith(("move", "sprint")):
-            # S48d: any non-move input resets the bump count and the idle clock;
-            # a move reports its own outcome from the simulation.
-            self.walls.input(session, "other", event.data["tick"])
+        if self.walls is not None and session.role == "caller":
+            # S48d: every frame moves the idle clock, whichever route takes it
+            # (review 7014979634). A non-move also resets the bump count; a move
+            # that reaches the street reports its own outcome from the simulation.
+            self.walls.input(session, "seen" if action.startswith(("move", "sprint")) else "other",
+                             event.data["tick"])
         selected = self.resolve_interaction(session, frame, routes) if interact(frame) or action in ('interact', 'jack') else None
         if selected is not None:
             selected.route.handler(session, frame, event.data['tick'], interaction=selected.choice)

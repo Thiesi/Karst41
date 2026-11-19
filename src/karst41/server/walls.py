@@ -113,8 +113,12 @@ class Walls:
     # --- pushed ---------------------------------------------------------
 
     def input(self, session: Session, outcome: str, tick: int) -> None:
-        """Every caller input: `moved`, `bump` (into terrain), `held` (a move
-        refused for another reason: cooldown, an actor) or `other`."""
+        """Caller input. Core's dispatch reports every frame before routing:
+        `seen` for a move (whichever route takes it: the street, the lattice,
+        a page) and `other` for anything else, so the idle clock never stands
+        still while the caller is busy elsewhere (review 7014979634). The
+        simulation then classifies the moves that reach the street: `moved`,
+        `bump` (into terrain) or `held` (refused otherwise: cooldown, an actor)."""
         if self.voice is None:
             return  # Off: count nothing (technical lead, condition 4).
         ear = self.ear(session, tick)
@@ -122,7 +126,7 @@ class Walls:
         if outcome == "bump":
             ear.bumps += 1
             self.attempt(session, tick)
-        elif outcome != "held":
+        elif outcome in ("moved", "other"):
             ear.bumps = 0
 
     def event(self, pid: str, name: str) -> None:
@@ -163,6 +167,21 @@ class Walls:
     def fired(self, player: Any, lid: str) -> bool:
         return lid in player.progress.get("walls", ())
 
+    def in_zone_view(self, session: Session, actor: Any) -> bool:
+        """The caller is looking at the place the body stands in: not jacked in,
+        and no talk page, menu, map or other view open (technical lead). The
+        polled triggers are about that place; the pushed ones are not. The
+        same views the opening's runner treats as a menu or page."""
+        if actor.stance == "jacked":
+            return False
+        game, sid = self.game, session.id
+        if game.menu_open(session) or sid in game.screens or sid in game.sim.external_views or sid in game.sim.maps:
+            return False
+        dialogue = self.core.dialogue
+        if dialogue is not None and (sid in dialogue.menus or sid in dialogue.reading):
+            return False
+        return sid not in self.core.commerce.menus
+
     def holds(self, line: s.WallLine, ear: Ear, actor: Any, tick: int) -> bool:
         trigger = line.trigger
         if trigger.name == "bump":
@@ -176,13 +195,15 @@ class Walls:
             return ear.zone == actor.zone and tick - ear.arrived < ARRIVAL_SECONDS * TICK_HZ
         return trigger.name in ear.events
 
-    def due(self, player: Any, ear: Ear, actor: Any, tick: int) -> s.WallLine | None:
+    def due(self, player: Any, ear: Ear, actor: Any, tick: int, zone_view: bool) -> s.WallLine | None:
         """The first eligible line in file order whose trigger holds."""
         voice = self.voice
         assert voice is not None
         for line in voice.lines:
             if line.zones and actor.zone not in line.zones:
                 continue
+            if line.trigger.name not in PUSHED and not zone_view:
+                continue  # Polled triggers hold only in the zone view.
             if self.fired(player, line.id) or not self.holds(line, ear, actor, tick):
                 continue
             return line
@@ -202,7 +223,7 @@ class Walls:
         if avatar is None or not avatar.actor.zone:
             return False
         ear = self.ear(session, tick)
-        line = self.due(player, ear, avatar.actor, tick)
+        line = self.due(player, ear, avatar.actor, tick, self.in_zone_view(session, avatar.actor))
         if line is None:
             return False
         text = line.text.replace(NAME, player.name)

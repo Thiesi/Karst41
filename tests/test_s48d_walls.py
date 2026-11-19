@@ -467,3 +467,55 @@ def test_the_openings_view_wiring_does_not_depend_on_the_wall_voice(shipped, mon
     assert game.core.characters.sim.crew_view.__name__ == 'opening_view'
     assert game.core.lattice.encounters.view.__name__ == 'opening_network'
 
+
+
+# --- the zone view (review 7014979634, technical lead) -------------------------------
+
+def jack_in_at_a_row_terminal(game, me):
+    act(game, me, Frame('key', {'k': 'j', 't': 0}))
+    game.step(3)
+    game.commit_commerce()
+    assert body(game, me).stance == 'jacked'
+
+
+def test_moving_on_the_lattice_says_no_idle_line(shipped):
+    """Lattice moves go to the lattice route, not the street, and still count as input."""
+    game = HeadlessServer(quiet(shipped, 'w16'), character_state={})
+    me = caller(game, 1, ROW, (19, 16))
+    game.step(TICK_HZ)
+    jack_in_at_a_row_terminal(game, me)
+    heard(game, me)
+    for n in range(16):
+        act(game, me, Frame('intent', {'name': 'move_right' if n % 2 else 'move_left', 'args': {}}))
+        game.step(2 * TICK_HZ)
+    assert heard(game, me) == []
+    assert game.clock.now_tick() - walls(game).ears[me.session.id].last_input < 3 * TICK_HZ
+
+
+def test_standing_still_on_the_lattice_says_no_idle_line(shipped):
+    """Polled triggers hold only in the zone view; a jacked-in caller isn't in the place."""
+    game = HeadlessServer(quiet(shipped, 'w16'), character_state={})
+    me = caller(game, 1, ROW, (19, 16))
+    game.step(TICK_HZ)
+    jack_in_at_a_row_terminal(game, me)
+    assert seconds(game, me, 40) == []
+
+
+def test_a_talk_page_holds_region_lines_until_it_closes(shipped):
+    game = HeadlessServer(quiet(shipped, 'w19'), character_state={})
+    me = caller(game, 1, HALL, (13, 5))  # Inside the desk's ring (W19).
+    doctor = make_actor(game.core.loop.content.npcs['npc-cast-vantongeren'], 'v',
+                        {'spawner': 'v', 'home': (13, 6), 'pause': 1 << 40})
+    game.core.world.enter(doctor, HALL, (13, 6))
+    me.session.voice_tick = game.clock.now_tick()  # The budget is spent: nothing before the page opens.
+    act(game, me, Frame('key', {'k': 'e', 't': 0}))
+    game.step()
+    game.commit_commerce()  # The first meeting is recorded, then the page opens.
+    game.step()
+    assert me.session.id in game.core.dialogue.menus
+    assert seconds(game, me, 25) == []  # Budget open again, region holds, page open: nothing.
+    act(game, me, Frame('key', {'k': 'escape', 't': 0}))
+    game.step()
+    assert me.session.id not in game.core.dialogue.menus
+    # Her parting line spends P8's budget at the close; then the region line comes.
+    assert [ln['text'] for ln in seconds(game, me, 22)] == ["Wall1. I'll try to say it right."]
