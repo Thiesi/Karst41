@@ -23,8 +23,14 @@ Declared fixtures:
 - One Sablier orderly is relocated beside the caller at the hall's west
   wall and holds still, and its bark is made due once the caller's budget
   has reopened (the P8 precedent), instead of waiting its 90 s interval.
-- The Row's ambience is made due once the budget has reopened after W18
-  (the P8 precedent), instead of its 60-90 s cadence.
+- The Row's ambience is made due once the budget has reopened after W18,
+  and other barks wait for that step (the P8 precedent), instead of its
+  60-90 s cadence.
+- While a step waits on the budget, the caller paces to a neighbouring tile
+  and back every five seconds with real keys: off the west wall in the hall
+  (after W02), and inside W18's region at the Tin Halo. Then no idle line
+  (W01, 20 s; W16, 30 s) takes the turn. A caller standing still hears
+  those too.
 - The Row walk goes by two waypoints, (40, 22) and (88, 22), so it crosses
   no other line's region on the way and the evening's three lines are W14,
   W18 and nothing else. A caller walking another way hears other lines; the
@@ -49,7 +55,8 @@ from tests.presentation.snapshots import snapshot
 ROW, HALL, CLINICS, PLAZA = 'sodium-row', 'vatside-wake-hall', 'vatside-clinics', 'core-plaza'
 WEST_WALL, ORDERLY_AT = (1, 8), (2, 9)
 ROW_ROUTE, HALO = ((40, 22), (88, 22)), (90, 26)
-LEFT = b'\x1b[D'
+LEFT, RIGHT = b'\x1b[D', b'\x1b[C'
+PACE_SECONDS = 5  # Under idle's shortest Row count (W16, 30 s).
 
 
 async def redial(probe: NativeProbe, previous: Connection, width: int, height: int, sixteen: bool,
@@ -155,6 +162,14 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                         clock.now_tick() - caller.session.voice_tick >= amb.LINE_BUDGET_SECONDS * TICK_HZ),
                         amb.LINE_BUDGET_SECONDS + 5)
 
+                async def pace(keys: tuple[bytes, bytes]) -> None:
+                    # Real steps to a neighbouring tile and back, so the caller is
+                    # never idle and no idle line (W01, W16) takes the turn.
+                    while True:
+                        for key in keys:
+                            await asyncio.sleep(PACE_SECONDS)
+                            await caller.caller.write(key)
+
                 def save(name: str, facts: dict[str, Any]) -> None:
                     label = f's48d-{name}-{width}x{height}-{tier}-{renderer}'
                     probe.save(caller, label)
@@ -186,11 +201,16 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     await wait(lambda: said('w02'))
                     await wait(lambda: shows(lines['w02'].text))
                     # The orderly's bark in the same log (declared: made due).
-                    await budget_open()
-                    voice = voice_of.zones[HALL]
-                    mark = len(heard)
-                    voice.barks.next_due[orderly.id] = 0
-                    await wait(lambda: any(k == 'speech' for _, k, _, _ in heard[mark:]))
+                    # One tile east and back off the wall meanwhile (W02 has fired).
+                    pacing = asyncio.create_task(pace((RIGHT, LEFT)))
+                    try:
+                        await budget_open()
+                        voice = voice_of.zones[HALL]
+                        mark = len(heard)
+                        voice.barks.next_due[orderly.id] = 0
+                        await wait(lambda: any(k == 'speech' for _, k, _, _ in heard[mark:]))
+                    finally:
+                        pacing.cancel()
                     bark = next(x for _, k, _, x in heard[mark:] if k == 'speech')
                     await wait(lambda: shows(bark) and shows(lines['w02'].text))
                     await delivered()
@@ -202,18 +222,31 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     await wait(lambda: said('w14'), 35)
                     for point in (*ROW_ROUTE, HALO):
                         await probe.walk(caller, point)
-                    await wait(lambda: said('w18'), amb.LINE_BUDGET_SECONDS + 5)
-                    pair = (lines['w18'].text, lines['w18'].answer)
-                    await wait(lambda: shows(pair[0]) and shows(pair[1]))
-                    texts = [x for _, _, _, x in heard]
-                    assert texts[texts.index(pair[0]) + 1] == pair[1]  # Adjacent, in one frame.
-                    # The Row's own ambience in the same log (declared: made due).
-                    await budget_open()
+
+                    # One tile west and back inside W18's region.
+                    pacing = asyncio.create_task(pace((LEFT, RIGHT)))
+                    zone = probe.service.world.zones[ROW]
                     voice = voice_of.zones[ROW]
-                    mark = len(heard)
-                    voice.ambient_due = clock.now_tick()
-                    await wait(lambda: any(k == 'ambient' and x in content.looks[ROW].ambient
-                                           for _, k, _, x in heard[mark:]))
+                    try:
+                        await wait(lambda: said('w18'), amb.LINE_BUDGET_SECONDS + 10)
+                        pair = (lines['w18'].text, lines['w18'].answer)
+                        await wait(lambda: shows(pair[0]) and shows(pair[1]))
+                        texts = [x for _, _, _, x in heard]
+                        assert texts[texts.index(pair[0]) + 1] == pair[1]  # Adjacent, in one frame.
+                        # The Row's own ambience in the same log (declared: made due,
+                        # other barks held for this step, as P8's capture does).
+                        barks_due = dict(voice.barks.next_due)
+                        voice.barks.next_due.update({a.id: 1 << 40 for a in zone.actors.values()})
+                        try:
+                            await budget_open()
+                            mark = len(heard)
+                            voice.ambient_due = clock.now_tick()
+                            await wait(lambda: any(k == 'ambient' and x in content.looks[ROW].ambient
+                                                   for _, k, _, x in heard[mark:]))
+                        finally:
+                            voice.barks.next_due = barks_due
+                    finally:
+                        pacing.cancel()
                     ambient = next(x for _, k, _, x in heard[mark:] if k == 'ambient')
                     await wait(lambda: shows(ambient) and shows(pair[0]) and shows(pair[1]))
                     await delivered()
@@ -234,7 +267,10 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                      '(S48c2 fix 2); no runner live and no unread body at any capture',
             'fixtures': ['one Sablier orderly relocated beside the caller at the west wall, holding still; '
                          'its bark made due once the budget reopened (P8 precedent)',
-                         'the Row ambience made due once the budget reopened after W18 (P8 precedent)',
+                         'the Row ambience made due once the budget reopened after W18, other barks held '
+                         'for that step (P8 precedent)',
+                         'while a step waits on the budget the caller paces a tile and back every 5 s with real keys '
+                         "(off the hall's west wall after W02; inside W18's region), so no idle line takes the turn",
                          'the Row walk goes by (40, 22) and (88, 22), crossing no other line\'s region'],
             'presentation_acceptance': False, 'h1_layout_approval': False,
             's25_layout_approval': False}, indent=2)+'\n', encoding='utf-8', newline='\n')
