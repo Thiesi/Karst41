@@ -41,16 +41,18 @@ from typing import Any, Iterable
 
 from karst41.content import schema as s
 from karst41.server.clock import TICK_HZ
+from karst41.server.danger import DANGER_HOLD_SECONDS
 from karst41.server.sessions import QUEUE_LIMIT, Session
 
 NAME = "<name>"
 NAME_MAX = 24         # The name prompt's max_len; the validator fits every line with a name this long.
 ARRIVAL_SECONDS = 30  # zone_entered's window (technical lead, ruling 1).
-EVENT_SECONDS = {"jack_in": 10, "jack_out": 10, "death_decant": 15}
+DECANT_GRACE_SECONDS = 5
+EVENT_SECONDS = {"jack_in": 10, "jack_out": 10, "death_decant": DANGER_HOLD_SECONDS + DECANT_GRACE_SECONDS}
 """How long a pushed occurrence stays live (ruling 2). The decant's own vat line
-is a combat line and opens P8's ten-second danger hold at the decant tick, so
-death_decant's window runs five seconds past that hold, or it could never pass
-admit()."""
+is a combat line and opens P8's danger hold at the decant tick, so death_decant
+runs until the first stride after that hold, within five seconds (technical
+lead): derived from the hold, so a change to it can't starve the trigger."""
 PUSHED = frozenset({"jack_in", "jack_out", "death_decant"})
 
 

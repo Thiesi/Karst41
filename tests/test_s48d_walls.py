@@ -394,3 +394,63 @@ def test_a_full_commerce_queue_says_nothing_and_spends_no_budget(shipped):
     assert me.session.voice_tick == before and 'w16' not in player(game, me).progress.get('walls', ())
     commerce.pending, commerce.waiting = False, []
     assert len(seconds(game, me, 2)) == 1
+
+
+def test_death_decants_window_follows_p8s_danger_hold():
+    """Technical lead: derived from the hold, so a change to it can't starve the trigger."""
+    from karst41.server.danger import DANGER_HOLD_SECONDS
+    assert w.EVENT_SECONDS['death_decant'] == DANGER_HOLD_SECONDS + w.DECANT_GRACE_SECONDS
+    assert w.EVENT_SECONDS['death_decant'] > DANGER_HOLD_SECONDS
+
+
+def test_p8_ambience_and_a_wall_line_share_one_budget(shipped):
+    """A wall line and the Row's own ambience under P8's one budget: whichever
+    comes first, the other waits the budget out, and both reach the caller."""
+    content = quiet(shipped, 'w18')
+    game = HeadlessServer(content, character_state={})
+    me = caller(game, 1, ROW, (80, 20))
+    ambience = game.core.dialogue.ambience
+    texts = set(content.looks[ROW].ambient)
+
+    def log(n):
+        out = []
+        for _ in range(n):
+            game.step(TICK_HZ)
+            out += [(game.clock.now_tick(), ln['text']) for f in game.frames_for(me)
+                    if f.type == 'log' and not f.data.get('replay') for ln in f.data['lines']
+                    if ln['kind'] == 'ambient']
+        return out
+    log(2)
+    ambience.zones[ROW].ambient_due = game.clock.now_tick() + 1  # The Row's ambience first.
+    first = log(2)
+    assert len(first) == 1 and first[0][1] in texts
+    place(game, me, ROW, (90, 26))  # Then into W18's region: the budget holds it.
+    early = log(15)
+    assert not [t for _, t in early if t not in texts]
+    later = log(10)
+    wall = [(tick, t) for tick, t in later if t == content.walls.lines[0].text]
+    assert wall and wall[0][0] - first[0][0] >= 20 * TICK_HZ  # P8's budget, shared.
+    # And the other way round: inside the budget after the wall line, the
+    # ambience is dropped (P8 drops, never queues); once it reopens, it comes.
+    ambience.zones[ROW].ambient_due = game.clock.now_tick()
+    assert not [t for _, t in log(15) if t in texts]
+    log(5)
+    ambience.zones[ROW].ambient_due = game.clock.now_tick()
+    assert [t for _, t in log(2) if t in texts]
+
+
+def test_stepping_out_of_the_tin_halo_is_a_row_arrival(shipped):
+    """Creative lead: the first arrival after Vesper's page is usually out of the Halo."""
+    game = HeadlessServer(quiet(shipped, 'w14'), character_state={})
+    me = caller(game, 1, 'sodium-tin-halo', (2, 3))
+    move(game, me, 'up')  # Onto the door back to the Row (2, 2), then E, as a caller does.
+    game.step(5)
+    act(game, me, Frame('key', {'k': 'e', 't': 0}))
+    got = []
+    for _ in range(40):
+        game.step(TICK_HZ)
+        got += heard(game, me)
+        if got:
+            break
+    assert body(game, me).zone == ROW
+    assert [ln['text'] for ln in got] == ["There you are. It's loud here. I'll keep it short."]
