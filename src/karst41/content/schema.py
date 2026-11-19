@@ -1488,6 +1488,52 @@ class Script:
     schema: int = CONTENT_SCHEMA
 
 
+# --- walls: a voice in the walls (S48d, S48 part 5) --------------------------
+
+# The closed trigger set (technical lead, S48d rulings, 2026-11-19).
+WallTriggerName = Literal["bump", "idle", "region", "zone_entered", "jack_in", "jack_out", "death_decant"]
+
+
+@dataclass(frozen=True)
+class WallTrigger:
+    """`bump` N blocked moves into terrain in a row; `idle` S seconds with no
+    input; `region` standing in any of `rects` (x, y, w, h in the line's one
+    zone); `zone_entered` within 30 s of arriving; `jack_in`, `jack_out` and
+    `death_decant` on every occurrence (once per character comes from the line)."""
+
+    name: WallTriggerName
+    count: int = 0
+    rects: tuple[tuple[int, int, int, int], ...] = ()
+
+
+@dataclass(frozen=True)
+class WallLine:
+    """One unattributed line, at most once per character. No speaker, ever:
+    the reader rejects a `speaker` or `name` key. `answer`, when set, follows
+    as a second entry and the two are fitted whole as a pair. `zones` empty
+    means any zone. `<name>` is the only token: the caller's character name."""
+
+    id: str
+    trigger: WallTrigger
+    text: str
+    zones: tuple[str, ...] = ()
+    answer: str = ""
+
+
+@dataclass(frozen=True)
+class WallVoice:
+    """`walls.json`: the layer's lines, the off switch and the per-evening cap.
+
+    Not a mechanics-fingerprint input: it moves no tile, exit, object or rule.
+    """
+
+    enabled: bool = False
+    per_evening: int = 3
+    """Lines per evening, where an evening is one login (carried across a reconnect)."""
+    lines: tuple[WallLine, ...] = ()
+    schema: int = CONTENT_SCHEMA
+
+
 # --- events, routes, seasons (sections 1.12, 1.13, 2.14, 2.15) -------------
 
 

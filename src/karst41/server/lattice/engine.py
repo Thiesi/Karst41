@@ -310,6 +310,7 @@ class Lattice:
         self.game.snapshot(player, avatar)
         self.game.queue("save", session.user_id, player, immediate=True)
         self.game.lesson(player, "jacked_in", True)
+        self.game.voice_event(player.id, "jack_in")
         if not (terminal and terminal.spec.params.get("training_core")):
             self.game.progression.record_discovery(player.id, "cell", sector+"/"+presence.cell)
             self.sense_hidden(presence)

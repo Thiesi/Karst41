@@ -32,8 +32,11 @@ read and the hall left (only the errand, a per-character flag, goes on).
 - Leaving the hall drops every waiting line: nothing from the hall plays
   outside it.
 - P8's `admit()` is bypassed; each script line sets `session.voice_tick`,
-  so barks and ambience stay quiet behind it, and S48d's wall lines (which
-  go through `admit()`) are quiet during the opening by construction.
+  so barks and ambience stay quiet behind it, and while a speech line is
+  due `admit()` refuses them outright (#258, `holds_speech`). S48d's wall
+  lines are silent for the whole opening by an explicit rule (no wall line
+  while the caller's runner is live, technical lead), not by the budget:
+  the opening has gaps longer than P8's 20 s.
 - Everything goes to the caller's session alone, and into the replay ring.
 - Polling (position, steps, seconds, target) runs only while the current
   beat waits on a polled trigger; otherwise the runner is purely pushed.

@@ -410,4 +410,5 @@ SINGLETON_FILES: dict[str, type] = {
     "keymaps.json": s.KeymapTable,
     "silt.json": s.SiltRules,
     "salvage.json": s.SalvageRules,
+    "walls.json": s.WallVoice,
 }

@@ -56,6 +56,7 @@ class Ambience:
         self.drone_can_act = drone_can_act  # Runner contract amendment 3 (danger.holds).
         # #258: the opening runner holds a due speech line for this caller.
         self.script_holds: Callable[[Session, int], bool] = lambda session, tick: False
+        self.walls: Any = None  # S48d: polled on this emitter's one-second stride.
         self.zones: dict[str, ZoneVoice] = {}
 
     # --- the shared per-caller gate (S48's runner may call it) -------------
@@ -108,6 +109,8 @@ class Ambience:
                 voice = self.zones[zone_id] = ZoneVoice(rng, tick + self._ambient_gap(rng))
             self._barks(zone, voice, callers, tick)
             self._ambient(zone, voice, callers, tick)
+        if self.walls is not None:
+            self.walls.stride(tick, (session for callers in present.values() for session, _ in callers))
 
     def _ambient_gap(self, rng: Random) -> int:
         return (AMBIENT_SECONDS + rng.randint(0, AMBIENT_JITTER_SECONDS)) * TICK_HZ

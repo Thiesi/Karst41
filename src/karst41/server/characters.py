@@ -61,6 +61,7 @@ class Characters:
         self.opening_start: Callable[[Session, dict[str, Any]], None] = lambda session, state: None
         self.opening_stop: Callable[[Session], dict[str, Any] | None] = lambda session: None
         self.opening_live: Callable[[str], bool] = lambda pid: False
+        self.voice_event: Callable[[str, str], None] = lambda pid, name: None  # S48d: jack_in, jack_out, death_decant.
         # A recruiter card is taken once per identity (technical lead, S48c1):
         # identity["wake_card"] holds it. Identities from before S48 had the
         # card menu in their Wake, so one with a stored character counts as
@@ -251,6 +252,7 @@ class Characters:
         player = self.players.get(session.player_id)
         if player is not None:
             self.lesson(player, "jacked_out", True)
+            self.voice_event(player.id, "jack_out")
         wake = self.wakes.get(session.id)
         if wake is not None and wake.lessons.get("lifted") and self.unread(session.player_id):
             self.open_record(session, "terminal")

@@ -23,7 +23,9 @@ TRAM = 'A tram goes over somewhere above the roofs. The puddles shiver.'
 
 @pytest.fixture(scope='module')
 def shipped():
-    return load_content(Path(__file__).parents[1]/'src/karst41/content')
+    content = load_content(Path(__file__).parents[1]/'src/karst41/content')
+    content.walls = None  # These tests pin P8 alone; S48d's wall lines have their own (test_s48d_walls).
+    return content
 
 
 def quiet(content):
