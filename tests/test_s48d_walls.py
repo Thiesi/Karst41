@@ -454,3 +454,10 @@ def test_stepping_out_of_the_tin_halo_is_a_row_arrival(shipped):
             break
     assert body(game, me).zone == ROW
     assert [ln['text'] for ln in got] == ["There you are. It's loud here. I'll keep it short."]
+
+
+def test_stepping_out_of_the_halo_is_not_inside_w18(shipped):
+    """Creative lead: the voice's first appearance at the door is W14 alone."""
+    w18 = next(ln for ln in shipped.walls.lines if ln.id == 'w18')
+    inside = {(x, y) for rx, ry, wd, ht in w18.trigger.rects for x in range(rx, rx + wd) for y in range(ry, ry + ht)}
+    assert (94, 27) not in inside and (94, 26) not in inside and (90, 26) in inside
