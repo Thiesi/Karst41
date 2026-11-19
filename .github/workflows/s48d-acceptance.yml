@@ -1,0 +1,84 @@
+name: S48d wall voice acceptance
+
+on:
+  pull_request:
+    paths:
+      - 'src/karst41/door/**'
+      - 'src/karst41/server/**'
+      - 'src/karst41/content/**'
+      - 'scripts/accept_s48d_netbbs.py'
+      - 'scripts/accept_s10_netbbs.py'
+      - '.github/workflows/s48d-acceptance.yml'
+  workflow_dispatch:
+
+jobs:
+  s48d-netbbs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        size: ['80x24', '132x50']
+        presentation: ['legacy', 'modern']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/checkout@v4
+        with:
+          repository: Thiesi/NetBBS
+          ref: v7.45.0
+          path: .test-tmp/netbbs
+      - name: Install NetBBS and isolated native door wheel
+        shell: bash
+        run: |
+          python -m pip install './.test-tmp/netbbs[ssh,web]'
+          python -m pip wheel --no-deps . -w "$RUNNER_TEMP/karst41-proof/s48d/wheels"
+          python -m venv "$RUNNER_TEMP/karst41-proof/s48d/venv"
+          "$RUNNER_TEMP/karst41-proof/s48d/venv/bin/python" -m pip install "$RUNNER_TEMP"/karst41-proof/s48d/wheels/*.whl
+      - name: Capture a wall line in the hall and a wall pair on the Row
+        shell: bash
+        run: |
+          python scripts/accept_s48d_netbbs.py --root "$RUNNER_TEMP/karst41-proof/s48d/captures" --door-python "$RUNNER_TEMP/karst41-proof/s48d/venv/bin/python" --size '${{ matrix.size }}' --presentation '${{ matrix.presentation }}'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: s48d-${{ matrix.size }}-${{ matrix.presentation }}
+          path: |
+            ${{ runner.temp }}/karst41-proof/s48d/captures/*.ans
+            ${{ runner.temp }}/karst41-proof/s48d/captures/*.txt
+            ${{ runner.temp }}/karst41-proof/s48d/captures/*.json
+            ${{ runner.temp }}/karst41-proof/s48d/captures/failure-trace.txt
+            ${{ runner.temp }}/karst41-proof/s48d/captures/progress.log
+      - name: Remove native proof scratch
+        if: always()
+        shell: bash
+        run: rm -rf -- "$RUNNER_TEMP/karst41-proof/s48d"
+
+  s48d-cost:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Measure the wall voice on Sodium Row (1 and 3 callers, on and off)
+        shell: bash
+        run: |
+          python -m pip install -e .
+          PYTHONPATH=. python scripts/measure_s48d_cost.py --out "$RUNNER_TEMP/s48d-cost/s48d-cost.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: s48d-cost
+          path: ${{ runner.temp }}/s48d-cost/s48d-cost.json
