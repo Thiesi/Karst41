@@ -112,7 +112,7 @@ def test_the_reader_rejects_a_speaker_a_name_or_a_trigger_outside_the_set():
     (line('a', 'idle', 'Hi.'), 'positive count'),
     (line('a', 'idle', 'Hi {item:x}.', count=5), 'token other than'),
     (line('a', 'zone_entered', 'Hi.', zones=()), 'names its zone'),
-    # Two rows as written, three once a 24-cell name stands in for <name>.
+    # Two rows as written, three once a name of the maximum width (24 cells) stands in for <name>.
     (line('a', 'idle', '<name>, ' + 'very long words that go on ' * 5, count=5), 'with a 24-cell name'),
     (line('a', 'idle', 'Short.', answer='An answer that runs on ' * 7, count=5), "doesn't fit whole"),
 ])
@@ -519,3 +519,30 @@ def test_a_talk_page_holds_region_lines_until_it_closes(shipped):
     assert me.session.id not in game.core.dialogue.menus
     # Her parting line spends P8's budget at the close; then the region line comes.
     assert [ln['text'] for ln in seconds(game, me, 22)] == ["Wall1. I'll try to say it right."]
+
+
+def test_a_name_too_wide_for_its_line_skips_to_the_next_line_in_the_same_place(shipped):
+    """Review of 31514a5e: a misfit never blocks the lines after it. (Names are capped
+    at 24 display cells, so a validated line always fits; this is the line that isn't.)"""
+    desk = ((11, 4, 3, 1), (11, 6, 3, 1), (11, 5, 1, 1), (13, 5, 1, 1))
+    content = quiet(shipped)
+    content.walls = replace(content.walls, lines=(
+        line('named', 'region', '<name>, ' + 'words ' * 22, zones=(HALL,), rects=desk),  # Unvalidated on purpose.
+        line('after', 'region', 'Nothing over there.', zones=(HALL,), rects=desk)))
+    game = HeadlessServer(content, character_state={})
+    client = game.connect({'user_id': 1, 'handle': 'Wide', 'node_name': 'S48d'})
+    create(game, client, name='Abcdefghijklmnopqrstuvwx', card='none')  # 24 cells: the widest valid name.
+    place(game, client, HALL, (11, 4))
+    game.frames_for(client)
+    assert game.core.characters.players[client.session.player_id].name == 'Abcdefghijklmnopqrstuvwx'
+    assert not w.fits('Abcdefghijklmnopqrstuvwx, ' + 'words ' * 22)
+    got = [ln['text'] for _ in range(3) for f in (game.step(TICK_HZ), game.frames_for(client))[1]
+           if f.type == 'log' for ln in f.data['lines'] if ln['kind'] == 'ambient']
+    assert got == ['Nothing over there.']
+    assert game.core.characters.players[client.session.player_id].progress['walls'] == ['after']
+
+
+def test_names_are_capped_at_24_cells_so_the_validators_stand_in_is_the_worst_case():
+    from karst41.server.rules.character import valid_name
+    assert valid_name('W' * 24) and not valid_name('界' * 13)  # 26 cells.
+    assert w.WIDEST_NAME == 'W' * 24

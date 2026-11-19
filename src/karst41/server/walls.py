@@ -38,15 +38,20 @@ With `enabled` false the layer counts nothing and costs nothing.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Any, Iterable
 
 from karst41.content import schema as s
 from karst41.server.clock import TICK_HZ
+from karst41.server.rules.character import NAME_MAX
 from karst41.server.danger import DANGER_HOLD_SECONDS
 from karst41.server.sessions import Session
 
 NAME = "<name>"
-NAME_MAX = 24         # The name prompt's max_len; the validator fits every line with a name this long.
+WIDEST_NAME = "W" * NAME_MAX
+"""The worst case for fit: names are capped at NAME_MAX display cells, not
+characters (`rules.character.valid_name`), so 24 wide characters are refused.
+The validator fits every `<name>` line with this."""
 ARRIVAL_SECONDS = 30  # zone_entered's window (technical lead, ruling 1).
 DECANT_GRACE_SECONDS = 5
 EVENT_SECONDS = {"jack_in": 10, "jack_out": 10, "death_decant": DANGER_HOLD_SECONDS + DECANT_GRACE_SECONDS}
@@ -57,6 +62,7 @@ lead): derived from the hold, so a change to it can't starve the trigger."""
 PUSHED = frozenset({"jack_in", "jack_out", "death_decant"})
 
 
+@lru_cache(maxsize=1)
 def log_fit() -> tuple[int, int, int]:
     """(guttered width, legacy width, rows) of the 80x24 log (P12)."""
     from karst41.layout import compute
@@ -206,6 +212,8 @@ class Walls:
                 continue  # Polled triggers hold only in the zone view.
             if self.fired(player, line.id) or not self.holds(line, ear, actor, tick):
                 continue
+            if not fits(line.text.replace(NAME, player.name), line.answer):
+                continue  # Neither entry goes and the line stays unfired; the next eligible one may speak.
             return line
         return None
 
@@ -226,9 +234,7 @@ class Walls:
         line = self.due(player, ear, avatar.actor, tick, self.in_zone_view(session, avatar.actor))
         if line is None:
             return False
-        text = line.text.replace(NAME, player.name)
-        if not fits(text, line.answer):
-            return False  # Neither entry goes; the line stays unfired.
+        text = line.text.replace(NAME, player.name)  # `due` has fitted it whole.
         if not self.ambience.admit(session, tick):
             return False  # Refused: unfired, for the trigger's next occurrence.
         self.persist(session, player, line.id)

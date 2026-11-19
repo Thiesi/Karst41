@@ -1953,9 +1953,9 @@ class _Validator:
         The reader already rejects a `speaker` or `name` key and any trigger
         outside the closed set. Here: unique ids, trigger parameters, zones,
         region rectangles inside their one zone on passable tiles only, the
-        one `<name>` token, and P12 whole-fit at 80x24 with the longest name.
+        one `<name>` token, and P12 whole-fit at 80x24 with the widest name.
         """
-        from karst41.server.walls import NAME, NAME_MAX, fits, rows
+        from karst41.server.walls import NAME, WIDEST_NAME, fits, rows
         voice = self.t.walls
         if voice is None:
             return
@@ -1965,7 +1965,7 @@ class _Validator:
         ids = [ln.id for ln in voice.lines]
         if len(set(ids)) != len(ids):
             self.report(*owner, "line ids are not unique")
-        longest = "W" * NAME_MAX
+        longest = WIDEST_NAME  # A name of the maximum display width (24 cells).
         for ln in voice.lines:
             where, trigger = f"line {ln.id}", ln.trigger
             if not ln.id or not ln.text.strip():
@@ -2003,7 +2003,7 @@ class _Validator:
                 self.report(*owner, f"{where}: doesn't fit whole at 80x24 ({rows(shown)} rows"
                             + (f", answer {rows(ln.answer)}" if ln.answer else "")
                             + f"; at most two each and {'three' if ln.answer else 'two'} together)"
-                            + (f" with a {NAME_MAX}-cell name" if NAME in ln.text else ""))
+                            + (" with a 24-cell name" if NAME in ln.text else ""))
 
     def check_scripts(self) -> None:
         """S48c2: the opening's script (#220 section 4; terminal UI 11, P12)."""
