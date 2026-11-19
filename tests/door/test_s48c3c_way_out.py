@@ -121,3 +121,5 @@ def test_the_street_door_draws_a_way_out_at_every_tier(info, content, width, hei
     x, y = ox + DOOR[0] - body['viewport']['x'], oy + DOOR[1] - body['viewport']['y']
     assert terminal.screen_text().splitlines()[y][x] == '»'
     assert ('»', 'way out') in screen_legend(body)
+    # S48c3c-2: the door object under the `»` is never named `+` as well.
+    assert ('+', 'door inside a place') not in screen_legend(body)

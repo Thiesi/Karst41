@@ -901,9 +901,8 @@ digits or punctuation: `Public terminal (Plaza 1)` becomes `terminal`,
 `Dr. Vantongeren` becomes `Vantongeren`, and `Locker 7` becomes `Locker`.
 If no such word is left, the label stays whole. If two shortened labels
 on the row would read the same, both stay whole. If the shortened labels
-still cannot fit, drop J, then E. Until S48c3c the general fitter still
-keeps the first word; only the lesson-hint row follows this rule
-(architecture 5.5).
+still cannot fit, drop J, then E. The general fitter and the lesson-hint
+row both follow this rule (architecture 5.5).
 Only then shorten the objective's target text; keep `Next:`, its verb
 and the current cost. This uses the existing hint row, not a new panel.
 

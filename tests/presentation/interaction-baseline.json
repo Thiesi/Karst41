@@ -2,16 +2,16 @@
   "source_base": "9907c90a66c036c0876803a180c22f9d53b403d3",
   "reference_checkout": "4142cc31850be2daa8e68c480bc8c84569d65222",
   "note": "Runtime Python source, harness and character helpers match source_base; both independent executions used the same matrix driver and content.",
-  "sha256": "69332277251343858f66f443e43aba3bab794c812a9e785f7d93748251907073",
+  "sha256": "0d32be6dd128dc527471d719045676a8a6dd089f8f69e80996caca71a5a7315b",
   "cases": 10800,
   "handlers": {
     "characters": 1456,
-    "combat": 108,
+    "combat": 100,
     "commerce": 166,
-    "contracts": 108,
+    "contracts": 144,
     "interlock": 422,
     "lattice": 8100,
-    "npcs": 30,
+    "npcs": 2,
     "relays": 36,
     "terminal": 356,
     "wake": 18
@@ -31,6 +31,11 @@
       "sha256_from": "7623fb7597220af1821ffa117c68128043b6ec398e1cdc000b798a1199b36251",
       "reason": "S48c2: Okafor and Vantongeren posted in the Wake Hall (96 new cases around them; 12 E beside them reach their talk pages), and the training terminal enters with 8.1 and 8.2 (24 log-only changes); door and vat tiles unchanged",
       "approval": "https://github.com/Thiesi/Karst41/issues/217#issuecomment-6850470073"
+    },
+    {
+      "sha256_from": "69332277251343858f66f443e43aba3bab794c812a9e785f7d93748251907073",
+      "reason": "S48c3c-2: the orderlies’ talk page (O1–O3, visits_below) replaces the npcs engine’s \"Not yet.\" page; 36 cases (18 tiles × key/intent) around the two orderlies, 4 of them beside decant vat 4 where the talker now precedes the vat’s recovery check",
+      "approval": "https://github.com/Thiesi/Karst41/pull/267#issuecomment-7005288549"
     }
   ]
 }

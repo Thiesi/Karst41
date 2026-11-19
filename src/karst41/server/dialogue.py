@@ -42,6 +42,14 @@ class Facts:
     season_stage: str = 'open'
     chronicle: Mapping[int, str] = field(default_factory=dict)
     events: frozenset[str] = frozenset()
+    visits: Mapping[str, int] = field(default_factory=dict)
+    """Talk-page opens per counting talker (S48c3c-2), saturated at its cap."""
+
+
+def visit_cap(talker: Talker) -> int:
+    """The largest N a talker's lines use in `visits_below`; 0 means it does not count."""
+    return max((int(text.split()[1]) for line in talker.lines for text in line.when
+                if text.split()[:1] == ['visits_below']), default=0)
 
 
 def condition(text: str, talker: Talker, facts: Facts) -> bool:
@@ -91,6 +99,8 @@ def condition(text: str, talker: Talker, facts: Facts) -> bool:
     if name in ('signatory', 'not_signatory'):  # Grade 5 or personhood: renting and joining.
         held = signatory(facts.grade, 'legal' if facts.legal else None)
         return held if name == 'signatory' else not held
+    if name == 'visits_below':
+        return facts.visits.get(talker.id, 0) < int(args[0])
     raise ValueError(f'Unknown dialogue condition: {name}')
 
 

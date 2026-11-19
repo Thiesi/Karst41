@@ -312,8 +312,9 @@ def test_ui_3_focus_hint_shortens_only_labels_and_keeps_help(key: str) -> None:
     hint = chrome.focus_hint(raw+'  Move: arrows  Shift: sprint  ? help  Ctrl-X leave', 78, context)
     groups = hint.split('  ')
     assert display_width(hint) <= 78
-    assert groups[0].startswith('E talk to Long界') and groups[0].endswith('...')
-    assert groups[1].startswith(key+' jack in at Terminal界') and groups[1].endswith('...')
+    # Terminal UI 11 (S48c3c-2): each name shortens to its last whole word.
+    assert groups[0] == 'E talk to name'
+    assert groups[1] == key+' jack in at Terminal界'
     assert all(group in ('Move: arrows', 'Shift: sprint', '? help', 'Ctrl-X leave') for group in groups[2:])
     short = [('E open', 'Counter'), (key+' jack in at', 'Terminal')]
     raw = '  '.join(prefix+' '+label for prefix, label in short)
@@ -331,8 +332,8 @@ def test_ui_11_objective_and_cost_precede_shortened_context(width: int, key: str
                              width, context, objective)
     groups = hint.split('  ')
     assert groups[0] == 'Next: Survey here 0/1 | 2s'
-    assert groups[1].startswith('E open Sablier') and groups[1].endswith('...')
-    assert groups[2].startswith(key+' jack in at Tutorial') and groups[2].endswith('...')
+    assert groups[1] == 'E open counter'
+    assert groups[2] == key+' jack in at terminal'
     assert display_width(hint) <= width
 
 
@@ -355,11 +356,20 @@ def test_ui_11_drop_j_then_e_before_shortening_objective() -> None:
     assert display_width(hint) <= 78
 
 
-def test_ui_11_names_never_shorten_before_their_first_word() -> None:
+def test_ui_11_names_shorten_to_their_last_whole_word() -> None:
+    # Terminal UI 11 (#253), the general fitter from S48c3c-2: a name's last
+    # whole word, never an ellipsis; E's name is restored first when it fits.
     context = [('E open', '界'*60+' counter'), ('J jack in at', 'Tutorial terminal')]
     raw = '  '.join(prefix+' '+label for prefix, label in context)
-    hint = chrome.focus_hint(raw+'  ? help  M map', 78, context)
-    assert hint == '? help  M map'  # Drop J, then the unshrinkable E group.
+    assert chrome.focus_hint(raw+'  ? help  M map', 78, context) == 'E open counter  J jack in at Tutorial terminal  ? help  M map'
+    # A name with no word left to keep stays whole: drop J, then that E group.
+    context = [('E open', '7'*76), ('J jack in at', 'Tutorial terminal')]
+    raw = '  '.join(prefix+' '+label for prefix, label in context)
+    assert chrome.focus_hint(raw+'  ? help  M map', 78, context) == '? help  M map'
+    # Two short forms that would read the same both stay whole, so J drops.
+    context = [('E open', 'Sablier counter'), ('J jack in at', 'Tutorial counter')]
+    raw = '  '.join(prefix+' '+label for prefix, label in context)
+    assert chrome.focus_hint(raw+'  ? help', 50, context) == 'E open Sablier counter  ? help'
     assert chrome.focus_hint('E open Counter  M map  ? help', 78,
                              [('E open', 'Counter')]) == 'E open Counter  ? help  M map'
 

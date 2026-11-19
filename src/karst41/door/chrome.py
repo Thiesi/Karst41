@@ -215,39 +215,38 @@ def focus_hint(hint: str, width: int, context: list[tuple[str, str]],
         context, raw = [], ''
     labels = [clean_text(label).strip() for _, label in context]
     prefixes = [clean_text(prefix) for prefix, _ in context]
-    limits = [display_width(label) for label in labels]
-    # A shortened name must retain its whole first word and the ellipsis.
-    minima = [min(limit, display_width(label.split()[0])+3) if ' ' in label else limit
-              for label, limit in zip(labels, limits)]
     objective_group = _objective_hint(objective) if objective and not objective_in_panel else ''
 
-    def fixed_width() -> int:
-        groups = [prefix+(' ' if label else '') for prefix, label in zip(prefixes, labels)]
+    def shorts() -> list[str]:
+        # Terminal UI 11 (#253, S48c3c): a name shortens to its last whole
+        # word before any trailing parenthetical, never with an ellipsis.
+        # Two short forms on the row that would read the same stay whole.
+        forms = [short_name(label) if label else '' for label in labels]
+        return [label if forms.count(form) > 1 else form for label, form in zip(labels, forms)]
+
+    def row_width(names: list[str]) -> int:
+        groups = [prefix+(' '+name if name else '') for prefix, name in zip(prefixes, names)]
         return display_width('  '.join(([objective_group] if objective_group else [])+groups))
 
-    # Try the shortest legal names before dropping J, then E. The full
-    # objective only shortens after both lower-priority groups are gone.
-    while prefixes and fixed_width()+sum(minima) > width:
+    # Try the short names before dropping J, then E. The full objective
+    # only shortens after both lower-priority groups are gone.
+    while prefixes and row_width(shorts()) > width:
         if len(prefixes) == 1 and prefixes[0].startswith('E/'):
             # A combined group still drops the J alias before its E action.
             prefixes[0] = 'E '+prefixes[0].partition(' ')[2]
             continue
         prefixes.pop()
         labels.pop()
-        limits.pop()
-        minima.pop()
     if objective and not prefixes and not objective_in_panel:
         objective_group = _objective_hint(objective, width)
-    budgets = minima[:]
-    available = max(0, width-fixed_width()-sum(budgets))
-    for _ in range(available):
-        eligible = [i for i in range(len(labels)) if budgets[i] < limits[i]]
-        if not eligible:
-            break
-        index = min(eligible, key=lambda i: budgets[i])
-        budgets[index] += 1
-    groups = ([objective_group] if objective_group else []) + [(prefix + (' ' + truncate(label, budget) if label else ''))
-              for prefix, label, budget in zip(prefixes, labels, budgets)]
+    # Each name is whole or its short form; E's name is restored first.
+    names = shorts()
+    for index, label in enumerate(labels):
+        whole = names[:index] + [label] + names[index+1:]
+        if row_width(whole) <= width:
+            names = whole
+    groups = ([objective_group] if objective_group else []) + [prefix + (' ' + name if name else '')
+              for prefix, name in zip(prefixes, names)]
     tail = [group for group in hint[len(raw):].strip().split('  ') if group]
     if objective:
         # The legacy objective string also carries its action/journal help.

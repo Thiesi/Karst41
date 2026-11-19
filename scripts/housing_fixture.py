@@ -12,6 +12,11 @@ def build_fixture(shipped: Path, local: Path) -> None:
     directory = local/"zones"
     directory.mkdir(parents=True, exist_ok=True)
     zone = json.loads((shipped/"zones/vatside-wake-hall.json").read_text(encoding="utf-8"))
+    # The fixture's rooms sit on spare Wake floors that the shipped hall
+    # charts as public ground (S48c3c-2). Its geography is its own, so it
+    # keeps the hall uncharted, as before.
+    zone.pop("charted", None)
+    zone.pop("public", None)
     sector = json.loads((shipped/"sectors/lat-terraces.json").read_text(encoding="utf-8"))
     cells = [c["id"] for c in sector["cells"] if not c.get("core_id") and not c.get("core_placeholder")
              and c.get("access_kind", "public") == "public"]

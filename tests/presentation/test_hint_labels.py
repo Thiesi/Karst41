@@ -90,7 +90,13 @@ def test_ui_11_combined_group_drops_j_before_a_fitting_e(jack_key: str) -> None:
     raw = context[0][0]+' '+context[0][1]
     objective = {'next_action': 'Survey the marked loan cabinet', 'progress': '0/1', 'cost': '5s no fee'}
     row = chrome.focus_hint(raw+'  Next: legacy', 78, context, objective)
-    assert row == 'Next: Survey the marked loan cabinet 0/1 | 5s no fee  E jack in at Tutorial...'
+    # S48c3c-2: the short name comes before any drop, so `E/J` still fits;
+    # the wider `E/Ctrl-O` drops its alias.
+    group = 'E/J' if jack_key == 'J' else 'E'
+    assert row == f'Next: Survey the marked loan cabinet 0/1 | 5s no fee  {group} jack in at terminal'
+    objective['next_action'] += ' B2'
+    row = chrome.focus_hint(raw+'  Next: legacy', 78, context, objective)
+    assert row == 'Next: Survey the marked loan cabinet B2 0/1 | 5s no fee  E jack in at terminal'
 
 
 def test_ui_11_every_shipped_generic_public_terminal_uses_one_name_form(

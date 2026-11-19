@@ -228,6 +228,8 @@ class Characters:
         player.health = rules.health_max(player.attributes["vitals"])
         player.stamina = rules.stamina_max(player.attributes["nerve"], player.attributes["frame"])
         player.progress = {"memory": {}, "met_talkers": list(wake.met)}
+        if wake.visits:  # S48c3c-2: held visit counts, as `met` is.
+            player.progress["talk_visits"] = dict(wake.visits)
         if wake.lessons.get("drone") in ("done", "skipped"):
             player.progress["wake_combat"] = wake.lessons["drone"]
         self.players[pid] = player
@@ -620,6 +622,8 @@ class Characters:
         # Held facts from the hall (S48c1), applied at creation.
         if wake.met:
             player.progress["met_talkers"] = sorted(set(wake.met))
+        if wake.visits:
+            player.progress["talk_visits"] = dict(wake.visits)
         if wake.lessons.get("drone") in ("done", "skipped"):
             player.progress["wake_combat"] = wake.lessons["drone"]
         lifted = wake.lessons.get("lifted")
