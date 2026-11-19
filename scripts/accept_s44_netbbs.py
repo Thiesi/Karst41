@@ -19,6 +19,10 @@ Declared fixtures (technical lead's ruling on #214):
   fire stands still while it sees you, so two inside can box the doorway).
   Routing, sight and the 20 s give-up are untouched. Fire is released for
   the death.
+- The bar scene starts from fixed tiles (#263): the caller walks to the
+  street south of the bar, and the pursuer is placed south of the doorway,
+  hunting the caller. A breach north of the bar otherwise loses the guard
+  at the corner before the caller is seen behind the doorway.
 - For the price-target step only, the targeted regular holds still (#225):
   a wanderer can leave the target slot before the warning is filmed, and
   the first-target notice comes once per session. Likewise the enforcers
@@ -54,6 +58,9 @@ FIXTURE = ROOT/'tests/npcs/fixtures/issue187-row-demo.map'
 BAR = (6, 4, 20, 8)  # Upstairs, walls included: x0, y0, x1, y1.
 # Behind the doorway, seen from the street (SEEN); out of that line (INSIDE).
 SEEN, INSIDE, DOORWAY = (13, 6), (8, 6), {(13, 8), (14, 8)}
+# The bar scene's fixed start (#263): the caller on the street south of the
+# bar, the pursuer south of the doorway, so its line runs through it to SEEN.
+STAGE, PURSUER_AT = (10, 11), (16, 12)
 ROW, HALO = 'sodium-row', 'sodium-tin-halo'
 SETTLED = 'Sable considers it settled.'
 LAYER = 's44-acceptance-bar-fixture'
@@ -73,7 +80,7 @@ def inject_bar(probe: NativeProbe) -> list[list[int]]:
     zone.layers[LAYER] = GeometryLayer(LAYER, ZoneLayout(LAYER, changes), 0, 10**12)
     zone.compose(probe.service.core.clock.now_tick())
     assert all(not zone.passable(change.tile) for change in changes), 'fixture walls rejected'
-    assert all(zone.passable(tile) for tile in DOORWAY | {INSIDE, SEEN})
+    assert all(zone.passable(tile) for tile in DOORWAY | {INSIDE, SEEN, STAGE, PURSUER_AT})
     return [list(change.tile) for change in changes]
 
 
@@ -192,6 +199,23 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     probe.service.world.leave(guard)
                     slots[guard.behaviour['slot']]['until'] = 10**12
             guards = [pursuer]
+            # Declared (#263): the scene starts from fixed street tiles south
+            # of the bar. A hunting guard routes only to where it last saw
+            # you. After a breach north of the bar, the walk to SEEN rounds
+            # the west corner out of its sight: it goes to that corner, sees
+            # nothing, gives up after 20 s and walks home, never seeing SEEN.
+            await probe.walk(caller, STAGE)
+            await wait(lambda: not any(a is not pursuer and a.position == PURSUER_AT
+                                       for a in zone.actors.values()), 30)
+            probe.service.world.enter(pursuer, ROW, PURSUER_AT)
+            core.npcs.routes.pop(pursuer.id, None)  # Its cached hunt route started elsewhere.
+            pursuer.target = me.id
+            pursuer.behaviour.update(state='hunt', last_seen=core.clock.now_tick(), last_position=me.position)
+            assert (pursuer.position == PURSUER_AT and pursuer.target == me.id
+                    and pursuer.behaviour['state'] == 'hunt'
+                    and pursuer.cooldowns.get('weapon', 0) > core.clock.now_tick()), \
+                ('pursuer fixture', pursuer.position, pursuer.target, pursuer.behaviour.get('state'),
+                 pursuer.cooldowns.get('weapon'))
             # The #187 shape: be seen behind the doorway, then step out of
             # its sight line, so the guard routes in to where it saw you.
             await probe.walk(caller, SEEN)
@@ -202,6 +226,8 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             await delivered()
             follower = next(g for g in guards if in_bar(g))
             save(caller, 'bar-pursuit-in', {'fixture_walls': len(walls), 'guard': list(follower.position),
+                                            'fixture': f'pursuer placed at {list(PURSUER_AT)}, south of the doorway, '
+                                                       f'after the caller walks to {list(STAGE)} (#263)',
                                             'player': list(me.position)})
             trail = [follower.position]
 
@@ -363,6 +389,8 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                          'grade 5 for the player-vs-player rules (S38 precedent)',
                          'keeper guards (and any that spawn) hold fire until the death scene; released for the death',
                          'one pursuer in the bar scene: the other guard leaves the world and respawns from its spawner',
+                         f'bar scene start: the caller walks to {list(STAGE)} and the pursuer is placed at '
+                         f'{list(PURSUER_AT)}, south of the doorway, hunting the caller (#263)',
                          'price-target: the targeted regular holds still for that step, then wanders again (#225)',
                          'enforcer-ask: the enforcers hold still while the page is open, then are released (#225); the regulars hold still for the E press only, and a page opened on anyone but an enforcer is closed and retried (#247)'],
             'fixture_walls': walls,

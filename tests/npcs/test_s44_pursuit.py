@@ -298,3 +298,123 @@ def test_s44_route_passes_through_an_open_door_object(repo_root):
     for door in doors:
         door.open = False
     assert search(hunter, zone, START, avoid, frozenset()) == []  # The bar is shut.
+
+
+# #263: the S44 acceptance's bar scene (scripts/accept_s44_netbbs.py) on
+# main's live Row with only Upstairs' walls copied in, as its inject_bar does.
+ACCEPTANCE = Path(__file__).parents[2]/"scripts"/"accept_s44_netbbs.py"
+BAR = (6, 4, 20, 8)
+SEEN = (13, 6)
+STAGE, PURSUER_AT = (10, 11), (16, 12)
+ENFORCER_POST = (43, 20)  # The Row's enforcer spawner.
+MOVES = {(1, 0): "right", (-1, 0): "left", (0, 1): "down", (0, -1): "up"}
+
+
+def acceptance_row(repo_root: Path) -> tuple[Any, Any]:
+    content = load_content(repo_root/"src/karst41/content")
+    content.zones = {key: replace(zone, meta=replace(zone.meta, spawners=()))
+                     for key, zone in content.zones.items()}
+    fixture, problems = parse_map(FIXTURE.read_text(encoding="utf-8"), "S44 bar fixture",
+                                  {tile.char: tile.id for tile in content.tiles.values()})
+    assert not problems
+    row = content.zones["sodium-row"]
+    grid = [list(line) for line in row.grid]
+    x0, y0, x1, y1 = BAR
+    for y in range(y0, y1+1):
+        for x in range(x0, x1+1):
+            if not content.tiles[fixture[y][x]].passable and content.tiles[grid[y][x]].passable:
+                grid[y][x] = fixture[y][x]
+    content.zones["sodium-row"] = replace(row, grid=grid)
+    game = HeadlessServer(content, character_state={})
+    client = game.connect()
+    create(game, client, archetype=3, card="none")
+    game.core.characters.players[client.session.player_id].progress["wake_combat"] = "skipped"
+    return game, client
+
+
+def pursuer(game: Any, tile: tuple[int, int], target: Any) -> Any:
+    """One keeper guard hunting the caller with fire held, as in the scene."""
+    hunter = make_actor(game.core.loop.content.npcs["npc-sable-enforcer"], "acceptance-guard",
+                        {"spawner": "acceptance-guard", "home": ENFORCER_POST, "phase": 0})
+    game.core.world.enter(hunter, "sodium-row", tile)
+    hunter.target = target.id
+    hunter.behaviour.update(state="hunt", last_seen=game.clock.now_tick(), last_position=target.position)
+    hunter.cooldowns["weapon"] = 10**12
+    game.core.npcs.provocations["sodium-row", "acceptance-guard", target.id] = game.core.combat.now() + 300
+    return hunter
+
+
+def step_to(game: Any, client: Any, body: Any, goal: tuple[int, int]) -> None:
+    """One tick of the acceptance probe's walk: a 4-way shortest path round other bodies."""
+    zone = game.core.world.zones[body.zone]
+    if body.position != goal and game.clock.now_tick() >= body.cooldowns.get("move", 0):
+        occupied = {a.position for a in zone.actors.values() if a is not body}
+        start = body.position
+        previous, pending = {start: None}, deque([start])
+        while pending and goal not in previous:
+            x, y = pending.popleft()
+            for tile in ((x+1, y), (x, y+1), (x-1, y), (x, y-1)):
+                if tile not in previous and tile not in occupied and zone.passable(tile):
+                    previous[tile] = (x, y)
+                    pending.append(tile)
+        step = goal
+        while previous[step] != start:
+            step = previous[step]
+        client.send(Frame("intent", {"name": "move", "args": {"dir": MOVES[step[0]-start[0], step[1]-start[1]]}}))
+    advance(game, client)
+
+
+def sees_at_seen(game: Any, hunter: Any, body: Any) -> bool:
+    """The acceptance's wait before the step out of sight."""
+    return (hunter.target == body.id and tuple(hunter.behaviour.get("last_position", ())) == SEEN
+            and game.core.combat.visible(hunter, body))
+
+
+def test_263_tiles_match_the_acceptance_script():
+    text = ACCEPTANCE.read_text(encoding="utf-8")
+    assert "SEEN, INSIDE, DOORWAY = (13, 6), (8, 6)" in text
+    assert f"STAGE, PURSUER_AT = {STAGE}, {PURSUER_AT}" in text
+    assert f"BAR = {BAR}" in text
+
+
+def test_263_a_guard_north_of_the_bar_gives_up_and_never_sees_the_doorway(repo_root):
+    """The flake's shape, as specified (#187, S44): pursue to the last seen
+    tile, give up after 20 s. Breach north-west of the bar, guard north of
+    it: the walk in rounds the west corner out of its sight."""
+    game, client = acceptance_row(repo_root)
+    player = game.core.characters.players[client.session.player_id]
+    place(game, client, "sodium-row", (6, 3))
+    body = game.core.world.actors[player.id]
+    hunter = pursuer(game, (16, 3), body)
+    start, sighted, gave_up = game.clock.now_tick(), None, None
+    while game.clock.now_tick() < start + ticks(40):
+        step_to(game, client, body, SEEN)
+        hunter.cooldowns["weapon"] = 10**12
+        assert not sees_at_seen(game, hunter, body)
+        if gave_up is None and hunter.target is None:
+            gave_up = game.clock.now_tick()
+        elif gave_up is None:
+            sighted = int(hunter.behaviour['last_seen'])  # Its own last sighting.
+    assert body.position == SEEN
+    # Evaluation runs every 5 ticks, so the give-up lands within one phase.
+    assert gave_up is not None and 0 <= gave_up - (sighted + ticks(LOST_SIGHT_SECONDS)) <= 5
+    assert hunter.position == ENFORCER_POST  # Home along the north side, past no line into the bar.
+
+
+def test_263_the_scene_start_south_of_the_doorway_sees_the_caller_at_once(repo_root):
+    """The acceptance's declared start: caller at STAGE, pursuer at PURSUER_AT."""
+    game, client = acceptance_row(repo_root)
+    player = game.core.characters.players[client.session.player_id]
+    place(game, client, "sodium-row", STAGE)
+    body = game.core.world.actors[player.id]
+    hunter = pursuer(game, PURSUER_AT, body)
+    arrived = None
+    for _ in range(ticks(20)):
+        step_to(game, client, body, SEEN)
+        hunter.cooldowns["weapon"] = 10**12
+        if body.position == SEEN and arrived is None:
+            arrived = game.clock.now_tick()
+        if arrived is not None and (sees_at_seen(game, hunter, body) or game.clock.now_tick() > arrived + ticks(1)):
+            break
+    assert arrived is not None and sees_at_seen(game, hunter, body)
+    assert game.clock.now_tick() - arrived <= ticks(1)
