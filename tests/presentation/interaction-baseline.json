@@ -34,8 +34,8 @@
     },
     {
       "sha256_from": "69332277251343858f66f443e43aba3bab794c812a9e785f7d93748251907073",
-      "reason": "S48c3c-2: the orderlies’ talk page (O1–O3, visits_below) replaces the npcs engine’s \"Not yet.\" page; 36 cases (18 tiles × key/intent) around the two orderlies, 4 of them beside decant vat 1 where the talker now precedes the vat’s recovery check",
-      "approval": ""
+      "reason": "S48c3c-2: the orderlies’ talk page (O1–O3, visits_below) replaces the npcs engine’s \"Not yet.\" page; 36 cases (18 tiles × key/intent) around the two orderlies, 4 of them beside decant vat 4 where the talker now precedes the vat’s recovery check",
+      "approval": "https://github.com/Thiesi/Karst41/pull/267#issuecomment-7005288549"
     }
   ]
 }
