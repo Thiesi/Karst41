@@ -60,6 +60,14 @@ default-renderer captures draw walls as `█`.
 - **One pursuer in the bar scene.** The other guard leaves the world, and
   its spawner slot waits until the death scene. A guard that holds fire
   stands still while it sees you, so two inside can box the doorway.
+- **The bar scene starts from fixed tiles (#263).** The player walks to
+  (10, 11) on the street south of the bar, and the pursuer is placed at
+  (16, 12), south of the doorway, hunting the player. A hunting guard routes
+  only to where it last saw you. After a breach north of the bar, the walk
+  in rounds the west corner out of its sight: the guard goes to that
+  corner, sees nothing, gives up after 20 s and walks home, and never sees
+  the player behind the doorway. The `bar-pursuit-in` row and the results
+  file's `fixtures` record this.
 - **The bar capture follows the #187 shape.** The player is first seen
   behind the doorway at (13, 6), then steps out of that line to (8, 6). The
   guard routes in to where it last saw them. Per canon, a guard that never
