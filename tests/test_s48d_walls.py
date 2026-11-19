@@ -461,3 +461,28 @@ def test_stepping_out_of_the_halo_is_not_inside_w18(shipped):
     w18 = next(ln for ln in shipped.walls.lines if ln.id == 'w18')
     inside = {(x, y) for rx, ry, wd, ht in w18.trigger.rects for x in range(rx, rx + wd) for y in range(ry, ry + ht)}
     assert (94, 27) not in inside and (94, 26) not in inside and (90, 26) in inside
+
+
+def test_the_openings_view_wiring_does_not_depend_on_the_wall_voice(shipped, monkeypatch):
+    """Review of 873ba317: with no dialogue (so no wall voice), the opening still
+    decorates the crew view and the Lattice view."""
+    import karst41.server.dialogue_runtime as runtime
+    monkeypatch.setattr(runtime, 'Dialogue', lambda core: None)
+    game = HeadlessServer(quiet(shipped), character_state={})
+    assert game.core.dialogue is None and game.core.walls is None and game.core.opening is not None
+    assert game.core.characters.sim.crew_view.__name__ == 'opening_view'
+    assert game.core.lattice.encounters.view.__name__ == 'opening_network'
+
+
+def test_a_failed_save_never_repeats_the_line_and_is_written_again(shipped):
+    """Review of 873ba317: a line already said whose write fails stays fired."""
+    game = HeadlessServer(quiet(shipped, 'w16'), character_state={})
+    me = caller(game, 1)
+    assert len(seconds(game, me, 31)) == 1
+    game.commit_commerce(error=True)  # The save fails.
+    pid = me.session.player_id
+    assert 'w16' not in player(game, me).progress.get('walls', ())
+    act(game, me, Frame('intent', {'name': 'resync', 'args': {}}))  # A new idle stretch.
+    assert seconds(game, me, 35) == []  # Not said again.
+    game.commit_commerce()  # The stride wrote it again.
+    assert player(game, me).progress['walls'] == ['w16'] and not walls(game).unsaved.get(pid)

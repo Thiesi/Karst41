@@ -97,6 +97,10 @@ class Walls:
         self.commerce, self.clock = core.commerce, core.clock
         self.ears: dict[str, Ear] = {}
         self.writing: dict[str, set[str]] = {}
+        self.unsaved: dict[str, set[str]] = {}
+        """Ids already said whose write failed: still fired in memory, written
+        again on the stride, so a failed save never repeats a line (review of
+        873ba317). Bounded by the file's ids per player; emptied once written."""
         """Ids being written for a player, so a line never fires twice before its commit."""
 
     @property
@@ -147,6 +151,7 @@ class Walls:
             avatar = self.game.sim.avatars.get(session.user_id)
             if avatar is None or not avatar.actor.zone:
                 continue
+            self.retry(session.player_id)
             ear = self.ear(session, tick)
             if ear.zone != avatar.actor.zone:
                 ear.zone, ear.arrived = avatar.actor.zone, tick
@@ -161,7 +166,8 @@ class Walls:
     # --- firing ----------------------------------------------------------
 
     def fired(self, player: Any, lid: str) -> bool:
-        return lid in player.progress.get("walls", ()) or lid in self.writing.get(player.id, ())
+        return (lid in player.progress.get("walls", ()) or lid in self.writing.get(player.id, ())
+                or lid in self.unsaved.get(player.id, ()))
 
     def holds(self, line: s.WallLine, ear: Ear, actor: Any, tick: int) -> bool:
         trigger = line.trigger
@@ -230,8 +236,15 @@ class Walls:
         writing = self.writing.setdefault(player.id, set())
         writing.add(lid)
 
-        def done(success: bool) -> None:
+        def failed() -> None:
             writing.discard(lid)
+            self.unsaved.setdefault(player.id, set()).add(lid)  # Said already: keep it fired, write again.
+
+        def done(success: bool) -> None:
+            if success:
+                writing.discard(lid)
+            else:
+                failed()
 
         def write() -> None:
             progress = deepcopy(player.progress)
@@ -239,10 +252,23 @@ class Walls:
             progress["walls"] = [ln.id for ln in voice.lines if ln.id in heard]  # Bounded by the file.
             if not self.commerce.settle(player, {"progress": progress}, self.commerce.items,
                                         self.commerce.caches, self.commerce.serial, done):
-                writing.discard(lid)
+                failed()
         try:
             self.commerce.enqueue_system(write)
         except ValueError:
             writing.discard(lid)
             return False
         return True
+
+    def retry(self, pid: str | None) -> None:
+        """Write again the ids whose save failed (see `unsaved`)."""
+        if not pid or not self.unsaved.get(pid) or self.writing.get(pid):
+            return
+        player = self.game.players.get(pid)
+        if player is None:
+            return
+        for lid in sorted(self.unsaved.pop(pid)):
+            if lid in player.progress.get("walls", ()):
+                continue
+            if not self.persist(player, lid):
+                self.unsaved.setdefault(pid, set()).add(lid)  # Queue full: next stride.
