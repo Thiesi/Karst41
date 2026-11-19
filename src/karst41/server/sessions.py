@@ -63,6 +63,8 @@ class Session:
     #253): it only moves forward, and survives a reconnect."""
     voice_tick: int | None = None
     """Tick of the newest bark or ambient line admitted (P8's budget)."""
+    walls_heard: int = 0
+    """S48d: wall lines heard this evening (one login), carried across a reconnect."""
     notify: Callable[[], None] = field(default=lambda: None, repr=False)
 
     @property
@@ -237,6 +239,7 @@ class Sessions:
             session.log_token, session.log_serial = previous.log_token, previous.log_serial
             # P8: the danger hold and the voice budget survive a reconnect.
             session.danger_at, session.voice_tick = previous.danger_at, previous.voice_tick
+            session.walls_heard = previous.walls_heard  # S48d: one evening is one login.
             session.danger_source, session.danger_release = previous.danger_source, previous.danger_release
             session.danger_other_at = previous.danger_other_at
         self.active[session.id] = session

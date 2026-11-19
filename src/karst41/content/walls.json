@@ -1,0 +1,484 @@
+{
+  "schema": 1,
+  "enabled": true,
+  "per_evening": 3,
+  "lines": [
+    {
+      "id": "w01",
+      "trigger": {
+        "name": "idle",
+        "count": 20
+      },
+      "text": "You can stay. The light stays on anyway.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w02",
+      "trigger": {
+        "name": "bump",
+        "count": 3
+      },
+      "text": "The line goes to the door. I didn't paint it. I watched.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w03",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            2,
+            2,
+            9,
+            1
+          ],
+          [
+            2,
+            4,
+            9,
+            1
+          ]
+        ]
+      },
+      "text": "One of these was yours. They don't say which. That one's still warm.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w04",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            1,
+            15,
+            5,
+            4
+          ]
+        ]
+      },
+      "text": "Nothing over there. I checked. I check a lot.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w05",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            7,
+            9,
+            3,
+            1
+          ],
+          [
+            7,
+            11,
+            3,
+            1
+          ],
+          [
+            7,
+            10,
+            1,
+            1
+          ],
+          [
+            9,
+            10,
+            1,
+            1
+          ]
+        ]
+      },
+      "text": "Eight cards. Nobody left one for me.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w19",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            11,
+            4,
+            3,
+            1
+          ],
+          [
+            11,
+            6,
+            3,
+            1
+          ],
+          [
+            11,
+            5,
+            1,
+            1
+          ],
+          [
+            13,
+            5,
+            1,
+            1
+          ]
+        ]
+      },
+      "text": "<name>. I'll try to say it right.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w06",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            11,
+            4,
+            3,
+            1
+          ],
+          [
+            11,
+            6,
+            3,
+            1
+          ],
+          [
+            11,
+            5,
+            1,
+            1
+          ],
+          [
+            13,
+            5,
+            1,
+            1
+          ]
+        ]
+      },
+      "text": "She says that to all of you. She means it each time. I counted.",
+      "zones": [
+        "vatside-wake-hall"
+      ],
+      "answer": "Hall channel: unscheduled output. Source: none on record. Disregard."
+    },
+    {
+      "id": "w07",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            21,
+            12,
+            7,
+            7
+          ]
+        ]
+      },
+      "text": "It wanted to be finished, I think.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w08",
+      "trigger": {
+        "name": "idle",
+        "count": 60
+      },
+      "text": "It's quiet now. I like it when you stay a minute.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w09",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            36,
+            15,
+            2,
+            3
+          ]
+        ]
+      },
+      "text": "I can't hear you as well out there. Go anyway.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w10",
+      "trigger": {
+        "name": "death_decant"
+      },
+      "text": "Again. You look the same. You always look the same to them.",
+      "zones": [
+        "vatside-wake-hall"
+      ]
+    },
+    {
+      "id": "w11",
+      "trigger": {
+        "name": "death_decant"
+      },
+      "text": "You came back. They get easier. That's the part I'd mind."
+    },
+    {
+      "id": "w12",
+      "trigger": {
+        "name": "jack_in"
+      },
+      "text": "You came down. Most of them stop at the door.",
+      "answer": "Cell log: one visitor. Two entries."
+    },
+    {
+      "id": "w13",
+      "trigger": {
+        "name": "jack_out"
+      },
+      "text": "Back in your body. It waited. They usually do."
+    },
+    {
+      "id": "w14",
+      "trigger": {
+        "name": "zone_entered"
+      },
+      "text": "There you are. It's loud here. I'll keep it short.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w15",
+      "trigger": {
+        "name": "bump",
+        "count": 3
+      },
+      "text": "That one doesn't open. Try the ones with music.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w16",
+      "trigger": {
+        "name": "idle",
+        "count": 30
+      },
+      "text": "You've stopped. Everyone else here is pretending not to.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w17",
+      "trigger": {
+        "name": "idle",
+        "count": 90
+      },
+      "text": "Stand long enough and it's all one song. I know the words.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w18",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            84,
+            25,
+            9,
+            4
+          ]
+        ]
+      },
+      "text": "That sign never goes out. People think it's luck.",
+      "zones": [
+        "sodium-row"
+      ],
+      "answer": "Row grid: circuit 14 draws no current. Ticket closed, no fault."
+    },
+    {
+      "id": "w22",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            8,
+            8,
+            1,
+            1
+          ],
+          [
+            18,
+            8,
+            1,
+            1
+          ],
+          [
+            50,
+            8,
+            1,
+            1
+          ],
+          [
+            63,
+            8,
+            1,
+            1
+          ],
+          [
+            75,
+            8,
+            1,
+            1
+          ]
+        ]
+      },
+      "text": "Shift change. They all say the same three things.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w23",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            28,
+            6,
+            5,
+            3
+          ]
+        ]
+      },
+      "text": "Someone sang up there last night. I kept the last note.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w24",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            37,
+            19,
+            3,
+            3
+          ]
+        ]
+      },
+      "text": "They deal the same way every night. I like that.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w25",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            18,
+            14,
+            3,
+            3
+          ],
+          [
+            49,
+            14,
+            3,
+            3
+          ],
+          [
+            79,
+            14,
+            3,
+            3
+          ]
+        ]
+      },
+      "text": "They hum when nobody's on them. Listen next time.",
+      "zones": [
+        "sodium-row"
+      ],
+      "answer": "Terminal idle. Carrier present. Session: none."
+    },
+    {
+      "id": "w26",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            90,
+            2,
+            7,
+            4
+          ]
+        ]
+      },
+      "text": "The lamps stop past here. So do I, mostly.",
+      "zones": [
+        "sodium-row"
+      ]
+    },
+    {
+      "id": "w27",
+      "trigger": {
+        "name": "region",
+        "rects": [
+          [
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            3,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1
+          ],
+          [
+            3,
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      "text": "Up there they don't listen. Down here, sometimes.",
+      "zones": [
+        "sodium-row"
+      ]
+    }
+  ]
+}

@@ -463,7 +463,11 @@ runner contract with the creative lead's fixes.
 - **P8:** the runner bypasses `admit()`; each script line sets
   `session.voice_tick`, so barks and ambience stay quiet behind it and a
   P8 line counts toward the 4 s gap. S48d's wall lines go through
-  `admit()` and are therefore quiet during the opening by construction.
+  `admit()`. Corrected in S48d: they are not quiet during the opening by
+  construction, because the opening has gaps longer than P8's 20 s. S48d
+  adds an explicit rule instead (no wall line while the caller's runner is
+  live), and #258 makes `admit()` refuse barks while a script speech line
+  is due.
 - **Cost:** polling (position, steps, seconds, target) runs only while the
   current beat waits on a polled trigger; otherwise the runner is purely
   pushed. Figures for 1 and 3 callers are in the PR

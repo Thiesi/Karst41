@@ -18,7 +18,9 @@ from tests.harness import HeadlessServer
 
 @pytest.fixture
 def social(repo_root: Path):
-    game=HeadlessServer(load_content(repo_root/'src/karst41/content'),character_state={})
+    content=load_content(repo_root/'src/karst41/content')
+    content.walls=None  # These tests pin each log line exactly; S48d's wall voice has its own tests.
+    game=HeadlessServer(content,character_state={})
     a=game.connect({'user_id':1,'handle':'First界','node_name':'test'})
     create(game,a,name='Alpha')
     b=game.connect({'user_id':2,'handle':'Second界','node_name':'test'})

@@ -32,8 +32,11 @@ read and the hall left (only the errand, a per-character flag, goes on).
 - Leaving the hall drops every waiting line: nothing from the hall plays
   outside it.
 - P8's `admit()` is bypassed; each script line sets `session.voice_tick`,
-  so barks and ambience stay quiet behind it, and S48d's wall lines (which
-  go through `admit()`) are quiet during the opening by construction.
+  so barks and ambience stay quiet behind it, and while a speech line is
+  due `admit()` refuses them outright (#258, `holds_speech`). S48d's wall
+  lines are silent for the whole opening by an explicit rule (no wall line
+  while the caller's runner is live, technical lead), not by the budget:
+  the opening has gaps longer than P8's 20 s.
 - Everything goes to the caller's session alone, and into the replay ring.
 - Polling (position, steps, seconds, target) runs only while the current
   beat waits on a polled trigger; otherwise the runner is purely pushed.
@@ -156,6 +159,17 @@ class Opening:
         """A live script owns the opening's events for this player (technical lead, fix 1)."""
         return any(x.player_id == pid and not self.states[x.id].get("done")
                    for x in self.core.sessions.active.values() if x.id in self.states)
+
+    def holds_speech(self, session: Session, tick: int) -> bool:
+        """#258: the caller's runner holds a due speech line, so P8's `admit()`
+        refuses barks and ambience for this caller and the line keeps the next
+        free slot. A due line held quiet (a menu, a target) counts too
+        (technical lead, S48d ruling (a))."""
+        state = self.states.get(session.id)
+        if state is None or state.get("done") or not self.script:
+            return False
+        return any(lid in self.lines and self.lines[lid][1].kind == "speech" and due <= tick
+                   for lid, _, due in state["queue"])
 
     def finish(self, state: dict[str, Any]) -> None:
         state["done"] = True

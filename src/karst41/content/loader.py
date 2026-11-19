@@ -73,6 +73,7 @@ class ContentTree:
     looks: dict[str, s.Look] = field(default_factory=dict)
     keymaps: s.KeymapTable | None = None
     silt: s.SiltRules | None = None
+    walls: s.WallVoice | None = None
     salvage: s.SalvageRules | None = None
     tiles: dict[str, s.TileType] = field(default_factory=dict)
     zones: dict[str, s.Zone] = field(default_factory=dict)
@@ -279,6 +280,8 @@ def _load_singletons(tree: ContentTree, layer: _Layer) -> None:
             tree.silt = record
         elif isinstance(record, s.SalvageRules):
             tree.salvage = record
+        elif isinstance(record, s.WallVoice):
+            tree.walls = record  # S48d: the whole layer, replaced as one (content.local may switch it off).
 
 
 def _check_id(tree: ContentTree, kind: str, record_id: str, rel: str, text: str) -> bool:

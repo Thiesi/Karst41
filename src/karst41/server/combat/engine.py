@@ -762,6 +762,7 @@ class Combat:
                 self.sim.external_views.pop(session.id,None)
                 self.sim.reset_view(session,av)
                 self.log(actor,"You wake in the vat. Missing recovery supplies are bound to you.")
+                self.game.voice_event(player.id, "death_decant")  # S48d.
                 if settled:
                     # Terminal UI 2.1: the settled answer follows the vat's line.
                     marked = bool(player.marked_until and datetime.fromisoformat(player.marked_until).timestamp() > self.now())

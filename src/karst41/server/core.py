@@ -154,6 +154,8 @@ class Core:
             self.characters.opening_stop = self.opening.stop
             self.characters.opening_live = self.opening.live
             self.loop.subsystems.append(self.opening)
+            if self.dialogue is not None:  # #258: barks wait behind a due script line.
+                self.dialogue.ambience.script_holds = self.opening.holds_speech
             decorate = self.characters.sim.crew_view
             def opening_view(session: Session, body: dict[str, Any], _previous=decorate) -> None:
                 _previous(session, body)
@@ -167,6 +169,13 @@ class Core:
                         self.opening.decorate(session, document)
                     return kind, document
                 self.lattice.encounters.view = opening_network
+        # S48d: a voice in the walls, through P8's emitter and its stride.
+        from karst41.server.walls import Walls
+        self.walls = Walls(self, self.dialogue.ambience) if self.dialogue is not None and self.characters is not None else None
+        if self.walls is not None:
+            self.dialogue.ambience.walls = self.walls
+            self.characters.sim.voice_input = self.walls.input
+            self.characters.voice_event = self.walls.event
 
     def _disconnect_character(self, session: Session) -> None:
         if self.dialogue:
@@ -344,6 +353,12 @@ class Core:
         action = key_action(self.keymap, session, frame)
         if self.opening is not None and action:
             self.opening.key_used(session, action)
+        if self.walls is not None and session.role == "caller":
+            # S48d: every frame moves the idle clock, whichever route takes it
+            # (review 7014979634). A non-move also resets the bump count; a move
+            # that reaches the street reports its own outcome from the simulation.
+            self.walls.input(session, "seen" if action.startswith(("move", "sprint")) else "other",
+                             event.data["tick"])
         selected = self.resolve_interaction(session, frame, routes) if interact(frame) or action in ('interact', 'jack') else None
         if selected is not None:
             selected.route.handler(session, frame, event.data['tick'], interaction=selected.choice)

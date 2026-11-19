@@ -274,6 +274,7 @@ class _Validator:
         self.check_services()
         self.check_dialogue()
         self.check_scripts()
+        self.check_walls()
         self.check_seasons()
         self.check_art()
         self.check_route_variants()
@@ -1945,6 +1946,64 @@ class _Validator:
                     self._check_effect(owner, f"allocation {alloc.id} effect {i}", e)
 
     # --- dialogue and seasons -----------------------------------------------
+
+    def check_walls(self) -> None:
+        """S48d: a voice in the walls (S48 part 5; technical lead's rulings).
+
+        The reader already rejects a `speaker` or `name` key and any trigger
+        outside the closed set. Here: unique ids, trigger parameters, zones,
+        region rectangles inside their one zone on passable tiles only, the
+        one `<name>` token, and P12 whole-fit at 80x24 with the widest name.
+        """
+        from karst41.server.walls import NAME, WIDEST_NAME, fits, rows
+        voice = self.t.walls
+        if voice is None:
+            return
+        owner = ("walls", "walls")
+        if voice.per_evening < 1:
+            self.report(*owner, "per_evening must be at least 1")
+        ids = [ln.id for ln in voice.lines]
+        if len(set(ids)) != len(ids):
+            self.report(*owner, "line ids are not unique")
+        longest = WIDEST_NAME  # A name of the maximum display width (24 cells).
+        for ln in voice.lines:
+            where, trigger = f"line {ln.id}", ln.trigger
+            if not ln.id or not ln.text.strip():
+                self.report(*owner, f"{where}: needs an id and a text")
+                continue
+            for zid in ln.zones:
+                self.ref("zones", zid, owner, f"{where}: zone")
+            if trigger.name in ("bump", "idle") and trigger.count <= 0:
+                self.report(*owner, f"{where}: {trigger.name} needs a positive count")
+            if trigger.name not in ("bump", "idle") and trigger.count:
+                self.report(*owner, f"{where}: {trigger.name} takes no count")
+            if trigger.name == "region":
+                if len(ln.zones) != 1 or not trigger.rects:
+                    self.report(*owner, f"{where}: a region names one zone and at least one rectangle")
+                elif ln.zones[0] in self.t.zones:
+                    zone, open_tiles = self.t.zones[ln.zones[0]], self.passable_tiles[ln.zones[0]]
+                    for rect in trigger.rects:
+                        x, y, w, h = rect
+                        if w <= 0 or h <= 0 or x < 0 or y < 0 or x + w > zone.width or y + h > zone.height:
+                            self.report(*owner, f"{where}: rectangle {list(rect)} is outside {ln.zones[0]}")
+                        elif any((tx, ty) not in open_tiles for tx in range(x, x + w) for ty in range(y, y + h)):
+                            self.report(*owner, f"{where}: rectangle {list(rect)} covers a tile that isn't passable")
+            elif trigger.rects:
+                self.report(*owner, f"{where}: only a region trigger takes rectangles")
+            if trigger.name == "zone_entered" and not ln.zones:
+                self.report(*owner, f"{where}: zone_entered names its zone")
+            for field_name, text in (("text", ln.text), ("answer", ln.answer)):
+                bare = text.replace(NAME, "")
+                if re.search(r"[<>{}]", bare):
+                    self.report(*owner, f"{where}: {field_name} has a token other than {NAME}")
+            if NAME in ln.answer:
+                self.report(*owner, f"{where}: {NAME} goes in the line, not the answer")
+            shown = ln.text.replace(NAME, longest)
+            if not fits(shown, ln.answer):
+                self.report(*owner, f"{where}: doesn't fit whole at 80x24 ({rows(shown)} rows"
+                            + (f", answer {rows(ln.answer)}" if ln.answer else "")
+                            + f"; at most two each and {'three' if ln.answer else 'two'} together)"
+                            + (" with a 24-cell name" if NAME in ln.text else ""))
 
     def check_scripts(self) -> None:
         """S48c2: the opening's script (#220 section 4; terminal UI 11, P12)."""

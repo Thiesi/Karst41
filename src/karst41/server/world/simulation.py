@@ -16,7 +16,7 @@ from karst41.server.views.delta import ViewStore
 from karst41.server.views.zone_view import Perception, build
 from karst41.server.views import presentation
 from karst41.server.world.actors import Actor
-from karst41.server.world.movement import move, regenerate
+from karst41.server.world.movement import direction, move, regenerate
 from karst41.server.world.registry import World
 from karst41.server.world.exits import DepartureHolds, Travel, permitted, schedule
 from karst41.server.world.city import overview
@@ -54,6 +54,8 @@ class ZoneSimulation:
         self.cover_relation_provider: Callable[[Actor, Actor, bool], str] | None = None
         self.interaction_provider: Callable[[Session], tuple[dict[str, str] | None, dict[str, str] | None]] = lambda session: (None, None)
         self.access_provider: Callable[[Session], dict[str, Any]] = lambda session: {}
+        # S48d: the wall voice hears every caller input's outcome.
+        self.voice_input: Callable[[Session, str, int], None] = lambda session, outcome, tick: None
         self.maps: dict[str, tuple[int, int | None]] = {}
         self.map_opened: dict[str, int] = {}
         self.overlays: dict[str, object] = {}
@@ -262,19 +264,26 @@ class ZoneSimulation:
             if table is not None:
                 action = next((name for name, keys in table["bindings"].items() if frame.data["k"] in keys), "")
         key = frame.data.get("k", "") if frame.type == "key" else ""
+        outcome = self.walk(session, avatar, frame, action, key, tick, interaction)
+        self.voice_input(session, outcome, tick)
+
+    def walk(self, session: Session, avatar: Any, frame: Frame, action: str, key: str, tick: int,
+             interaction: Interaction | None) -> str:
+        """The input itself; returns S48d's outcome for the wall voice: `moved`,
+        `bump` (into terrain), `held` (a move refused otherwise) or `other`."""
         if avatar.travel:
             leaving_platform = key in ("escape", "b", "B") or action in ("move", "sprint") or action.startswith(("move_", "sprint_"))
             if not avatar.travel.departed and leaving_platform:
                 avatar.travel = None
                 self.reset_view(session, avatar)
                 if key in ("escape", "b", "B"):
-                    return
+                    return "other"
             else:
                 if key == "escape":
                     session.send(Frame("toast", {"text": "The log remains below. Your journey continues.", "role": "ui_text", "seconds": 8}))
                 if action == "resync":
                     session.needs_full_view = True
-                return
+                return "other"
         if session.id in self.maps:
             cursor, page = self.maps[session.id]
             if action == "menu_close" or key in ("escape", "b", "B"):
@@ -289,7 +298,7 @@ class ZoneSimulation:
             elif page is not None and key:
                 delta = -1 if key in ("pageup", "pgup", "up") else 1
                 self.maps[session.id] = (cursor, max(0, page + delta))
-            return
+            return "other"
         if action == "map" or key in ("m", "M"):
             self.maps[session.id] = (0, None)
             self.map_opened[session.id] = tick
@@ -306,8 +315,23 @@ class ZoneSimulation:
             if action in ("move", "sprint") and isinstance(vector, str):
                 actor = avatar.actor
                 if actor.zone in self.world.zones:
-                    if move(actor, self.world.zones[actor.zone], vector, tick, action == "sprint"):
+                    zone = self.world.zones[actor.zone]
+                    if move(actor, zone, vector, tick, action == "sprint"):
                         self.interact(session, avatar, tick, street=True)
+                        return "moved"
+                    return "bump" if self.into_terrain(actor, zone, vector, tick) else "held"
+        return "other"
+
+    @staticmethod
+    def into_terrain(actor: Any, zone: Any, vector: str, tick: int) -> bool:
+        """S48d: a refused move was a walk into a wall, not a cooldown, a body or an actor."""
+        step = direction(vector)
+        if step is None or actor.stance in ("down", "dead", "sleeper", "jacked"):
+            return False
+        if tick < max(actor.cooldowns.get("move", 0), actor.cooldowns.get("knockdown", 0)):
+            return False
+        return not zone.can_enter(actor, (actor.x + step[0], actor.y + step[1]))
+
 
     def tick(self, ctx: TickContext) -> None:
         for session in tuple(self.sessions.active.values()):
