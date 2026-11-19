@@ -41,7 +41,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import CombatCaller, Connection, NativeProbe, wait
-from netbbs.db.users import get_user_by_id
+from netbbs.auth.users import get_user_by_id
 from karst41.server import ambience as amb
 from karst41.server.clock import TICK_HZ
 from tests.presentation.snapshots import snapshot
