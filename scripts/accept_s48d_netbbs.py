@@ -58,7 +58,7 @@ async def redial(probe: NativeProbe, previous: Connection, width: int, height: i
     pid = previous.session.player_id
     previous.writer.close()
     await previous.writer.wait_closed()
-    previous.task.cancel()
+    previous.pump.cancel()
     await wait(lambda: all(s.player_id != pid for s in probe.game.sessions.active.values()), 15)
     user = get_user_by_id(probe.db, int(previous.session.door_info['user_id']))
     probe.accounts.append((user, sixteen))

@@ -22,6 +22,7 @@ def flowing(repo_root, info, width, height, tier, presentation):
     """A real Row: a regular's bark, a Row ambience line, then danger."""
     content = deepcopy(load_content(repo_root/"src/karst41/content"))
     content.zones = {k: replace(z, meta=replace(z.meta, spawners=())) for k, z in content.zones.items()}
+    content.walls = None  # The golden pins P8's log alone; S48d's wall voice has its own tests.
     game = HeadlessServer(content, character_state={})
     client = game.connect({"user_id": 1, "handle": "Ear界", "node_name": "P8"}, width=width, height=height)
     create(game, client, card="none")

@@ -15,7 +15,6 @@ from karst41.server.clock import TICK_HZ
 from karst41.server.npcs.templates import make_actor
 from karst41.server.protocol import Frame
 from karst41.server.script import fresh
-from karst41.server.sessions import QUEUE_LIMIT
 from tests.character_helpers import act, create, place
 from tests.harness import HeadlessServer
 
@@ -268,22 +267,29 @@ def test_w10_then_w11_on_two_decants_in_the_hall(shipped):
 
 # --- rarity ------------------------------------------------------------------------
 
-def test_once_per_character_kept_in_progress_through_the_commerce_queue(shipped):
+def test_once_per_character_saved_with_the_character_across_a_reconnect_and_a_new_login(shipped):
+    """Technical lead (B): in memory at once, saved through the character save
+    queue as the errand is; never through commerce's one slot."""
     game = HeadlessServer(quiet(shipped, 'w16'), character_state={})
     me = caller(game, 1)
+    game.commit_characters()
     assert len(seconds(game, me, 31)) == 1
-    assert 'w16' in walls(game).writing.get(me.session.player_id, ()) or game.core.commerce.outbox
-    game.commit_commerce()
-    assert player(game, me).progress['walls'] == ['w16']
+    assert player(game, me).progress['walls'] == ['w16']  # In memory at once.
+    assert not game.core.commerce.pending and not game.core.commerce.outbox  # Commerce's slot stays free.
+    saves = [e for e in game.commit_characters() if e.get('action') == 'save' and e.get('player')]
+    assert saves and saves[-1]['player']['progress']['walls'] == ['w16']  # A real save between.
     act(game, me, Frame('intent', {'name': 'resync', 'args': {}}))  # A new idle stretch.
     assert seconds(game, me, 35) == []
     game.core.sessions.disconnect(me.session)
-    game.step(70 * TICK_HZ)  # Past the reconnect window: a new login.
-    again = game.connect({'user_id': 1, 'handle': 'Wall1', 'node_name': 'S48d'})
+    game.step(TICK_HZ)
+    again = game.connect({'user_id': 1, 'handle': 'Wall1', 'node_name': 'S48d'})  # A reconnect.
     game.step(2)
-    game.frames_for(again)
     assert seconds(game, again, 35) == []
-
+    game.core.sessions.disconnect(again.session)
+    game.step(70 * TICK_HZ)
+    third = game.connect({'user_id': 1, 'handle': 'Wall1', 'node_name': 'S48d'})  # A new login.
+    game.step(2)
+    assert third.session.walls_heard == 0 and seconds(game, third, 35) == []
 
 def test_three_per_evening_carried_across_a_reconnect_and_reset_by_a_new_login(shipped):
     content = quiet(shipped)
@@ -381,19 +387,7 @@ def test_a_pair_that_does_not_fit_drops_both_and_stays_unfired(shipped):
     got = [ln for _ in range(5) for f in (game.step(TICK_HZ), game.frames_for(me))[1] if f.type == 'log'
            for ln in f.data['lines'] if 'runs on' in ln['text']]
     assert got == [] and me.session.walls_heard == 0
-    assert not walls(game).writing.get(me.session.player_id)
-
-
-def test_a_full_commerce_queue_says_nothing_and_spends_no_budget(shipped):
-    game = HeadlessServer(quiet(shipped, 'w16'), character_state={})
-    me = caller(game, 1)
-    commerce = game.core.commerce
-    commerce.pending, commerce.waiting = True, [lambda: None] * QUEUE_LIMIT
-    before = me.session.voice_tick
-    assert seconds(game, me, 35) == []
-    assert me.session.voice_tick == before and 'w16' not in player(game, me).progress.get('walls', ())
-    commerce.pending, commerce.waiting = False, []
-    assert len(seconds(game, me, 2)) == 1
+    assert 'x' not in player(game, me).progress.get('walls', ())
 
 
 def test_death_decants_window_follows_p8s_danger_hold():
@@ -473,16 +467,3 @@ def test_the_openings_view_wiring_does_not_depend_on_the_wall_voice(shipped, mon
     assert game.core.characters.sim.crew_view.__name__ == 'opening_view'
     assert game.core.lattice.encounters.view.__name__ == 'opening_network'
 
-
-def test_a_failed_save_never_repeats_the_line_and_is_written_again(shipped):
-    """Review of 873ba317: a line already said whose write fails stays fired."""
-    game = HeadlessServer(quiet(shipped, 'w16'), character_state={})
-    me = caller(game, 1)
-    assert len(seconds(game, me, 31)) == 1
-    game.commit_commerce(error=True)  # The save fails.
-    pid = me.session.player_id
-    assert 'w16' not in player(game, me).progress.get('walls', ())
-    act(game, me, Frame('intent', {'name': 'resync', 'args': {}}))  # A new idle stretch.
-    assert seconds(game, me, 35) == []  # Not said again.
-    game.commit_commerce()  # The stride wrote it again.
-    assert player(game, me).progress['walls'] == ['w16'] and not walls(game).unsaved.get(pid)

@@ -7,9 +7,11 @@ Rare, unattributed lines in the Wake Hall and on the Row, from `walls.json`
   to the triggering caller's log alone, never to anyone beside them. It
   replays like any log line. An `answer` follows as a second entry; the two
   are fitted whole as a pair at 80x24, or neither goes.
-- Each line fires at most once per character. The fired ids live in
-  `progress["walls"]`, written through the commerce queue. When the queue
-  is full nothing is said, so a line never repeats. The list is bounded:
+- Each line fires at most once per character. The fired ids go on
+  `progress["walls"]` in memory at once and are saved through the character
+  save queue, as S48c2's errand flag is (technical lead): a flavour flag
+  never takes commerce's one slot in front of a J or an E. A line can only
+  repeat if that save fails before the next one lands. The list is bounded:
   only ids from the file, at most the file's size.
 - At most `per_evening` lines per evening. An evening is one login: the
   count sits on the session and carries across a reconnect, as P8's
@@ -35,14 +37,13 @@ With `enabled` false the layer counts nothing and costs nothing.
 
 from __future__ import annotations
 
-from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Iterable
 
 from karst41.content import schema as s
 from karst41.server.clock import TICK_HZ
 from karst41.server.danger import DANGER_HOLD_SECONDS
-from karst41.server.sessions import QUEUE_LIMIT, Session
+from karst41.server.sessions import Session
 
 NAME = "<name>"
 NAME_MAX = 24         # The name prompt's max_len; the validator fits every line with a name this long.
@@ -94,13 +95,8 @@ class Ear:
 class Walls:
     def __init__(self, core: Any, ambience: Any) -> None:
         self.core, self.game, self.ambience = core, core.characters, ambience
-        self.commerce, self.clock = core.commerce, core.clock
+        self.clock = core.clock
         self.ears: dict[str, Ear] = {}
-        self.writing: dict[str, set[str]] = {}
-        self.unsaved: dict[str, set[str]] = {}
-        """Ids already said whose write failed: still fired in memory, written
-        again on the stride, so a failed save never repeats a line (review of
-        873ba317). Bounded by the file's ids per player; emptied once written."""
         """Ids being written for a player, so a line never fires twice before its commit."""
 
     @property
@@ -151,7 +147,6 @@ class Walls:
             avatar = self.game.sim.avatars.get(session.user_id)
             if avatar is None or not avatar.actor.zone:
                 continue
-            self.retry(session.player_id)
             ear = self.ear(session, tick)
             if ear.zone != avatar.actor.zone:
                 ear.zone, ear.arrived = avatar.actor.zone, tick
@@ -166,8 +161,7 @@ class Walls:
     # --- firing ----------------------------------------------------------
 
     def fired(self, player: Any, lid: str) -> bool:
-        return (lid in player.progress.get("walls", ()) or lid in self.writing.get(player.id, ())
-                or lid in self.unsaved.get(player.id, ()))
+        return lid in player.progress.get("walls", ())
 
     def holds(self, line: s.WallLine, ear: Ear, actor: Any, tick: int) -> bool:
         trigger = line.trigger
@@ -214,12 +208,9 @@ class Walls:
         text = line.text.replace(NAME, player.name)
         if not fits(text, line.answer):
             return False  # Neither entry goes; the line stays unfired.
-        if self.commerce.pending and len(self.commerce.waiting) >= QUEUE_LIMIT:
-            return False  # Full queue: nothing said, so nothing can repeat (condition 3).
         if not self.ambience.admit(session, tick):
             return False  # Refused: unfired, for the trigger's next occurrence.
-        if not self.persist(player, line.id):
-            return False
+        self.persist(session, player, line.id)
         at = self.clock.now_utc().isoformat()
         for entry in (text, line.answer):
             if entry:
@@ -230,45 +221,10 @@ class Walls:
         ear.events.pop(line.trigger.name, None)
         return True
 
-    def persist(self, player: Any, lid: str) -> bool:
+    def persist(self, session: Session, player: Any, lid: str) -> None:
+        """In memory at once, then the character save queue (the errand's path)."""
         voice = self.voice
         assert voice is not None
-        writing = self.writing.setdefault(player.id, set())
-        writing.add(lid)
-
-        def failed() -> None:
-            writing.discard(lid)
-            self.unsaved.setdefault(player.id, set()).add(lid)  # Said already: keep it fired, write again.
-
-        def done(success: bool) -> None:
-            if success:
-                writing.discard(lid)
-            else:
-                failed()
-
-        def write() -> None:
-            progress = deepcopy(player.progress)
-            heard = set(progress.get("walls", ())) | {lid}
-            progress["walls"] = [ln.id for ln in voice.lines if ln.id in heard]  # Bounded by the file.
-            if not self.commerce.settle(player, {"progress": progress}, self.commerce.items,
-                                        self.commerce.caches, self.commerce.serial, done):
-                failed()
-        try:
-            self.commerce.enqueue_system(write)
-        except ValueError:
-            writing.discard(lid)
-            return False
-        return True
-
-    def retry(self, pid: str | None) -> None:
-        """Write again the ids whose save failed (see `unsaved`)."""
-        if not pid or not self.unsaved.get(pid) or self.writing.get(pid):
-            return
-        player = self.game.players.get(pid)
-        if player is None:
-            return
-        for lid in sorted(self.unsaved.pop(pid)):
-            if lid in player.progress.get("walls", ()):
-                continue
-            if not self.persist(player, lid):
-                self.unsaved.setdefault(pid, set()).add(lid)  # Queue full: next stride.
+        heard = set(player.progress.get("walls", ())) | {lid}
+        player.progress["walls"] = [ln.id for ln in voice.lines if ln.id in heard]  # Bounded by the file.
+        self.game.queue("save", session.user_id, player)
