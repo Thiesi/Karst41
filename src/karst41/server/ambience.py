@@ -54,6 +54,8 @@ class Ambience:
         self.world, self.content, self.sim, self.clock = world, content, sim, clock
         self.threatened, self.talking = threatened, talking
         self.drone_can_act = drone_can_act  # Runner contract amendment 3 (danger.holds).
+        # #258: the opening runner holds a due speech line for this caller.
+        self.script_holds: Callable[[Session, int], bool] = lambda session, tick: False
         self.zones: dict[str, ZoneVoice] = {}
 
     # --- the shared per-caller gate (S48's runner may call it) -------------
@@ -64,13 +66,16 @@ class Ambience:
         True spends the caller's budget. Suppressed: travelling, threatened
         (the declared danger inputs), or within ten seconds of a danger or
         combat line sent to this caller, so no renderer has an ambient
-        line pushing one out of view. The hold and the budget live on the
+        line pushing one out of view. Also refused while the caller's
+        opening runner holds a due speech line (#258). The hold and the budget live on the
         session (carried across a reconnect), so a menu or a reconnect
         never resets them.
         """
         avatar = self.sim.avatars.get(session.user_id)
         if avatar is None or avatar.travel is not None:
             return False
+        if self.script_holds(session, tick):
+            return False  # #258: a waiting script line keeps the next free slot.
         if holds(session, self.clock.now_utc(), self.drone_can_act):
             return False
         if session.voice_tick is not None and tick - session.voice_tick < LINE_BUDGET_SECONDS * TICK_HZ:

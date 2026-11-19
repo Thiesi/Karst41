@@ -154,6 +154,8 @@ class Core:
             self.characters.opening_stop = self.opening.stop
             self.characters.opening_live = self.opening.live
             self.loop.subsystems.append(self.opening)
+            if self.dialogue is not None:  # #258: barks wait behind a due script line.
+                self.dialogue.ambience.script_holds = self.opening.holds_speech
             decorate = self.characters.sim.crew_view
             def opening_view(session: Session, body: dict[str, Any], _previous=decorate) -> None:
                 _previous(session, body)

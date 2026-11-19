@@ -157,6 +157,17 @@ class Opening:
         return any(x.player_id == pid and not self.states[x.id].get("done")
                    for x in self.core.sessions.active.values() if x.id in self.states)
 
+    def holds_speech(self, session: Session, tick: int) -> bool:
+        """#258: the caller's runner holds a due speech line, so P8's `admit()`
+        refuses barks and ambience for this caller and the line keeps the next
+        free slot. A due line held quiet (a menu, a target) counts too
+        (technical lead, S48d ruling (a))."""
+        state = self.states.get(session.id)
+        if state is None or state.get("done") or not self.script:
+            return False
+        return any(lid in self.lines and self.lines[lid][1].kind == "speech" and due <= tick
+                   for lid, _, due in state["queue"])
+
     def finish(self, state: dict[str, Any]) -> None:
         state["done"] = True
         state["queue"] = []

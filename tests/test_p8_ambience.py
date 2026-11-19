@@ -333,3 +333,51 @@ def test_p8_reconnect_never_replays_ambience(shipped):
     replayed = [line for frame in game.frames_for(again) if frame.type == 'log' and frame.data.get('replay')
                 for line in frame.data['lines']]
     assert not [line for line in replayed if TRAM in line['text'] or line['kind'] == 'ambient']
+
+
+# --- #258: a due script line keeps the next free slot ---------------------------
+
+def test_258_a_due_opening_line_takes_the_slot_and_the_ambient_line_is_dropped(shipped):
+    """A bark or ambient line and a due speech line of the opening meet on the
+    same tick at the gap's end: the script line is said, P8's line is not."""
+    hall = 'vatside-wake-hall'
+    content = quiet(shipped)
+    content.looks[hall] = replace(content.looks[hall], ambient=(TRAM,))
+    game = HeadlessServer(content, character_state={})
+    client = game.connect()
+    game.step(amb.STRIDE + 1)  # 1.1 is said; 1.2 waits out the four-second gap.
+    session, clock = client.session, game.core.clock
+    state = game.core.opening.states[session.id]
+    assert state['queue'] and state['queue'][0][0] == '1.2'
+    game.frames_for(client)
+    while (clock.now_tick() + 1) % amb.STRIDE:
+        game.step()
+    due = clock.now_tick() + 1  # The emitter's next stride tick.
+    session.voice_tick = due - amb.LINE_BUDGET_SECONDS * TICK_HZ  # Gap and budget both end on it.
+    emitter(game).zones[hall].ambient_due = due
+    assert emitter(game).script_holds(session, due)
+    game.step()
+    heard = lines(game, client)
+    assert [line.get('script') for line in heard if line['kind'] == 'speech'] == ['1.2']
+    assert not [line for line in heard if line['kind'] == 'ambient']
+    assert session.voice_tick == due  # The script line spent the slot.
+
+
+def test_258_with_no_due_script_line_the_ambient_line_still_comes(shipped):
+    hall = 'vatside-wake-hall'
+    content = quiet(shipped)
+    content.looks[hall] = replace(content.looks[hall], ambient=(TRAM,))
+    game = HeadlessServer(content, character_state={})
+    client = game.connect()
+    game.step(amb.STRIDE + 1)  # The hall's voice exists after the first stride.
+    session, clock = client.session, game.core.clock
+    game.core.opening.states[session.id]['queue'] = []  # Nothing waiting.
+    game.frames_for(client)
+    while (clock.now_tick() + 1) % amb.STRIDE:
+        game.step()
+    due = clock.now_tick() + 1
+    session.voice_tick = due - amb.LINE_BUDGET_SECONDS * TICK_HZ
+    emitter(game).zones[hall].ambient_due = due
+    assert not emitter(game).script_holds(session, due)
+    game.step()
+    assert [line['text'] for line in lines(game, client) if line['kind'] == 'ambient'] == [TRAM]
