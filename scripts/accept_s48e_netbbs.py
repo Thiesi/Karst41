@@ -46,6 +46,8 @@ HALL, HALO, ROW, BLOCKS = 'vatside-wake-hall', 'sodium-tin-halo', 'sodium-row', 
 TO_HALO = ('vatside-clinics', 'core-plaza', ROW, HALO)
 UP, DOWN, ESC, ENTER, TAB, LEAVE = b'\x1b[A', b'\x1b[B', b'\x1b', b'\r', b'\t', b'\x18'
 CUT = ('...', '…')
+BORDERS = str.maketrans({ch: ' ' for ch in '║│╔╗╚╝═─┌┐└┘╟╢┴┬├┤╤╧'})
+PROTECT_SECONDS = 10  # Terminal UI 2.5: a danger or combat line keeps its log rows this long.
 WAKE_SECONDS = 5*60
 
 
@@ -73,6 +75,11 @@ class Evening:
 
     def screen(self, conn: Connection) -> str:
         return conn.caller.screen.screen_text()
+
+    def shows(self, conn: Connection, text: str) -> bool:
+        """The text is on screen, read across wrapped rows and frame borders."""
+        flat = ' '.join(self.screen(conn).translate(BORDERS).split())
+        return ' '.join(text.split()) in flat
 
     def actor(self, conn: Connection):
         return self.core.world.actors.get(conn.session.player_id)
@@ -187,7 +194,7 @@ class Evening:
             assert time.monotonic() < deadline, 'the training ICE never fell'
             await self.press(conn, b'1')
             await asyncio.sleep(1.5)
-        await self.press(conn, b'e', lambda: 'Your decant record' in self.screen(conn))
+        await self.press(conn, b'e', lambda: self.shows(conn, 'Your decant record'))
         wake = self.probe.game.wakes[conn.session.id]
         await self.press(conn, ENTER, lambda: wake.lessons.get('lifted'), 20)
         deadline = time.monotonic()+30
@@ -198,16 +205,16 @@ class Evening:
 
     async def street_door(self, conn: Connection) -> None:
         await self.probe.walk(conn, (37, 16))
-        await self.press(conn, b'e', lambda: 'DECANT RECORD' in self.screen(conn))
+        await self.press(conn, b'e', lambda: self.shows(conn, 'DECANT RECORD'))
 
     async def record(self, conn: Connection, name: str, archetype: int) -> None:
-        await wait(lambda: 'DECANT RECORD' in self.screen(conn), 15)
+        await wait(lambda: self.shows(conn, 'DECANT RECORD'), 15)
         wake = self.probe.game.wakes[conn.session.id]
         self.facts.setdefault('lessons_at_record', {})[name] = dict(wake.lessons)
         await self.capture(conn, 'record', name)
         for index in range(archetype):
             await self.press(conn, DOWN, lambda index=index: wake.cursor == index+1)
-        await self.press(conn, ENTER, lambda: 'Name (Enter keeps default):' in self.screen(conn), 30)
+        await self.press(conn, ENTER, lambda: self.shows(conn, 'Name (Enter keeps default):'), 30)
         pid = conn.session.player_id
         await self.press(conn, name.encode()+ENTER,
                          lambda: pid in self.probe.game.players and not self.probe.game.unread(pid), 30)
@@ -271,9 +278,9 @@ class Evening:
             await self.beside(conn, (71, 25))
             await self.press(conn, b'j', lambda: pid in lat.presences)
             await self.capture(conn, 'loan-terminal', name)
-            await self.press(conn, b'e', lambda: 'Enter Stairwell C cabinet' in self.screen(conn))
+            await self.press(conn, b'e', lambda: self.shows(conn, 'Enter Stairwell C cabinet'))
             await self.press(conn, ENTER, lambda: lat.presences[pid].core == 'lat-stairwell-c', 20)
-            await self.press(conn, b'e', lambda: 'Release parcel hatch' in self.screen(conn))
+            await self.press(conn, b'e', lambda: self.shows(conn, 'Release parcel hatch'))
             await self.capture(conn, 'cabinet-controls', name)
             await self.press(conn, ENTER, lambda: stage().index == 2, 30)
             await self.capture(conn, 'released-by-jack', name)
@@ -321,8 +328,12 @@ class Evening:
         zone = self.core.world.zones[HALL]
         okafor = next(a for a in zone.actors.values() if a.behaviour.get('template') == 'npc-cast-okafor')
         await self.beside(conn, lambda: okafor.position)
+        # A reader pauses over the record; the training core's danger and
+        # combat lines keep their log rows for PROTECT_SECONDS, which would
+        # leave her answer one row with "... Ctrl-P" in the log (P12 rule 5).
+        await asyncio.sleep(PROTECT_SECONDS+1)
         await self.press(conn, b'e', lambda: conn.session.id in self.core.dialogue.menus)
-        await self.press(conn, b'a', lambda: 'The counter shows the real sum.' in self.screen(conn))
+        await self.press(conn, b'a', lambda: self.shows(conn, 'The counter shows the real sum.'))
         await self.capture(conn, 'okafor-ask', name)
         await self.press(conn, ESC, lambda: conn.session.id not in self.core.dialogue.menus)
 
