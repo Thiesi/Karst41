@@ -352,20 +352,36 @@ class Actions:
                     return Interaction(choice.focus, (iid, target), choice.tile, kind='contract_action')
         return None
 
+    def handled_item(self, stage: Stage | None, target: Any) -> tuple[str, str] | None:
+        """The verb and item name of a fetch that hands an item over or takes
+        one, or None: the one helper behind both E focuses."""
+        if stage is None or stage.verb != 'fetch':
+            return None
+        if stage.completion == 'delivered':
+            item = self.required(stage)
+            verb = 'hand over'
+        elif stage.completion == 'carried':
+            item = getattr(target, 'item', None)
+            verb = 'take'
+        else:
+            return None
+        template = self.owner.content.items.get(item) if item else None
+        return (verb, template.name) if template else None
+
     def target_interaction(self, actor: Any, target: Any, verb: str, stage: Stage | None = None) -> Interaction:
         zone = self.world.zones[target.zone]
         obj = zone.objects.get(target.object)
         verb = 'take' if verb == 'fetch' else verb
-        need = self.required(stage) if stage is not None else None
-        if stage is not None and stage.verb == 'fetch' and stage.completion == 'delivered' and need:
-            # S48e (presentation lead, item c): a delivery hands its item over
-            # and names it: "E hand over Stuck-door Package"; UI 11's short
-            # form is "E hand over Package". Same target, tile and outcome.
-            name = self.owner.content.items[need].name
+        if handled := self.handled_item(stage, target):
+            # S48e (presentation lead, items c and walk 3): a stage that gives
+            # or takes an item names the item, not the counter or shelf: "E
+            # hand over Stuck-door Package", "E take Route marker"; UI 11's
+            # short form keeps the last word. Same target, tile and outcome.
+            verb, name = handled
             if obj:
-                return Interaction(Focus(obj.spec.id, name, 'hand over'), target, obj.spec.tile)
+                return Interaction(Focus(obj.spec.id, name, verb), target, obj.spec.tile)
             x, y = target.tile
-            return Interaction(Focus(f'{target.zone}:{x},{y}', name, 'hand over'), target, target.tile)
+            return Interaction(Focus(f'{target.zone}:{x},{y}', name, verb), target, target.tile)
         if obj:
             choice = object_interaction(obj, 'plant at' if verb == 'plant' else verb)
             return Interaction(choice.focus, target, choice.tile)
