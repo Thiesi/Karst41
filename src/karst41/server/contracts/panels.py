@@ -4,6 +4,7 @@ from karst41.server.interaction import Interaction, interact, object_interaction
 from dataclasses import dataclass
 from math import ceil
 import textwrap
+from types import SimpleNamespace
 from typing import Any
 
 from karst41.layout import compute as screen_layout
@@ -104,6 +105,47 @@ class Panels:
             return None
         return target, label
 
+    def place(self, target: Any, with_item: bool = True) -> str:
+        """S48e (presentation lead, item a): where an objective is, in display
+        names only, the most specific first and the zone last. A name equal to
+        one already shown (a counter named for its room) shows once; a field
+        with no display name (a tile, a sector) is dropped, never shown as an id.
+        An item to collect leads; a supply's source leaves it out (`with_item`)."""
+        content = self.owner.content
+        get = lambda key: getattr(target, key, None)
+        zone = content.zones.get(get('zone') or '')
+        core = content.cores.get(get('core') or '')
+        room = next((r for r in core.rooms if r.id == get('room')), None) if core else None
+        bands = content.silt.bands if content.silt else ()
+        band = next((b for b in bands if b.id == get('band')), None)
+        obj = next((o for o in zone.meta.objects if o.id == get('object')), None) if zone else None
+        npc = content.npcs.get(get('npc') or '')
+        item = content.items.get(get('item') or '') if with_item else None
+        data = next((d for d in (*(room.data if room else ()), *(band.data if band else ()))
+                     if d.id == get('data')), None)
+        cell = next((cell for sector in content.sectors.values() for cell in sector.cells
+                     if cell.id == get('cell')), None) if get('cell') else None
+        shown: list[str] = []
+        for name in (item.name if item else None, obj.params.get('name') if obj else None,
+                     npc.name if npc and npc.presents is None else None,  # Never a cover's real name.
+                     data.label if data else None,
+                     cell.label if cell else None, room.label if room else None, core.name if core else None,
+                     band.name if band else None, zone.meta.name if zone else None):
+            if name and name not in shown:
+                shown.append(name)
+        return ', '.join(shown)
+
+    def board_of(self, giver: str) -> str:
+        """S48e (item a): a giver's board by display name: a faction's short
+        name, else the talker's (Vesper)."""
+        content = self.owner.content
+        faction = content.factions.get(giver)
+        talker = content.dialogue.get(giver)
+        name = faction.short if faction else talker.name if talker else ''
+        if not name:
+            return 'the board'
+        return name+("'" if name.endswith('s') else "'s")+' board'
+
     def rows(self, session: Session, panel: Panel) -> list[dict[str, Any]]:
         owner, pid = self.owner, session.player_id
         if panel.tab == 'journal':
@@ -164,12 +206,13 @@ class Panels:
                 asset = owner.content.text.get(row['asset'])
                 return (asset.body.splitlines() if asset else ['No additional source text.']), actions
             actions += [{'key': 'p', 'label': 'source text'}]
-            where = row['location']
-            place = ', '.join(str(where[k]) for k in ('zone', 'object', 'core', 'room', 'data') if where.get(k))
+            place = self.place(SimpleNamespace(**{k: row['location'].get(k)
+                                                  for k in ('zone', 'object', 'core', 'room', 'data')}))
             return [f"Observed: {row['observation']}", f"Source says: {row['source']}: {row['claim']}",
                     f"Open question: {row['question'] or 'No further question recorded.'}",
                     f"Next action: {row['next_action'] or 'Check the current contract objective.'}",
-                    'Where: '+place, 'Publication: '+(row['publication'] or 'not published')], actions
+                    *(['Where: '+place] if place else []),
+                    'Publication: '+(row['publication'] or 'not published')], actions
         if selected.startswith('service:') and selected[8:] in owner.state.services.nodes:
             sid = selected[8:]
             node, service = owner.state.services.nodes[sid], owner.content.services[selected[8:]]
@@ -240,9 +283,8 @@ class Panels:
                     actions.insert(0, {'key': 'e', 'label': granted[1]})
                 progress = instance.stages[instance.index]
                 target = progress.stage.target
-                detail.insert(0, 'Next: '+(progress.stage.label or progress.stage.verb)+'; '+
-                    ', '.join(str(v) for v in (target.zone, target.object, target.core, target.room,
-                                              target.sector, target.band, target.data, target.npc, target.item) if v))
+                where = self.place(target)
+                detail.insert(0, 'Next: '+(progress.stage.label or progress.stage.verb)+('; '+where if where else ''))
                 detail.insert(1, f'Progress: {sum(progress.counts.values())}/{len(progress.targets)}; '
                     +('retry allowed' if progress.stage.retry else 'no retry'))
                 restraint = progress.stage.verb == 'clear' and progress.stage.resolution == 'subdue'
@@ -254,16 +296,18 @@ class Panels:
                     detail.insert(2, f'Field window: {left} s remaining. Failure returns to the listed launch checkpoint.')
                 if progress.stage.destination:
                     dest = progress.stage.destination
-                    detail.insert(1, 'Destination: '+', '.join(str(v) for v in (dest.zone, dest.object, dest.tile) if v is not None))
+                    if where := self.place(dest):
+                        detail.insert(1, 'Destination: '+where)
                 supplies = owner.actions.supplies(instance)
                 if supplies:
                     source = supplies[0]
-                    verb = 'E reissues at ' if source.zone else 'lift a mission copy at '
-                    detail.insert(3, 'Missing supply? '+verb+', '.join(str(v)
-                        for v in (source.zone, source.object, source.tile, source.core, source.room,
-                                  source.sector, source.band, source.data) if v is not None)+'. Bound copies cannot be sold.')
+                    verb = 'E reissues' if source.zone else 'lift a mission copy'
+                    where = self.place(source, with_item=False)
+                    detail.insert(3, 'Missing supply? '+verb+(' at '+where if where else '')
+                                  +'. Bound copies cannot be sold.')
             elif instance.state == 'complete':
-                destination = instance.giver+"'s board" if instance.story or instance.service else "the Tin Halo or "+instance.giver+"'s board"
+                board = self.board_of(instance.giver)
+                destination = board if instance.story or instance.service else 'the Tin Halo or '+board
                 detail.insert(0, 'Next: return to '+destination+'.')
                 if takes_turnin(panel.handler, instance) and pid not in instance.withdrawn:
                     if instance.options:
