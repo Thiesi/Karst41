@@ -350,7 +350,13 @@ class Dialogue:
         if reach is not None:
             self.commerce.reach[session.id] = reach
         rows = panels.rows(session, panel)
-        panel.cursor = next((index for index, row in enumerate(rows) if row['id'] == wanted), 0)
+        instances = self.core.contracts.state.engine.instances
+        # S48e finding 2: a stage pending at this counter takes the cursor, so
+        # its board action is the first thing on the card.
+        pending = next((index for index, row in enumerate(rows) if reach is not None
+                        and row['id'] in instances and panels.granted(session, panel, instances[row['id']])), None)
+        panel.cursor = pending if pending is not None else next(
+            (index for index, row in enumerate(rows) if row['id'] == wanted), 0)
 
     def read_page(self, session: Session) -> None:
         from karst41.server.wake import briefing

@@ -33,6 +33,7 @@ class Channel:
     tile: tuple[int, int]
     last_hit: int | float | None
     until: int
+    granted: bool = False  # S48e finding 2: started from a talker-reach board.
 
 
 class Actions:
@@ -192,7 +193,17 @@ class Actions:
             tile = obj.spec.tile
         return tile is not None and max(abs(actor.x-tile[0]), abs(actor.y-tile[1])) <= 1
 
-    def perform(self, session: Session, iid: str, target: StageTarget, finished: bool = False) -> None:
+    def granted(self, session: Session, actor: Any, target: StageTarget) -> bool:
+        """S48e finding 2 (technical lead, option A): a board opened through a
+        talker-reach grant reaches that grant's counter, while the caller is
+        on the tile it was granted from, as if beside it. Residents-only and
+        every other check stay as they are."""
+        obj = self.world.zones[actor.zone].objects.get(target.object) if target.object else None
+        return (obj is not None and target.zone == actor.zone and self.world.object_access(actor, obj.spec)
+                and self.owner.commerce.reach.get(session.id) == (actor.zone, target.object, actor.position))
+
+    def perform(self, session: Session, iid: str, target: StageTarget, finished: bool = False,
+                granted: bool = False) -> None:
         owner = self.owner
         if not owner.commerce.ready(session) or owner.commerce.pending:
             raise ValueError('Return to the objective when the current action settles.')
@@ -207,7 +218,7 @@ class Actions:
             raise ValueError('Choose a target on the current objective card.')
         stage = progress.stage
         actor = self.game.combat.actor(player)
-        if not self.near(actor, target):
+        if not (self.near(actor, target) or granted and self.granted(session, actor, target)):
             raise ValueError('Move next to the labelled objective.')
         seconds = owner.duration(player.id, stage)
         if seconds and not finished:
@@ -215,7 +226,7 @@ class Actions:
                 raise ValueError('Finish or cancel the current channel first.')
             self.channels[session.id] = Channel(iid, stage.id, progress.attempt, target,
                 actor.zone, actor.position, actor.cooldowns.get('last_hit'),
-                owner.clock.now_tick()+round(seconds*TICK_HZ))
+                owner.clock.now_tick()+round(seconds*TICK_HZ), granted)
             actor.behaviour['channel'] = {'owner': 'contract', 'label': stage.label or stage.verb,
                                           'remaining': seconds}
             self.world.zones[actor.zone].revision += 1
@@ -455,7 +466,8 @@ class Actions:
             if tick >= channel.until and not self.owner.commerce.pending:
                 self.cancel(session)
                 try:
-                    self.perform(session, channel.instance, channel.target, finished=True)
+                    self.perform(session, channel.instance, channel.target, finished=True,
+                                 granted=channel.granted)
                 except (ValueError, KeyError) as exc:
                     self.owner.commerce.toast(session, str(exc))
         self.requests = {sid: rows for sid, rows in self.requests.items() if sid in self.game.sessions.active}

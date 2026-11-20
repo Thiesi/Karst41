@@ -31,6 +31,16 @@ class Panel:
     prose: bool = False
 
 
+# S48e finding 2: the board action's word, by stage (presentation lead's table;
+# the same at 80x24 and 132x50).
+GRANTED_LABELS = {('fetch', 'delivered'): 'hand over', ('fetch', 'carried'): 'take',
+                  'survey': 'inspect', 'plant': 'plant'}
+
+
+def granted_label(stage: Any) -> str | None:
+    return GRANTED_LABELS.get((stage.verb, stage.completion)) or GRANTED_LABELS.get(stage.verb)
+
+
 def takes_turnin(handler: str, instance: Instance) -> bool:
     return handler == instance.giver or (handler == 'vesper' and not instance.service)
 
@@ -77,6 +87,22 @@ class Panels:
         self.sim.external_views.pop(session.id, None)
         self.sim.published.pop(session.id, None)
         session.needs_full_view = True
+
+    def granted(self, session: Session, panel: Panel, instance: Instance) -> tuple[Any, str] | None:
+        """S48e finding 2 (technical lead, option A): on a board opened through a
+        talker-reach grant, the caller's current stage at that talker's counter
+        (its target and the board action's word), else None."""
+        owner, pid = self.owner, session.player_id
+        if (instance.state != 'active' or pid in instance.withdrawn or not panel.target
+                or pid not in {p.player for p in instance.roster}):
+            return None
+        label = granted_label(instance.stages[instance.index].stage)
+        actor = owner.game.combat.actor(owner.game.players[pid])
+        target = next((t for t in instance.stages[instance.index].targets
+                       if t.kind == 'zone_object' and t.object == panel.target), None)
+        if label is None or target is None or not owner.actions.granted(session, actor, target):
+            return None
+        return target, label
 
     def rows(self, session: Session, panel: Panel) -> list[dict[str, Any]]:
         owner, pid = self.owner, session.player_id
@@ -210,6 +236,8 @@ class Panels:
             else:
                 detail.append('Story: no overall deadline.')
             if instance.state == 'active':
+                if granted := self.granted(session, panel, instance):
+                    actions.insert(0, {'key': 'e', 'label': granted[1]})
                 progress = instance.stages[instance.index]
                 target = progress.stage.target
                 detail.insert(0, 'Next: '+(progress.stage.label or progress.stage.verb)+'; '+
@@ -387,7 +415,9 @@ class Panels:
                 panel.confirmation = ('start', selected, '')
         elif selected in owner.state.engine.instances:
             instance = owner.state.engine.instances[selected]
-            if key == 't':
+            if key == 'e' and (granted := self.granted(session, panel, instance)):
+                owner.actions.perform(session, selected, granted[0], granted=True)
+            elif key == 't':
                 panel.confirmation = ('turn-in', selected, '')
             elif key.isdigit() and instance.options:
                 panel.confirmation = ('turn-in', selected, list(instance.options)[int(key)-1])

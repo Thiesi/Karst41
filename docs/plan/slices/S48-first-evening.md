@@ -509,7 +509,7 @@ runner contract with the creative lead's fixes.
 - **Dialogue before the record:** talking needs `Commerce.present` (in
   the body, free to act); everything that writes still needs `ready`.
 
-## Implementation notes (PR #TBD, S48e)
+## Implementation notes (PR #271, S48e)
 
 ### Edge cases (technical lead's rulings on the S48e walk)
 
@@ -537,3 +537,16 @@ runner contract with the creative lead's fixes.
   disconnect, and on the first tick the caller is off that tile, even if
   they come back to it. Talkers bound to a counter today: Vesper (Tin
   Halo) and Lindgren (Precinct quartermaster).
+- **A stage at the talker's counter is done from their board** (finding
+  2, technical lead, 2026-11-19, option A). On a board opened through a
+  talk page's reach, a job whose current stage the caller holds at that
+  talker's own counter gets a board action (E), and the board opens with
+  the cursor on that job. It is the same contract action on the same code
+  path, with its reach taken from the grant while the caller stays on its
+  tile; Marked, the roster, residents-only access and the stage order are
+  unchanged, and a board used at the counter itself shows no such action.
+  The word is the presentation lead's, by stage and the same at 80x24 and
+  132x50: a delivery "hand over", a pickup "take", a survey "inspect", a
+  plant "plant"; other stages get no board action. So a caller who talks
+  to Vesper from (8,13) hands the parcel over and turns the job in without
+  moving.
