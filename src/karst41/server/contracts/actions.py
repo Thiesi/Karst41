@@ -348,14 +348,24 @@ class Actions:
                 continue
             for target in instance.stages[instance.index].targets:
                 if self.near(actor, target):
-                    choice = self.target_interaction(actor, target, stage.verb)
+                    choice = self.target_interaction(actor, target, stage.verb, stage)
                     return Interaction(choice.focus, (iid, target), choice.tile, kind='contract_action')
         return None
 
-    def target_interaction(self, actor: Any, target: Any, verb: str) -> Interaction:
+    def target_interaction(self, actor: Any, target: Any, verb: str, stage: Stage | None = None) -> Interaction:
         zone = self.world.zones[target.zone]
         obj = zone.objects.get(target.object)
         verb = 'take' if verb == 'fetch' else verb
+        need = self.required(stage) if stage is not None else None
+        if stage is not None and stage.verb == 'fetch' and stage.completion == 'delivered' and need:
+            # S48e (presentation lead, item c): a delivery hands its item over
+            # and names it: "E hand over Stuck-door Package"; UI 11's short
+            # form is "E hand over Package". Same target, tile and outcome.
+            name = self.owner.content.items[need].name
+            if obj:
+                return Interaction(Focus(obj.spec.id, name, 'hand over'), target, obj.spec.tile)
+            x, y = target.tile
+            return Interaction(Focus(f'{target.zone}:{x},{y}', name, 'hand over'), target, target.tile)
         if obj:
             choice = object_interaction(obj, 'plant at' if verb == 'plant' else verb)
             return Interaction(choice.focus, target, choice.tile)
