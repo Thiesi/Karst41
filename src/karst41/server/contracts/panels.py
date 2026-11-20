@@ -524,6 +524,7 @@ class Panels:
             if not session or session.player_id not in self.game.players:
                 self.menus.pop(sid, None)
                 self.sim.external_views.pop(sid, None)
+                self.owner.commerce.reach.pop(sid, None)  # S48e: the grant goes with its menu.
                 continue
             actor = self.game.combat.actor(self.game.players[session.player_id])
             if actor and tick-panel.opened >= MENU_TIMEOUT_SECONDS*TICK_HZ and self.owner.world.zones[actor.zone].allows_hostile(actor.position):

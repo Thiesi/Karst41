@@ -754,7 +754,8 @@ class Commerce:
         for sid, screen in tuple(self.menus.items()):
             session = self.game.sessions.active.get(sid)
             if session is None or not self.ready(session):
-                self.menus.pop(sid); self.prompts.pop(sid,None); self.sim.external_views.pop(sid,None); continue
+                self.menus.pop(sid); self.prompts.pop(sid,None); self.sim.external_views.pop(sid,None)
+                self.reach.pop(sid, None); continue  # S48e: the grant goes with its menu.
             av = self.sim.avatars[session.user_id]
             if ctx.tick-screen.opened >= MENU_TIMEOUT_SECONDS*TICK_HZ and self.sim.world.zones[av.zone].allows_hostile(av.actor.position):
                 self.close(session); continue

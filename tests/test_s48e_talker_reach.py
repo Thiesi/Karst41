@@ -303,6 +303,16 @@ def test_closing_the_menu_ends_the_grant(content, key):
     assert sid not in game.core.commerce.reach
 
 
+def test_a_trade_menu_dropped_without_closing_ends_the_grant(content):
+    # Commerce drops a menu whose caller is no longer ready without close();
+    # the grant goes with it (review 7032523173, note 2).
+    game, client, _ = at(content, HALO, VESPER, (9, 14), (8, 13))
+    sid = granted(game, client, 'v')
+    game.core.commerce.ready = lambda session: False
+    game.step()
+    assert sid not in game.core.commerce.menus and sid not in game.core.commerce.reach
+
+
 def test_closing_a_clinic_menu_ends_the_grant(content):
     game, client, _ = at(content, HALO, VESPER, (9, 14), (8, 13))
     sid = granted(game, client, 'v')
