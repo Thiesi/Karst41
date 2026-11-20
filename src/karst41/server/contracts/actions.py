@@ -218,7 +218,10 @@ class Actions:
             raise ValueError('Choose a target on the current objective card.')
         stage = progress.stage
         actor = self.game.combat.actor(player)
-        if not (self.near(actor, target) or granted and self.granted(session, actor, target)):
+        # A granted channel's finish keeps the grant it started with: the
+        # channel itself is cancelled if the caller moves, changes zone or is
+        # hit, so closing the board meanwhile loses nothing (S48e review).
+        if not (self.near(actor, target) or granted and (finished or self.granted(session, actor, target))):
             raise ValueError('Move next to the labelled objective.')
         seconds = owner.duration(player.id, stage)
         if seconds and not finished:

@@ -155,3 +155,50 @@ def test_stepping_off_the_grant_tile_ends_the_board_action(content):
     ('escort', 'arrived', None)])
 def test_the_board_actions_word_by_stage(verb, completion, word):
     assert granted_label(SimpleNamespace(verb=verb, completion=completion)) == word
+
+
+def test_a_timed_stage_from_the_board_finishes_after_the_board_closes(content, monkeypatch):
+    # Automated review (7032993434 and later): a channel started through the
+    # grant must not need the board left open; it still ends if the caller moves.
+    game, client, iid, job = carrying_the_parcel(content)
+    owner, sid = game.core.contracts, client.session.id
+    monkeypatch.setattr(type(owner), 'duration', lambda self, player, stage: 3.0)  # A timed hand-over.
+    talk(game, client)
+    act(game, client, Frame('key', {'k': 'c', 't': 0}))
+    assert actions(game, client)[0] == {'key': 'e', 'label': 'hand over'}
+    select(game, client, 'e')
+    assert sid in owner.actions.channels and job().state == 'active'
+    # Esc while the bar fills cancels the channel first ("Esc/B cancels"),
+    # not the board; the board can still close under it another way (its
+    # timeout, or a refusal when its body is redrawn).
+    owner.panels.close(client.session)
+    assert sid not in owner.panels.menus and sid not in game.core.commerce.reach
+    game.step(40)
+    game.commit_commerce()
+    assert job().state == 'complete', toasts(game, client)
+
+
+def test_esc_while_a_board_stage_channels_cancels_the_channel_first(content, monkeypatch):
+    game, client, iid, job = carrying_the_parcel(content)
+    owner, sid = game.core.contracts, client.session.id
+    monkeypatch.setattr(type(owner), 'duration', lambda self, player, stage: 3.0)
+    talk(game, client)
+    act(game, client, Frame('key', {'k': 'c', 't': 0}))
+    select(game, client, 'e')
+    act(game, client, Frame('intent', {'name': 'menu_close', 'args': {}}))
+    game.step()
+    assert sid not in owner.actions.channels and sid in owner.panels.menus
+
+
+def test_a_timed_stage_from_the_board_still_ends_when_the_caller_moves(content, monkeypatch):
+    game, client, iid, job = carrying_the_parcel(content)
+    owner, sid = game.core.contracts, client.session.id
+    monkeypatch.setattr(type(owner), 'duration', lambda self, player, stage: 3.0)
+    talk(game, client)
+    act(game, client, Frame('key', {'k': 'c', 't': 0}))
+    select(game, client, 'e')
+    assert sid in owner.actions.channels
+    place(game, client, HALO, (7, 12))
+    game.step(40)
+    game.commit_commerce()
+    assert sid not in owner.actions.channels and job().state == 'active'
