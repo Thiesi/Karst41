@@ -107,10 +107,13 @@ class Evening:
 
     async def press(self, conn: Connection, data: bytes, until: Any = None, timeout: float = 15,
                     tries: int = 1) -> None:
-        """A key, then its effect. A menu choice carries the view revision it
-        was made on and the server drops it if the view moved meanwhile (a
-        wanderer, an ICE tick), so a choice may be pressed again, up to
-        `tries` times, and only while its effect has not happened."""
+        """A key, then its effect. Workaround, kept after the fix (technical
+        lead): a menu choice carries the view revision it was made on. Before
+        53e35c67 the server dropped it whenever the view moved at all (the
+        training room's cooldown ticks dropped run 2's Enter). Now it drops a
+        choice only when the menu itself changed, a correct stale-input guard.
+        So a choice may still be pressed again, up to `tries` times, and only
+        while its effect has not happened."""
         for attempt in range(tries):
             await self.settled(conn)
             await conn.caller.write(data)
