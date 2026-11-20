@@ -6,25 +6,29 @@ each handler refused it unless that was still the session's revision. While
 the room menu was open its document republished every tenth of a second as
 the rig's Pick cooldown counted down (`me.rig[0].cd`), so a key in flight
 across one of those ticks was silently lost; the door does not resend it.
+
 The guard now asks whether the choice still means what it meant
-(Session.fresh): the same title, rows, cursor and actions. A menu whose
-choice changed still refuses the stale input, and a view that offers no
-choice (the zone, the Lattice map) keeps the exact revision rule.
+(Session.fresh): the same menu on the same terms, which is everything the
+menu shows (rows and their cells, detail with prices, totals and failure
+odds, footer, confirmation, title, cursor, actions) except the caller's
+status block (`me`) and the countdowns sessions.CHOICE_COUNTDOWNS names
+(technical lead). Changed terms still refuse the stale input, and a view
+that offers no choice (the zone, the Lattice map) keeps the exact rule.
 """
 
-from pathlib import Path
+import pytest
 
-from karst41.content.loader import load_content
 from karst41.server.protocol import Frame
 from karst41.server.sessions import CHOICE_HISTORY, choice_state
 from tests.harness import HeadlessServer
 from tests.test_s48e_evening import Caller, Walk
 
-ROOT = Path(__file__).parents[2]
+NL = '\n'
 
 
-def menu(cursor: int = 0, rows=('one', 'two'), cooldown: float = 0.0) -> dict:
-    return {'title': 'ROOM', 'rows': [{'id': row, 'cells': [row]} for row in rows], 'cursor': cursor,
+def menu(cursor: int = 0, rows=('one', 'two'), cooldown: float = 0.0, cells=None, detail: str = '') -> dict:
+    return {'title': 'ROOM', 'cursor': cursor, 'detail': detail,
+            'rows': [{'id': row, 'cells': list(cells.get(row, [row])) if cells else [row]} for row in rows],
             'actions': [{'key': 'enter', 'label': 'select'}], 'me': {'rig': [{'name': 'Pick', 'cd': cooldown}]}}
 
 
@@ -33,11 +37,14 @@ def published(session, tick: int, body: dict, kind: str = 'menu') -> int:
     return session.view_revision
 
 
+def session_of():
+    return HeadlessServer().connect().session
+
+
 def test_a_choice_outlives_a_cooldown_tick_but_not_a_changed_menu():
-    game = HeadlessServer()
-    session = game.connect().session
+    session = session_of()
     seen = published(session, 1, menu(cooldown=0.4))
-    published(session, 2, menu(cooldown=0.3))  # Only the cooldown moved.
+    published(session, 2, menu(cooldown=0.3))  # Only the caller's status (`me`) moved.
     assert session.view_revision != seen and session.fresh(seen)
     published(session, 3, menu(cursor=1))  # The cursor moved: another choice.
     assert not session.fresh(seen)
@@ -45,9 +52,49 @@ def test_a_choice_outlives_a_cooldown_tick_but_not_a_changed_menu():
     assert not session.fresh(seen) and session.fresh(session.view_revision)
 
 
+TERMS = [
+    # Technical lead: a stale market purchase or allocation spends nothing
+    # (architecture), and costs show before the player commits (terminal UI).
+    ('a market row price, same id',
+     menu(cells={'one': ['Patch', '12 ch']}), menu(cells={'one': ['Patch', '15 ch']})),
+    ('a clinic TOTAL, same row',
+     menu(detail=NL.join(['Fitting 80 ch', 'TOTAL 480 ch', 'Failure 2%'])),
+     menu(detail=NL.join(['Fitting 80 ch', 'TOTAL 520 ch', 'Failure 2%']))),
+    ('a board reward, same job',
+     menu(detail=NL.join(['Your reward: 200 chits; 100 XP', 'Deadline: 3540 s'])),
+     menu(detail=NL.join(['Your reward: 220 chits; 100 XP', 'Deadline: 3540 s']))),
+    ("a stage's terms, same job",
+     menu(detail=NL.join(['Next: Collect the bound supply', 'Action: 0 s; No fee.'])),
+     menu(detail=NL.join(['Next: Collect the bound supply', 'Action: 3 s; 20 ch fee.']))),
+]
+
+
+@pytest.mark.parametrize('case, before, after', TERMS, ids=[case for case, _, _ in TERMS])
+def test_changed_terms_refuse_the_stale_choice(case, before, after):
+    session = session_of()
+    seen = published(session, 1, before)
+    published(session, 2, {**before, 'me': {'rig': [{'name': 'Pick', 'cd': 0.1}]}})  # Status only: still fresh.
+    assert session.fresh(seen), case
+    published(session, 3, after)
+    assert not session.fresh(seen), case
+
+
+def test_named_countdowns_and_the_lattice_status_line_do_not_change_the_choice():
+    session = session_of()
+    card = NL.join(['Your reward: 200 chits', 'Deadline: {}', 'Field window: {} remaining. Failure returns.'])
+    seen = published(session, 1, menu(detail=card.format('3540 s', '120 s')))
+    published(session, 2, menu(detail=card.format('3539 s', '119 s')))
+    assert session.fresh(seen)
+    room = NL.join(['HP {}/58  INT 100  TRACE 0', 'Select ICE to inspect and target.'])
+    seen = published(session, 3, menu(detail=room.format(43)))
+    published(session, 4, menu(detail=room.format(44)))
+    assert session.fresh(seen)
+    published(session, 5, menu(detail=NL.join(['HP 44/58  INT 100  TRACE 0', 'Select data to lift it.'])))
+    assert not session.fresh(seen)
+
+
 def test_a_view_with_no_choice_keeps_the_exact_revision_rule():
-    game = HeadlessServer()
-    session = game.connect().session
+    session = session_of()
     seen = published(session, 1, {'tiles': [], 'me': {'hp': 10}}, kind='zone')
     published(session, 2, {'tiles': [], 'me': {'hp': 11}}, kind='zone')
     assert choice_state(Frame('view', {'kind': 'zone', 'body': {}})) is None
@@ -55,8 +102,7 @@ def test_a_view_with_no_choice_keeps_the_exact_revision_rule():
 
 
 def test_only_recent_revisions_are_remembered():
-    game = HeadlessServer()
-    session = game.connect().session
+    session = session_of()
     first = published(session, 1, menu())
     for tick in range(2, CHOICE_HISTORY+3):
         published(session, tick, menu(cooldown=tick/10))

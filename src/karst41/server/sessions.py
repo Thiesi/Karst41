@@ -1,6 +1,9 @@
 """Socket-free sessions, bounded queues and reconnect ownership."""
 
 from collections import deque
+from hashlib import blake2b
+import json
+import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, get_args
@@ -21,21 +24,50 @@ LOG_RING_LINES = 500  # Game design §11.
 LOG_REPLAY_LINES = 50
 CHOICE_HISTORY = 16  # S48e: published revisions whose menu choices are remembered.
 
+# S48e (technical lead): what a choice means is everything its menu shows as
+# its terms - every row's cells, the labels, the detail text with its prices,
+# totals and percentages, the footer and confirmation, the title, the cursor
+# and the action keys. Only these are left out, each named:
+CHOICE_EXCLUDED_KEYS = frozenset({
+    'me',  # The caller's status block: cooldowns, bars, HP, the clock.
+})
+CHOICE_COUNTDOWNS = tuple(re.compile(pattern, re.MULTILINE) for pattern in (
+    r'Deadline: \d+ s',                    # Contract card; expiry is re-checked when the server acts.
+    r'Field window: \d+ s remaining',      # Contract stage window, the same.
+    r'NPC restoration in \d+ s',           # Service node in fault.
+    r'Reservation: \d+ s',                 # Service node under repair.
+    r'Expiry: \d+ s',                      # Allocated service node.
+    r'^HP [\d.]+/[\d.]+  INT \S+  TRACE \S+(  SHIELD \S+)?(  DECOY \S+)?$',  # Lattice menus' caller status.
+))
 
-def choice_state(frame: Frame) -> tuple[Any, ...] | None:
-    """S48e: what a caller chooses from in a published view: the menu's title,
-    rows, cursor and action keys, or None for a view that offers no choice.
-    Anything else in the document (a countdown, a cooldown, a bar) is not."""
+
+def choice_state(frame: Frame) -> str | None:
+    """S48e: a digest of what a caller chooses from in a published view, or
+    None for a view that offers no choice (no menu rows). Two revisions with
+    the same digest offer the same choice on the same terms."""
     data = frame.data if frame.type == 'view' else {}
     body = data.get('body') if isinstance(data.get('body'), dict) else {}
     if data.get('kind') == 'wake' and isinstance(body.get('body'), dict):
         body = body['body']  # The Wake's record wraps its menu.
-    rows = body.get('rows')
-    if not isinstance(rows, list):
+    if not isinstance(body.get('rows'), list):
         return None
-    return (data.get('kind'), body.get('kind'), body.get('title'),
-            tuple(row.get('id') for row in rows if isinstance(row, dict)), body.get('cursor'),
-            tuple(action.get('key') for action in body.get('actions') or () if isinstance(action, dict)))
+    shown = {key: value for key, value in body.items() if key not in CHOICE_EXCLUDED_KEYS}
+    text = json.dumps([data.get('kind'), _without_countdowns(shown)], sort_keys=True, ensure_ascii=False,
+                      default=str)
+    return blake2b(text.encode('utf-8'), digest_size=16).hexdigest()
+
+
+def _without_countdowns(value: Any) -> Any:
+    """Every string in a menu document with its named countdowns blanked."""
+    if isinstance(value, str):
+        for countdown in CHOICE_COUNTDOWNS:
+            value = countdown.sub(lambda match, name=countdown.pattern: name, value)
+        return value
+    if isinstance(value, dict):
+        return {key: _without_countdowns(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_without_countdowns(item) for item in value]
+    return value
 
 
 @dataclass
@@ -82,7 +114,7 @@ class Session:
     """Tick of the newest bark or ambient line admitted (P8's budget)."""
     walls_heard: int = 0
     """S48d: wall lines heard this evening (one login), carried across a reconnect."""
-    choices: dict[int, tuple[Any, ...] | None] = field(default_factory=dict)
+    choices: dict[int, str | None] = field(default_factory=dict)
     """S48e: each recent published revision's choice_state, newest CHOICE_HISTORY."""
     notify: Callable[[], None] = field(default=lambda: None, repr=False)
 
@@ -208,9 +240,9 @@ class Session:
     def fresh(self, expected: Any) -> bool:
         """S48e: a menu choice made on `expected` still means what it meant: it
         is the current revision, or a recent one offering the very same choice
-        (title, rows, cursor, actions). A view that moved only in what the
-        choice is not about (a cooldown or countdown ticking) no longer drops
-        the caller's key; a changed menu still refuses the stale input."""
+        on the very same terms (choice_state). A view that moved only in the
+        caller's status or a named countdown no longer drops the caller's key;
+        a menu whose rows, prices, totals or text changed still refuses it."""
         if expected == self.view_revision:
             return True
         state = self.choices.get(expected) if type(expected) is int else None
