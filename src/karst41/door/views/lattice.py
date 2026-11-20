@@ -3,6 +3,7 @@
 from typing import Any
 
 from karst41.door.cells import CellBuffer, display_width, truncate
+from karst41.door.chrome import word_prefix
 from karst41.layout import Layout
 from karst41.door.palette import Palette
 from karst41.formatting import display_number
@@ -166,7 +167,11 @@ def render_lattice(buffer: CellBuffer, body: dict[str, Any], layout: Layout, pal
     if len(status)+2 <= area.height:
         status += [("ROOM", "title"), (str(body.get("label", "")), "text")]
     for index, (text, role) in enumerate(status[:area.height]):
-        buffer.put(side_x, area.y+index, truncate(text, side_w), palette.style(role))
+        # S48e (presentation lead): a side-panel row too wide for the panel
+        # is cut at a whole word, as terminal UI 6 cuts names (#261).
+        text = str(text)
+        shown = text if display_width(text) <= side_w else word_prefix(text, side_w)
+        buffer.put(side_x, area.y+index, shown, palette.style(role))
     if room is not None:
         selected = next((row for row in room_ice if row["id"] == me.get("target")), next(iter(room_ice), None))
         details = [("ROOM / "+str(body.get("label", "")), "title")]
