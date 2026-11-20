@@ -272,7 +272,7 @@ class Clinics:
             if screen is None:
                 vendor_menu = self.commerce.menus.get(session.id)
                 if (vendor_menu and vendor_menu.kind == "vendor" and name == "menu_select"
-                        and args.get("key") == "c" and frame.data.get("expected_revision") == session.view_revision):
+                        and args.get("key") == "c" and session.fresh(frame.data.get("expected_revision"))):
                     self.open(session,vendor_menu.target)
                     return True
                 return False
@@ -283,7 +283,7 @@ class Clinics:
                 screen.cursor = max(0,min(count-1,screen.cursor+args["delta"]))
                 self.publish(session)
             elif name == "menu_select":
-                if frame.data.get("expected_revision") != session.view_revision:
+                if not session.fresh(frame.data.get("expected_revision")):
                     return True
                 request = frame.data.get("request_id","")
                 if request and request in self.requests.get(session.id,()):

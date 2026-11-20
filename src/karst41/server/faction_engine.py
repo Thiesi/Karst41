@@ -456,7 +456,7 @@ class Factions:
                     else:
                         screen.cursor = max(0, min(screen.cursor+args["delta"], len(self.station(session, screen.target))-1))
                 elif name == "menu_select":
-                    if frame.data.get("expected_revision") != session.view_revision:
+                    if not session.fresh(frame.data.get("expected_revision")):
                         return True
                     request = frame.data.get("request_id")
                     if request and request in self.requests.get(session.id, ()):

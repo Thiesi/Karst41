@@ -543,7 +543,7 @@ class Panels:
                     if name == 'menu_select':
                         request = frame.data.get('request_id', '')
                         if (not request or request in self.requests.get(session.id, [])
-                                or frame.data.get('expected_revision') != session.view_revision or args.get('row') != row):
+                                or not session.fresh(frame.data.get('expected_revision')) or args.get('row') != row):
                             return True
                         self.requests.setdefault(session.id, []).append(request)
                         self.requests[session.id] = self.requests[session.id][-128:]

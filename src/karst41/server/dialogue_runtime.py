@@ -513,7 +513,7 @@ class Dialogue:
                 else:
                     value = frame.data.get('args', {}).get('key', '') if name == 'menu_select' else key
                     action = value.lower() if isinstance(value, str) else ''
-                    if name == 'menu_select' and frame.data.get('expected_revision') != session.view_revision:
+                    if name == 'menu_select' and not session.fresh(frame.data.get('expected_revision')):
                         return True
                     talker = self.content.dialogue[screen.contact.talker]
                     offer = next((offer for offer in self.offers(session, talker)

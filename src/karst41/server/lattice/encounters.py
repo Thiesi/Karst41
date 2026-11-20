@@ -1263,7 +1263,7 @@ class Encounters:
                 self.menus.pop(session.id)
             elif name == "menu_cursor" and type(args.get("delta")) is int:
                 screen.cursor = max(0, min(screen.cursor+args["delta"], len(rows)-1))
-            elif name == "menu_select" and revision == session.view_revision and rows:
+            elif name == "menu_select" and session.fresh(revision) and rows:
                 row = args.get("row") or rows[screen.cursor]["id"]
                 if any(r["id"] == row for r in rows):
                     self.select(session, presence, row)

@@ -545,7 +545,7 @@ class Drones:
                     self.close(session)
                 elif name == "menu_cursor" and type(args.get("delta")) is int:
                     self.menus[session.id] = max(0,min(len(self.view(session)["rows"])-1,self.menus[session.id]+args["delta"]))
-                elif name == "menu_select" and frame.data.get("expected_revision") == session.view_revision:
+                elif name == "menu_select" and session.fresh(frame.data.get("expected_revision")):
                     view = self.view(session)
                     iid = view["rows"][view["cursor"]]["id"]
                     if args.get("row") != iid:

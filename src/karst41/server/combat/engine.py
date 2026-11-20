@@ -932,7 +932,7 @@ class Combat:
             if session.id in self.menus:
                 if name == "menu_close": self.close_menu(session)
                 elif name == "menu_cursor": self.menus[session.id] = max(0,min(len(self.content.hymns)-1,self.menus[session.id]+int(args.get("delta",0))))
-                elif name == "menu_select" and frame.data.get("expected_revision") == session.view_revision:
+                elif name == "menu_select" and session.fresh(frame.data.get("expected_revision")):
                     aid = args.get("row")
                     if aid not in self.content.hymns or not self.unlocked(player,self.content.hymns[aid]): raise ValueError("That ability is locked.")
                     hotkey = args.get("key","")

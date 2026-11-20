@@ -19,6 +19,23 @@ MAX_REVISION_LAG = 3
 RECONNECT_SECONDS = 60  # Architecture §8.2.
 LOG_RING_LINES = 500  # Game design §11.
 LOG_REPLAY_LINES = 50
+CHOICE_HISTORY = 16  # S48e: published revisions whose menu choices are remembered.
+
+
+def choice_state(frame: Frame) -> tuple[Any, ...] | None:
+    """S48e: what a caller chooses from in a published view: the menu's title,
+    rows, cursor and action keys, or None for a view that offers no choice.
+    Anything else in the document (a countdown, a cooldown, a bar) is not."""
+    data = frame.data if frame.type == 'view' else {}
+    body = data.get('body') if isinstance(data.get('body'), dict) else {}
+    if data.get('kind') == 'wake' and isinstance(body.get('body'), dict):
+        body = body['body']  # The Wake's record wraps its menu.
+    rows = body.get('rows')
+    if not isinstance(rows, list):
+        return None
+    return (data.get('kind'), body.get('kind'), body.get('title'),
+            tuple(row.get('id') for row in rows if isinstance(row, dict)), body.get('cursor'),
+            tuple(action.get('key') for action in body.get('actions') or () if isinstance(action, dict)))
 
 
 @dataclass
@@ -65,6 +82,8 @@ class Session:
     """Tick of the newest bark or ambient line admitted (P8's budget)."""
     walls_heard: int = 0
     """S48d: wall lines heard this evening (one login), carried across a reconnect."""
+    choices: dict[int, tuple[Any, ...] | None] = field(default_factory=dict)
+    """S48e: each recent published revision's choice_state, newest CHOICE_HISTORY."""
     notify: Callable[[], None] = field(default=lambda: None, repr=False)
 
     @property
@@ -186,6 +205,17 @@ class Session:
         self.input_queue.append(frame)
         return True
 
+    def fresh(self, expected: Any) -> bool:
+        """S48e: a menu choice made on `expected` still means what it meant: it
+        is the current revision, or a recent one offering the very same choice
+        (title, rows, cursor, actions). A view that moved only in what the
+        choice is not about (a cooldown or countdown ticking) no longer drops
+        the caller's key; a changed menu still refuses the stale input."""
+        if expected == self.view_revision:
+            return True
+        state = self.choices.get(expected) if type(expected) is int else None
+        return state is not None and state == self.choices.get(self.view_revision)
+
     def acknowledge(self, revision: int) -> None:
         if self.ack_revision <= revision <= self.view_revision:
             self.ack_revision = revision
@@ -205,6 +235,9 @@ class Session:
         if self.send(chosen):
             self.last_view_tick = tick
             self.view_revision = chosen.data["rev"]
+            self.choices[self.view_revision] = choice_state(full)
+            while len(self.choices) > CHOICE_HISTORY:
+                self.choices.pop(min(self.choices))
             self.needs_full_view = False
             return True
         return False

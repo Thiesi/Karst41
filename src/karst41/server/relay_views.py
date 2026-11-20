@@ -169,7 +169,7 @@ class Views:
                 elif name == 'menu_select':
                     request = frame.data.get('request_id', '')
                     if (not request or request in self.requests.get(session.id, [])
-                            or frame.data.get('expected_revision') != session.view_revision):
+                            or not session.fresh(frame.data.get('expected_revision'))):
                         return True
                     rows = self.body(session, panel)['rows']
                     row = rows[panel.cursor]['id'] if rows else ''
