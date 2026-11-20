@@ -109,8 +109,9 @@ class Caller:
         body = self.body()
         drawn = repr((body.get('hint'), body.get('focus'), body.get('jack_focus'), body.get('objective'),
                       body.get('lesson'), self.toasts, self.step))
-        # A step on the map redraws the hint row only when what it is made of
-        # changes; every other key, and every such change, is checked.
+        # Only a plain step on the map may skip the check, and only while what
+        # the hint row is made of is unchanged; every other key, every such
+        # change and every step's start (Walk.step) is checked.
         if key not in ARROWS.values() or drawn != self.checked:
             self.checked = drawn
             self.check_screen()
@@ -165,6 +166,7 @@ class Walk:
     @contextmanager
     def step(self, caller: Caller, name: str):
         caller.step = name
+        caller.check_screen()  # Every lesson, page and checkpoint: the full hint row, unconditionally.
         try:
             yield
         except Walked:
