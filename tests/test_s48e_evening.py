@@ -62,6 +62,7 @@ class Caller:
         self.terminals = {kind: FakeTerminal(width, height) for kind in self.models}
         self.log: list[dict] = []
         self.toasts: list[str] = []
+        self.checked = None  # What the hint row was last checked from.
         self.step = 'connect'
         self.connected_at = self.now()
 
@@ -105,7 +106,14 @@ class Caller:
         self.models['legacy'].key(key, now)  # Its own frames are not sent: one client per caller.
         for frame in frames:
             self.game.core.receive(self.session, frame)
-        self.check_screen()
+        body = self.body()
+        drawn = repr((body.get('hint'), body.get('focus'), body.get('jack_focus'), body.get('objective'),
+                      body.get('lesson'), self.toasts, self.step))
+        # A step on the map redraws the hint row only when what it is made of
+        # changes; every other key, and every such change, is checked.
+        if key not in ARROWS.values() or drawn != self.checked:
+            self.checked = drawn
+            self.check_screen()
 
     def check_focus(self) -> None:
         """Terminal UI 11: whatever E acts on is named, never by an internal id."""
