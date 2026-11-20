@@ -110,7 +110,8 @@ class Panels:
         names only, the most specific first and the zone last. A name equal to
         one already shown (a counter named for its room) shows once; a field
         with no display name (a tile, a sector) is dropped, never shown as an id.
-        An item to collect leads; a supply's source leaves it out (`with_item`)."""
+        An item leads when shown (`with_item`): a Next line shows it only for a
+        stage with no label, and a supply's source never does."""
         content = self.owner.content
         get = lambda key: getattr(target, key, None)
         zone = content.zones.get(get('zone') or '')
@@ -134,6 +135,12 @@ class Panels:
             if name and name not in shown:
                 shown.append(name)
         return ', '.join(shown)
+
+    def next_line(self, stage: Any, target: Any) -> str:
+        """The card's Next line. The item shows in the place part only when the
+        stage has no label of its own to name it (presentation lead)."""
+        where = self.place(target, with_item=not stage.label)
+        return 'Next: '+(stage.label or stage.verb)+('; '+where if where else '')
 
     def board_of(self, giver: str) -> str:
         """S48e (item a): a giver's board by display name: a faction's short
@@ -283,8 +290,7 @@ class Panels:
                     actions.insert(0, {'key': 'e', 'label': granted[1]})
                 progress = instance.stages[instance.index]
                 target = progress.stage.target
-                where = self.place(target)
-                detail.insert(0, 'Next: '+(progress.stage.label or progress.stage.verb)+('; '+where if where else ''))
+                detail.insert(0, self.next_line(progress.stage, target))
                 detail.insert(1, f'Progress: {sum(progress.counts.values())}/{len(progress.targets)}; '
                     +('retry allowed' if progress.stage.retry else 'no retry'))
                 restraint = progress.stage.verb == 'clear' and progress.stage.resolution == 'subdue'

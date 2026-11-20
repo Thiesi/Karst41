@@ -6,7 +6,9 @@ with no display name is dropped. The targets are the four lines of Vesper's
 first job below.
 """
 
+from dataclasses import replace
 from pathlib import Path
+import re
 from types import SimpleNamespace
 
 import pytest
@@ -53,6 +55,28 @@ def test_vesper_first_job_card_lines_match_the_presentation_leads_targets(conten
     game.commit_commerce()
     assert job().state == 'complete'
     assert card(game, caller, iid)[0] == "Next: return to Vesper's board."
+
+
+def test_a_labelled_stage_leaves_its_item_to_the_label_and_an_unlabelled_one_names_it(content):
+    panels = HeadlessServer(content, character_state={}).core.contracts.panels
+    collect = next(s for s in content.contracts['vesper-first-thing'].stages if s.id == 'collect-parcel')
+    assert panels.next_line(collect, collect.target) == "Next: Collect Vesper's parcel; Vesper parcel shelf, Block Street"
+    bare = replace(collect, label='')
+    assert panels.next_line(bare, bare.target) == 'Next: fetch; Stuck-door Package, Vesper parcel shelf, Block Street'
+
+
+def test_no_shipped_next_line_leaves_a_stray_separator(content):
+    panels = HeadlessServer(content, character_state={}).core.contracts.panels
+    for job in content.contracts.values():
+        for stage in job.stages:
+            for shown in (stage, replace(stage, label='')):
+                line = panels.next_line(shown, stage.target)
+                head = 'Next: '+(shown.label or shown.verb)
+                assert line.startswith(head), (job.id, stage.id, line)
+                rest = line[len(head):]  # A label may hold its own ';'; the place part may not stray.
+                assert rest == '' or rest.startswith('; ') and rest[2:].strip(), (job.id, stage.id, line)
+                assert not re.search(r'[;,]\s*$|[;,]\s*[;,]|^; ,', rest), (job.id, stage.id, line)
+                assert ';' not in rest[2:], (job.id, stage.id, line)
 
 
 def test_no_shipped_objective_shows_an_id(content):
