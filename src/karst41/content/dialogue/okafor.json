@@ -24,18 +24,25 @@
       "required": true
     },
     {
+      "id": "ask-clinic",
+      "text": "Clinic Row, out the door. Fitting's a fifth of the part's price, on top of the part if they sell it. Two in a hundred don't take: the part's gone and you shake a while. The counter shows the real sum.",
+      "when": [],
+      "required": false
+    },
+    {
       "id": "greeting",
-      "text": "Up you get. You can read the clinic terms before you sit down. Nobody needs a speech from me as well.",
+      "text": "Up you get. Ask me about the clinic before you sit down. Nobody needs a speech from me as well.",
       "when": [],
       "required": true
     }
   ],
   "offers": [
     {
-      "kind": "service",
-      "ref": "sablier-clinic",
-      "label": "Clinic terms",
-      "hotkey": "s",
+      "kind": "ask",
+      "label": "What does the clinic charge?",
+      "hotkey": "a",
+      "ref": "ask-clinic",
+      "asks": "What does the clinic charge?",
       "when": []
     }
   ],

@@ -16,10 +16,7 @@ def test_game_5_1_whole_zone_pocket_protects_clinic_but_contested_requires_regio
     clinic = replace(source, id='test-clinic', tile=zone.meta.spawn)
     meta = replace(zone.meta, objects=(*zone.meta.objects, clinic), safety='pocket', pockets=())
     tree.zones[zone.id] = replace(zone, meta=meta)
-    # S48e: this synthetic clinic at the spawn is bound to Okafor's "Clinic
-    # terms" but out of her reach, which the talker-reach check reports. That
-    # check has its own tests; this one is about the clinic's safety only.
-    assert [p for p in validate(tree) if 'more than 2 tiles from every counter' not in p.message] == []
+    assert validate(tree) == []
     world = World(tree, {zid: 0 for zid in tree.zones})
     assert world.zones[zone.id].safety_at(clinic.tile) == 'pocket'
     assert not world.zones[zone.id].allows_hostile(clinic.tile)

@@ -2138,7 +2138,9 @@ class _Validator:
         the talker only to a bound counter within two tiles of where the
         talker stands. A talker spawned in a zone that holds a counter bound to
         one of its offers must therefore stand within two tiles of one on every
-        passable tile of its spawn, or that action fails from the talk page."""
+        passable tile of its spawn, or that action fails from the talk page. An
+        offer with no bound counter in the talker's zone at all can never be
+        used and is reported too (technical lead, Okafor's clinic terms)."""
         for zone in self.t.zones.values():
             for sp in zone.meta.spawners:
                 npc = self.t.npcs.get(sp.npc)
@@ -2165,7 +2167,12 @@ class _Validator:
                     else:
                         continue
                     counters = [o.tile for o in zone.meta.objects if o.params.get(key) == value]
-                    far = [tile for tile in tiles if counters and all(
+                    if not counters:
+                        self.report("zones", zone.id, f"spawner {sp.id}: offer {offer.label!r} of talker "
+                                    f"{npc.dialogue}: no counter in this zone is bound to it, so it can "
+                                    "never be used from the talk page", sp.id)
+                        continue
+                    far = [tile for tile in tiles if all(
                         max(abs(tile[0]-c[0]), abs(tile[1]-c[1])) > 2 for c in counters)]
                     if far:
                         self.report("zones", zone.id, f"spawner {sp.id}: offer {offer.label!r} of talker "

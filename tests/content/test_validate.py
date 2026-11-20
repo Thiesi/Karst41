@@ -455,7 +455,9 @@ def _talker(**extra: Any) -> dict:
 def test_dialogue_is_validated(world: World) -> None:
     world.write("dialogue/fx-recruiter.json", _talker())
     world.edit("npcs.json", lambda d: find(d["npcs"], "fx-recruiter").update(dialogue="fx-recruiter"))
-    assert world.messages() == []
+    # S48e: the fixture zone has no board for the talker's contract, which the
+    # talker-reach check reports; this test is about the talker's own rules.
+    assert [m for m in world.messages() if 'no counter in this zone is bound to it' not in m] == []
 
     talker = _talker()
     talker["lines"].reverse()
