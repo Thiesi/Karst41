@@ -105,12 +105,29 @@ class Evening:
     async def settled(self, conn: Connection) -> None:
         await wait(lambda: conn.session.ack_revision == conn.session.view_revision, 15)
 
-    async def press(self, conn: Connection, data: bytes, until: Any = None, timeout: float = 15) -> None:
+    async def press(self, conn: Connection, data: bytes, until: Any = None, timeout: float = 15,
+                    tries: int = 1) -> None:
+        """A key, then its effect. A menu choice carries the view revision it
+        was made on and the server drops it if the view moved meanwhile (a
+        wanderer, an ICE tick), so a choice may be pressed again, up to
+        `tries` times, and only while its effect has not happened."""
+        for attempt in range(tries):
+            await self.settled(conn)
+            await conn.caller.write(data)
+            if until is None:
+                break
+            try:
+                await wait(until, timeout/tries)
+                break
+            except TimeoutError:
+                if attempt == tries-1 or until():
+                    raise
         await self.settled(conn)
-        await conn.caller.write(data)
-        if until is not None:
-            await wait(until, timeout)
-        await self.settled(conn)
+
+    def confirming(self, conn: Connection) -> Any:
+        """The board's confirmation is up (after A or T)."""
+        panels = self.core.contracts.panels
+        return lambda: getattr(panels.menus.get(conn.session.id), 'confirmation', None) is not None
 
     async def beside(self, conn: Connection, tile: Any) -> None:
         """Walk to the nearest free tile next to a tile (or a moving actor's tile)."""
@@ -196,7 +213,7 @@ class Evening:
             await asyncio.sleep(1.5)
         await self.press(conn, b'e', lambda: self.shows(conn, 'Your decant record'))
         wake = self.probe.game.wakes[conn.session.id]
-        await self.press(conn, ENTER, lambda: wake.lessons.get('lifted'), 20)
+        await self.press(conn, ENTER, lambda: wake.lessons.get('lifted'), 30, tries=3)
         deadline = time.monotonic()+30
         while pid in lat.presences:
             assert time.monotonic() < deadline, 'B did not leave the training core'
@@ -214,7 +231,7 @@ class Evening:
         await self.capture(conn, 'record', name)
         for index in range(archetype):
             await self.press(conn, DOWN, lambda index=index: wake.cursor == index+1)
-        await self.press(conn, ENTER, lambda: self.shows(conn, 'Name (Enter keeps default):'), 30)
+        await self.press(conn, ENTER, lambda: self.shows(conn, 'Name (Enter keeps default):'), 30, tries=3)
         pid = conn.session.player_id
         await self.press(conn, name.encode()+ENTER,
                          lambda: pid in self.probe.game.players and not self.probe.game.unread(pid), 30)
@@ -248,8 +265,8 @@ class Evening:
         chits = player.chits_hand
         await self.board(conn)
         await self.cursor_to(conn, self.job(conn, template).id)
-        await self.press(conn, b't')
-        await self.press(conn, b'y', lambda: self.job(conn, template).state == 'turned_in')
+        await self.press(conn, b't', self.confirming(conn), tries=3)
+        await self.press(conn, b'y', lambda: self.job(conn, template).state == 'turned_in', tries=3)
         return player.chits_hand-chits
 
     async def route(self, conn: Connection, *zones: str) -> None:
@@ -263,8 +280,8 @@ class Evening:
         await self.press(conn, b'c', lambda: conn.session.id in self.core.contracts.panels.menus)
         await self.cursor_to(conn, 'vesper-first-thing')
         await self.capture(conn, 'work-board', name)
-        await self.press(conn, b'a')
-        await self.press(conn, b'y', lambda: stage() is not None)
+        await self.press(conn, b'a', self.confirming(conn), tries=3)
+        await self.press(conn, b'y', lambda: stage() is not None, tries=3)
         await self.capture(conn, 'job-accepted', name)
         await self.press(conn, ESC, lambda: conn.session.id not in self.core.contracts.panels.menus)
         await self.route(conn, ROW, 'core-plaza', BLOCKS)
@@ -279,10 +296,10 @@ class Evening:
             await self.press(conn, b'j', lambda: pid in lat.presences)
             await self.capture(conn, 'loan-terminal', name)
             await self.press(conn, b'e', lambda: self.shows(conn, 'Enter Stairwell C cabinet'))
-            await self.press(conn, ENTER, lambda: lat.presences[pid].core == 'lat-stairwell-c', 20)
+            await self.press(conn, ENTER, lambda: lat.presences[pid].core == 'lat-stairwell-c', 30, tries=3)
             await self.press(conn, b'e', lambda: self.shows(conn, 'Release parcel hatch'))
             await self.capture(conn, 'cabinet-controls', name)
-            await self.press(conn, ENTER, lambda: stage().index == 2, 30)
+            await self.press(conn, ENTER, lambda: stage().index == 2, 45, tries=3)
             await self.capture(conn, 'released-by-jack', name)
             deadline = time.monotonic()+30
             while pid in lat.presences:
@@ -307,8 +324,8 @@ class Evening:
         assert offer.template == 'vesper-local-plant', ('the declared seed gave another offer', offer.template)
         await self.cursor_to(conn, offer.id)
         await self.capture(conn, 'generated-offer', name)
-        await self.press(conn, b'a')
-        await self.press(conn, b'y', lambda: self.job(conn, offer.template) is not None)
+        await self.press(conn, b'a', self.confirming(conn), tries=3)
+        await self.press(conn, b'y', lambda: self.job(conn, offer.template) is not None, tries=3)
         await self.press(conn, ESC, lambda: conn.session.id not in owner.panels.menus)
         job = lambda: self.job(conn, offer.template)
         await self.route(conn, ROW, 'core-plaza', BLOCKS)
