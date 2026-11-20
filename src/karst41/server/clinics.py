@@ -156,6 +156,7 @@ class Clinics:
 
     def close(self, session: Session) -> None:
         self.menus.pop(session.id,None)
+        self.commerce.reach.pop(session.id,None)  # S48e: a talk page's reach closes with its menu.
         self.sim.external_views.pop(session.id,None)
         self.sim.reset_view(session,self.sim.avatars[session.user_id])
 

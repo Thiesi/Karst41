@@ -508,3 +508,32 @@ runner contract with the creative lead's fixes.
   item; Ghost's rig is in the body and gets none.
 - **Dialogue before the record:** talking needs `Commerce.present` (in
   the body, free to act); everything that writes still needs `ready`.
+
+## Implementation notes (PR #TBD, S48e)
+
+### Edge cases (technical lead's rulings on the S48e walk)
+
+- **Talk-page actions reach through the talker** (finding 1, technical
+  lead, 2026-11-19, option B; game design 3.x lets a caller talk from one
+  tile away and never asks for the counter as well). A Work board, Trade or
+  service chosen on a talk page opened in person passes reach when the
+  caller is within one tile of the talker or of the counter. It resolves to
+  the counter bound to that talker in the same zone (the offer's vendor
+  object, or the giver's `contract_handler`; one beside the caller first,
+  else the one nearest the talker). Through the talker it reaches only
+  their own counter: a bound counter more than two tiles from where the
+  talker stands is refused with the usual copy, so the Halo contract board
+  at (38,3), which also names Vesper as handler, is never opened from her
+  talk page (technical lead, 2026-11-20). The validator holds every
+  talker spawned beside a bound counter within two tiles of it on each
+  tile of its spawn, so the dormant talkers cannot ship out of reach.
+  The menu it opens stays in reach while
+  the caller stays on the tile they chose it from, so a talker wandering
+  off mid-trade cuts nobody off. Only the distance check changed: Marked,
+  resident-only access, the unread body, lattice contacts and commerce
+  contention refuse as before, and using a counter directly is unchanged.
+  The reach lives in `Commerce.reach`, beside the menus, not on them, so
+  no menu record and no P3 digest moved. It ends when its menu closes, on
+  disconnect, and on the first tick the caller is off that tile, even if
+  they come back to it. Talkers bound to a counter today: Vesper (Tin
+  Halo) and Lindgren (Precinct quartermaster).

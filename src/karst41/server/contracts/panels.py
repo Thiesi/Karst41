@@ -73,6 +73,7 @@ class Panels:
 
     def close(self, session: Session) -> None:
         self.menus.pop(session.id, None)
+        self.owner.commerce.reach.pop(session.id, None)  # S48e: a talk page's reach closes with its menu.
         self.sim.external_views.pop(session.id, None)
         self.sim.published.pop(session.id, None)
         session.needs_full_view = True
@@ -354,8 +355,11 @@ class Panels:
             obj = owner.commerce.nearby(session, panel.target)
             if not obj.spec.params.get('trade_counter') or not obj.spec.params.get('vendor'):
                 raise ValueError('That board has no trade counter.')
+            reach = owner.commerce.reach.get(session.id)
             self.close(session)
             owner.commerce.menus[session.id] = CommerceMenu('vendor', obj.spec.id, opened=owner.clock.now_tick())
+            if reach is not None:
+                owner.commerce.reach[session.id] = reach  # The trade inherits the board's reach (S48e).
         elif key == 'j':
             panel.tab = 'jobs' if panel.tab == 'journal' else 'journal'
             panel.cursor, panel.page, panel.prose = 0, 0, False

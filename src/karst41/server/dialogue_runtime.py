@@ -303,17 +303,52 @@ class Dialogue:
         # P12: no 'b Back' action; b and Esc close the page in the client.
         self.sim.external_views[session.id] = 'menu', body
 
-    def board(self, session: Session, giver: str, wanted: str = '') -> None:
+    def counter(self, session: Session, bound: Callable[[Any], bool]) -> str:
+        """The counter a talk-page action uses (technical lead, S48e finding 1):
+        one beside the caller, as before, or, when the caller stands within one
+        tile of the talker they opened the page at in person, the bound counter
+        in the same zone nearest that talker and within two tiles of where the
+        talker stands now (their own counter). Records the reach for the menu it
+        opens; every other check (Marked, residents, contention) is unchanged."""
+        self.commerce.reach.pop(session.id, None)
         actor = self.sim.avatars[session.user_id].actor
-        objects = self.world.zones[actor.zone].objects.values()
-        target = next((obj.spec.id for obj in objects
-                       if obj.spec.params.get('contract_handler') == giver
-                       and max(abs(obj.spec.tile[0]-actor.x), abs(obj.spec.tile[1]-actor.y)) <= 1), '')
+        contact = self.menus[session.id].contact
+        talker = (self.world.zones[actor.zone].actors.get(contact.target)
+                  if contact.zone == actor.zone and not contact.lattice else None)
+
+        def apart(tile: tuple[int, int]) -> int:
+            return max(abs(tile[0]-actor.x), abs(tile[1]-actor.y))
+        reach = talker is not None and apart(talker.position) <= 1
+
+        def own(tile: tuple[int, int]) -> bool:
+            # The talker's own counter: within 2 of where they stand now, not
+            # any object in the zone that shares their handler (TL, S48e).
+            return reach and max(abs(tile[0]-talker.x), abs(tile[1]-talker.y)) <= 2
+        counters = [obj for obj in self.world.zones[actor.zone].objects.values()
+                    if bound(obj) and (apart(obj.spec.tile) <= 1 or own(obj.spec.tile))]
+        # Beside the caller first, in the old order; then nearest the talker.
+        counters.sort(key=lambda obj: (0, 0) if apart(obj.spec.tile) <= 1 else
+                      (1, max(abs(obj.spec.tile[0]-talker.x), abs(obj.spec.tile[1]-talker.y))))
+        if not counters:
+            return ''
+        target = counters[0].spec.id
+        self.commerce.reach[session.id] = actor.zone, target, actor.position
+        return target
+
+    def board(self, session: Session, giver: str, wanted: str = '') -> None:
+        target = self.counter(session, lambda obj: obj.spec.params.get('contract_handler') == giver)
+        reach = self.commerce.reach.get(session.id)
         panels = self.core.contracts.panels
-        handler = panels.station(session, target)
+        try:
+            handler = panels.station(session, target)
+        except ValueError:
+            self.commerce.reach.pop(session.id, None)
+            raise
         panel = ContractPanel(self.clock.now_tick(), target, handler)
         self.close(session)
         panels.menus[session.id] = panel
+        if reach is not None:
+            self.commerce.reach[session.id] = reach
         rows = panels.rows(session, panel)
         panel.cursor = next((index for index, row in enumerate(rows) if row['id'] == wanted), 0)
 
@@ -370,23 +405,32 @@ class Dialogue:
         elif offer.kind in ('vendor', 'service'):
             actor = self.sim.avatars[session.user_id].actor
             contact = self.menus[session.id].contact
-            counters = sorted((obj for obj in self.world.zones[actor.zone].objects.values()
-                               if obj.spec.params.get('vendor') == offer.ref
-                               and max(abs(obj.spec.tile[0]-actor.x), abs(obj.spec.tile[1]-actor.y)) <= 1),
-                              key=lambda obj: (obj.spec.id != contact.target,
-                                               obj.spec.tile != actor.position, obj.spec.id))
-            if not counters:
+            self.commerce.reach.pop(session.id, None)
+            beside = sorted((obj for obj in self.world.zones[actor.zone].objects.values()
+                             if obj.spec.params.get('vendor') == offer.ref
+                             and max(abs(obj.spec.tile[0]-actor.x), abs(obj.spec.tile[1]-actor.y)) <= 1),
+                            key=lambda obj: (obj.spec.id != contact.target,
+                                             obj.spec.tile != actor.position, obj.spec.id))
+            target = (beside[0].spec.id if beside else
+                      self.counter(session, lambda obj: obj.spec.params.get('vendor') == offer.ref))
+            if not target:
                 raise ValueError('Stand beside that counter before choosing its terms.')
-            target = counters[0].spec.id
-            self.commerce.vendor(session, target)
-            if offer.kind == 'service':
-                self.core.progression.clinics.counter(session, target)
-            self.close(session)
-            if offer.kind == 'service':
-                self.core.progression.clinics.open(session, target)
-            else:
-                self.commerce.menus[session.id] = CommerceMenu('vendor', target,
-                                                              opened=self.clock.now_tick())
+            reach = self.commerce.reach.get(session.id)
+            try:
+                self.commerce.vendor(session, target)
+                if offer.kind == 'service':
+                    self.core.progression.clinics.counter(session, target)
+                self.close(session)
+                if offer.kind == 'service':
+                    self.core.progression.clinics.open(session, target)
+                else:
+                    self.commerce.menus[session.id] = CommerceMenu('vendor', target,
+                                                                  opened=self.clock.now_tick())
+            except ValueError:
+                self.commerce.reach.pop(session.id, None)
+                raise
+            if reach is not None:
+                self.commerce.reach[session.id] = reach  # Clinics.open closes commerce first.
         elif offer.kind == 'recruit':
             target = self.menus[session.id].contact.target
             factions = self.core.factions.station(session, target)

@@ -178,6 +178,8 @@ class Core:
             self.characters.voice_event = self.walls.event
 
     def _disconnect_character(self, session: Session) -> None:
+        if self.commerce:
+            self.commerce.reach.pop(session.id, None)
         if self.dialogue:
             self.dialogue.close(session)
         if self.events:

@@ -154,6 +154,47 @@ def test_game_9_4_failed_manual_write_preserves_latch_and_retry(repo_root: Path)
     assert hatch.open and owner.state.engine.instances[iid].index == 2
 
 
+def test_game_9_4_first_job_taken_beside_vesper_but_not_her_counter(repo_root: Path) -> None:
+    # S48e finding 1 (technical lead's ruling, item 4): the caller stands at
+    # (8,13), beside Vesper at (9,14) and two tiles from her counter (8,15).
+    from tests.test_s48e_talker_reach import HALO, VESPER, apart, at, talk
+    content = load_content(repo_root/'src/karst41/content')
+    game, caller, _ = at(content, HALO, VESPER, (9,14), (8,13))
+    assert apart((8,13), (8,15)) == 2
+    owner, pid, sid = game.core.contracts, caller.session.player_id, caller.session.id
+    player = owner.game.players[pid]
+    player.progress['wake_combat'] = 'skipped'
+    talk(game, caller)
+    act(game, caller, Frame('key', {'k':'c', 't':0}))
+    panel = owner.panels.menus[sid]
+    rows = owner.panels.rows(caller.session, panel)
+    assert rows[panel.cursor]['id'] == 'vesper-first-thing', [r['id'] for r in rows]
+    act(game, caller, Frame('key', {'k':'a', 't':0}))
+    act(game, caller, Frame('key', {'k':'y', 't':0}))
+    game.commit_commerce()
+    iid = next(iid for iid, j in owner.state.engine.instances.items() if j.template == 'vesper-first-thing')
+    job = lambda: owner.state.engine.instances[iid]  # A commit replaces the instance.
+    assert pid in {p.player for p in job().roster}
+    # The rest of the job runs as before; delivery is at the counter.
+    place(game, caller, 'terraces-blocks', (71,25))
+    for index in (0, 1):
+        owner.actions.perform(caller.session, iid, job().stages[index].targets[0])
+        game.step(50)
+        game.commit_commerce()
+        assert job().index == index+1
+    place(game, caller, 'terraces-blocks', (72,24))
+    owner.actions.perform(caller.session, iid, job().stages[2].targets[0])
+    game.commit_commerce()
+    place(game, caller, HALO, (8,14))
+    act(game, caller, Frame('key', {'k':'e', 't':0}))
+    game.commit_commerce()
+    assert job().state == 'complete'
+    chits = player.chits_hand
+    owner.claim(iid, pid)
+    game.commit_commerce()
+    assert player.chits_hand-chits == (220 if player.archetype == 'operator' else 200)
+
+
 def test_game_9_4_vesper_job_counter_keeps_trade_available(repo_root: Path) -> None:
     game, caller, owner, iid = first_job(repo_root)
     place(game, caller, 'sodium-tin-halo', (8,14))
