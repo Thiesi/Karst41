@@ -3,12 +3,13 @@
 from karst41.server.interaction import Interaction, interact, object_interaction
 from dataclasses import dataclass
 from math import ceil
+from collections import Counter
 import textwrap
 from types import SimpleNamespace
 from typing import Any
 
 from karst41.layout import compute as screen_layout
-from karst41.server.contracts.engine import Instance, Payment
+from karst41.server.contracts.engine import Instance, Payment, target_key
 from karst41.server.contracts.requirements import describe as describe_requirement
 from karst41.server.protocol import Frame
 from karst41.server.commerce import CommerceMenu
@@ -289,7 +290,12 @@ class Panels:
                 if granted := self.granted(session, panel, instance):
                     actions.insert(0, {'key': 'e', 'label': granted[1]})
                 progress = instance.stages[instance.index]
-                target = progress.stage.target
+                # S48e walk: the place this job drew from its stage's pool, not
+                # the stage's first candidate; the first one not yet done.
+                quota = Counter(target_key(t) for t in progress.targets)
+                target = next((t for t in progress.targets
+                               if progress.counts.get(target_key(t), 0) < quota[target_key(t)]),
+                              progress.targets[0])
                 detail.insert(0, self.next_line(progress.stage, target))
                 detail.insert(1, f'Progress: {sum(progress.counts.values())}/{len(progress.targets)}; '
                     +('retry allowed' if progress.stage.retry else 'no retry'))

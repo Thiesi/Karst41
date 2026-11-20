@@ -116,3 +116,32 @@ def test_the_journal_card_names_where_the_record_was_made(content):
     lines = owner.panels.card(caller.session, panel, 'stairwell-c-latch-record')[0]
     where = [line for line in lines if line.startswith('Where: ')]
     assert where == ['Where: Stairwell C parcel hatch, Block Street'], (record['location'], lines)
+
+
+def test_a_generated_job_names_the_place_it_drew_not_its_first_candidate(content):
+    # S48e walk: Vesper's offer 0 at the walk's clock is "Mark the service
+    # approaches"; its plant stage drew the Halo contract board from its pool,
+    # while the stage's first candidate is the lobby concierge. The card sent
+    # a first-time caller to the lobby, where E only looks at the concierge.
+    from tests.character_helpers import create
+    game = HeadlessServer(content, character_state={})
+    caller = game.connect({'user_id': 1, 'handle': 'Planter', 'node_name': 'S48e'})
+    create(game, caller, card='none')
+    owner, pid = game.core.contracts, caller.session.player_id
+    owner.game.players[pid].progress['wake_combat'] = 'skipped'
+    offer = owner.offers('vesper')[0]
+    assert offer.template == 'vesper-local-plant'
+    proposal = owner.propose(pid, offer, (pid,))
+    owner.consent(proposal.id, pid)
+    owner.start(proposal.id, pid)
+    game.commit_commerce()
+    iid = next(i for i, j in owner.state.engine.instances.items() if j.template == 'vesper-local-plant')
+    job = lambda: owner.state.engine.instances[iid]
+    place(game, caller, 'terraces-blocks', game.core.world.free_tile('terraces-blocks', (103, 11)))
+    owner.actions.perform(caller.session, iid, job().stages[0].targets[0])
+    game.commit_commerce()
+    progress = job().stages[job().index]
+    assert progress.stage.id == 'plant' and progress.targets[0] != progress.stage.target
+    drawn = progress.targets[0]
+    assert (drawn.zone, drawn.object) == ('sodium-tin-halo', 'halo-contract-board')
+    assert card(game, caller, iid)[0] == 'Next: Plant the supplied unit; Halo contract board, The Tin Halo'
