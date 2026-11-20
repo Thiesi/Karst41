@@ -145,3 +145,20 @@ def test_enter_on_the_training_room_lifts_after_the_cooldown_ticked():
     walk.game.core.receive(caller.session, frame)
     walk.tick(45)
     assert walk.game.core.characters.wakes[caller.session.id].lessons.get('lifted')
+
+
+def test_a_refused_stale_choice_returns_the_current_view():
+    # Architecture: a stale allocation, market purchase or finale selection
+    # returns the current detail view without spending or selecting a
+    # different row. The refusal re-sends the whole current view.
+    game = HeadlessServer()
+    client = game.connect()
+    session = client.session
+    seen = published(session, 1, menu(cells={'one': ['Patch', '12 ch']}))
+    published(session, 2, menu(cells={'one': ['Patch', '15 ch']}))
+    game.frames_for(client)
+    assert not session.fresh(seen) and session.needs_full_view
+    shown = published(session, 3, menu(cells={'one': ['Patch', '15 ch']}))
+    frames = [f for f in game.frames_for(client) if f.type in ('view', 'delta')]
+    assert frames and frames[-1].type == 'view' and frames[-1].data['rev'] == shown
+    assert not session.needs_full_view

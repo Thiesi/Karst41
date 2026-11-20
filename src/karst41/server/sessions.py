@@ -246,7 +246,13 @@ class Session:
         if expected == self.view_revision:
             return True
         state = self.choices.get(expected) if type(expected) is int else None
-        return state is not None and state == self.choices.get(self.view_revision)
+        if state is not None and state == self.choices.get(self.view_revision):
+            return True
+        # Architecture (02-architecture.md): a stale selection returns the current detail view
+        # without spending or selecting a different row. The guard refuses it;
+        # the whole current view goes out again on the next tick.
+        self.needs_full_view = True
+        return False
 
     def acknowledge(self, revision: int) -> None:
         if self.ack_revision <= revision <= self.view_revision:
