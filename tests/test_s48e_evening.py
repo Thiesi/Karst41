@@ -664,8 +664,15 @@ def test_the_first_evenings_death_wakes_in_the_nearest_vat_and_settles(evening):
 
 
 def test_the_first_evenings_death_gets_no_wall_line_once_the_cap_is_spent(evening):
-    # Technical lead: the true first-evening experience. The cap (3) is spent
-    # on the way (w14, w26, w18); a finding for the re-rank, not a fix here.
+    # Pins the cap: once three wall lines are spent (w14, w26, w18 here; a
+    # pair counts as one), the decant's w11 is silent. A finding for the
+    # re-rank, not a fix here. This walk is not the only realistic path: it
+    # crosses both Row regions with P8's budget open, w26 going to the Halo
+    # through the north and w18 coming back along y=27. In all six native
+    # runs at 790a385b a Sodium regular's bark held the 20 s budget during
+    # one of those three-second crossings, so only one region line came and
+    # w11 fired at the decant as the third (presentation lead, 7054104805).
+    # A caller who lingers in the regions is likelier to meet this walk's case.
     walls = evening['walls']['Noor']
     assert len(walls) == 3 and not {'w10', 'w11'} & set(walls), walls
 
