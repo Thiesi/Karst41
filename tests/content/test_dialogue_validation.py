@@ -33,7 +33,9 @@ def test_game_13_4_clinic_vendor_is_a_valid_service_reference(content: ContentTr
     tree = deepcopy(content)
     tree.dialogue['vesper'] = replace(tree.dialogue['vesper'],
         offers=(Offer('service', 'Surgery', 's', 'sablier-clinic'),))
-    assert validate(tree) == []
+    # S48e: the Halo has no clinic counter, so the talker-reach check reports
+    # the offer as never usable; this test is about the reference alone.
+    assert [p for p in validate(tree) if 'no counter in this zone is bound to it' not in p.message] == []
 
 
 def test_game_13_4_unknown_terminal_and_cell_talker_references_fail(content: ContentTree) -> None:

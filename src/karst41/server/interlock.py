@@ -491,7 +491,7 @@ class Interlock:
         if session.id in self.log_menus:
             if name == "menu_close" or key in ("escape", "b", "B"):
                 self.close(session)
-            elif name == "menu_select" and frame.data.get("expected_revision") == session.view_revision:
+            elif name == "menu_select" and session.fresh(frame.data.get("expected_revision")):
                 body = self.sim.external_views[session.id][1]
                 args = frame.data.get("args", {})
                 if args.get("key") == "r" and body["rows"] and args.get("row") == body["rows"][body["cursor"]]["id"]:
@@ -510,7 +510,7 @@ class Interlock:
             return True
         screen = self.menus.get(session.id)
         if screen:
-            if name == "menu_select" and frame.data.get("expected_revision") != session.view_revision:
+            if name == "menu_select" and not session.fresh(frame.data.get("expected_revision")):
                 return True
             zid, oid, confirming = screen
             if name == "menu_close" or key in ("escape", "b", "B"):

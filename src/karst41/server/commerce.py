@@ -44,6 +44,14 @@ class Commerce:
         self.caches: dict[str, dict[str, Any]] = deepcopy(state.get("caches", {}))
         self.serial = state.get("item_serial", 0)
         self.menus: dict[str, CommerceMenu] = {}
+        self.reach: dict[str, tuple[str, str, tuple[int, int]]] = {}
+        """S48e (technical lead, finding 1): talk-page actions reach through the
+        talker. A counter menu opened from a talk page in person stays in reach
+        while the caller stands on the tile they chose it from, as well as
+        beside the counter. Session id -> (zone, counter id, that tile). Held
+        beside the menus rather than on them, so no menu record (and no P3
+        digest) changes; it goes when the menu that carries it closes, on
+        disconnect, and on the first tick the caller is off that tile."""
         # S44: a service's refusal line by handler (Vesper's for a Mark).
         self.service_refusal: Callable[[Session, str], str | None] = lambda session, handler: None
         self.prompts: dict[str, dict[str, Any]] = {}
@@ -85,6 +93,7 @@ class Commerce:
 
     def close(self, session: Session) -> None:
         self.menus.pop(session.id, None)
+        self.reach.pop(session.id, None)
         self.prompts.pop(session.id, None)
         self.using.pop(session.id, None)
         self.sim.external_views.pop(session.id, None)
@@ -93,7 +102,8 @@ class Commerce:
     def nearby(self, session: Session, target: str) -> Any:
         av = self.sim.avatars[session.user_id]
         obj = self.sim.world.zones[av.zone].objects.get(target)
-        if obj is None or max(abs(obj.spec.tile[0]-av.actor.x), abs(obj.spec.tile[1]-av.actor.y)) > 1:
+        if obj is None or (max(abs(obj.spec.tile[0]-av.actor.x), abs(obj.spec.tile[1]-av.actor.y)) > 1
+                           and self.reach.get(session.id) != (av.zone, target, av.actor.position)):
             raise ValueError("Move next to the counter or cache.")
         if not self.game.world.object_access(av.actor, obj.spec):
             raise ValueError("Only the resident may use this room's services.")
@@ -557,7 +567,7 @@ class Commerce:
                 elif name == "menu_cursor" and type(args.get("delta")) is int:
                     screen.cursor = max(0, min(screen.cursor + args["delta"], len(self.body(session, screen)["rows"])-1))
                 elif name == "menu_select":
-                    if frame.data.get("expected_revision") != session.view_revision: return True
+                    if not session.fresh(frame.data.get("expected_revision")): return True
                     request = frame.data.get("request_id", "")
                     if request and request in self.requests.get(session.id, []): return True
                     self.requests.setdefault(session.id, []).append(request)
@@ -708,6 +718,13 @@ class Commerce:
         now = self.clock.now_utc().timestamp()
         self.requests = {sid: rows for sid,rows in self.requests.items() if sid in self.game.sessions.active}
         self.prompts = {sid: prompt for sid,prompt in self.prompts.items() if sid in self.game.sessions.active}
+        for sid, (zone, _, tile) in tuple(self.reach.items()):
+            # S48e: a talk page's reach ends once the caller leaves its tile or the
+            # city, even if they come back to the same tile later (no stale grant).
+            session = self.game.sessions.active.get(sid)
+            av = self.sim.avatars.get(session.user_id) if session else None
+            if av is None or (av.zone, av.actor.position) != (zone, tile):
+                del self.reach[sid]
         for session in ctx.sessions:
             av = self.sim.avatars.get(session.user_id)
             if av and session.player_id in self.game.players:
@@ -737,7 +754,8 @@ class Commerce:
         for sid, screen in tuple(self.menus.items()):
             session = self.game.sessions.active.get(sid)
             if session is None or not self.ready(session):
-                self.menus.pop(sid); self.prompts.pop(sid,None); self.sim.external_views.pop(sid,None); continue
+                self.menus.pop(sid); self.prompts.pop(sid,None); self.sim.external_views.pop(sid,None)
+                self.reach.pop(sid, None); continue  # S48e: the grant goes with its menu.
             av = self.sim.avatars[session.user_id]
             if ctx.tick-screen.opened >= MENU_TIMEOUT_SECONDS*TICK_HZ and self.sim.world.zones[av.zone].allows_hostile(av.actor.position):
                 self.close(session); continue

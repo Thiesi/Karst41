@@ -820,7 +820,7 @@ class Characters:
                 wake.stage = "hall"  # The record closes; the hall goes on.
                 self._reset_view(session)
             elif name == "menu_select":
-                if frame.data.get("expected_revision", session.view_revision) != session.view_revision:
+                if not session.fresh(frame.data.get("expected_revision", session.view_revision)):
                     wake.dirty = True
                     return True
                 wake.archetype, wake.stage, wake.error = rules.ARCHETYPES[wake.cursor][0], "name", ""
@@ -932,7 +932,7 @@ class Characters:
                 self.screens[session.id] = ("sheet", max(0, min(last, cursor + frame.data.get("args", {}).get("delta", 0))))
                 self.dirty_screens.add(session.id)
             elif (name == "menu_select" and frame.data.get("args", {}).get("key") == "s"
-                  and frame.data.get("expected_revision") == session.view_revision
+                  and session.fresh(frame.data.get("expected_revision"))
                   and hasattr(self, "progression")):
                 self.progression.open_skills(session)
         elif key in ("p", "P"):

@@ -66,6 +66,7 @@ class Display:
         # S44: a rule's price, stated before it is paid (terminal UI 2.1).
         self.notice_price = False  # The shown notice is a price notice.
         self.price_noticed = False  # The first-target notice, once per session.
+        self.truce_keeper: str | None = None  # The truce of the zone view last drawn (S48e).
         # Notices waiting their turn (text, role, seconds, price). A price
         # notice waits behind an unread notice. An ordinary notice shows at
         # once, and an interrupted price notice comes back after it. Price
@@ -177,6 +178,7 @@ class Display:
         elif frame.type == "pong":
             return []
         if frame.type in ("view", "delta"):
+            self._truce_left(now)
             self._target_price(now)
         new_hit = self.body.get("me",{}).get("hit_serial")
         if old_hit is not None and new_hit is not None and new_hit != old_hit:
@@ -370,6 +372,26 @@ class Display:
             self._queue((text, 'warning', NOTICE_SECONDS, True))
         else:
             self._show(text, 'warning', NOTICE_SECONDS, True, now)
+
+    def _truce_left(self, now: float) -> None:
+        """S48e (presentation lead): a truce zone's price notices end with the
+        zone. Leaving it, by an exit or a decant, drops them, shown or queued,
+        so a rule never stays on the hint row where it doesn't apply. The
+        once-per-session first-target notice is not shown again."""
+        if self.kind != 'zone':
+            return
+        keeper = self.body.get('me', {}).get('truce') or None
+        left, self.truce_keeper = self.truce_keeper, keeper
+        if not left or left == keeper:
+            return
+        prices = {truce_text.arrival(left), truce_text.at_player(), truce_text.at_npc(left)}
+        self.notice_queue = deque(entry for entry in self.notice_queue if entry[0] not in prices)
+        if self.toast is not None and self.toast[0] in prices:
+            self.toast = None
+            self.notice_price = False
+            self.dirty = True
+            if self.notice_queue:
+                self._show(*self.notice_queue.popleft(), now)
 
     def _queue(self, entry: tuple[str, str, float, bool]) -> None:
         self.notice_queue.append(entry)

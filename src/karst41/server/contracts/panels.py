@@ -3,11 +3,13 @@
 from karst41.server.interaction import Interaction, interact, object_interaction
 from dataclasses import dataclass
 from math import ceil
+from collections import Counter
 import textwrap
+from types import SimpleNamespace
 from typing import Any
 
 from karst41.layout import compute as screen_layout
-from karst41.server.contracts.engine import Instance, Payment
+from karst41.server.contracts.engine import Instance, Payment, target_key
 from karst41.server.contracts.requirements import describe as describe_requirement
 from karst41.server.protocol import Frame
 from karst41.server.commerce import CommerceMenu
@@ -31,17 +33,50 @@ class Panel:
     prose: bool = False
 
 
+# S48e finding 2: the board action's word, by stage (presentation lead's table;
+# the same at 80x24 and 132x50).
+GRANTED_LABELS = {('fetch', 'delivered'): 'hand over', ('fetch', 'carried'): 'take',
+                  'survey': 'inspect', 'plant': 'plant'}
+
+
+def granted_label(stage: Any) -> str | None:
+    return GRANTED_LABELS.get((stage.verb, stage.completion)) or GRANTED_LABELS.get(stage.verb)
+
+
 def takes_turnin(handler: str, instance: Instance) -> bool:
     return handler == instance.giver or (handler == 'vesper' and not instance.service)
 
 
-def payment(payment: Payment) -> str:
+# S48e (presentation lead, ruling (a)): a faction's name and its number stay on
+# one row. The detail wrap keeps this space whole and shows a plain space.
+KEEP = chr(0xA0)  # A no-break space.
+
+
+def payment(payment: Payment, content: Any) -> str:
+    """A reward in display names only (ruling (a)): factions by their short
+    name, or "+5 with every faction" when every faction moves alike; items and
+    programs by name."""
     text = f'{payment.chits} chits; {payment.xp} XP'
-    if payment.standing:
-        text += '; ' + ', '.join(f'{fid} {value:+d}' for fid, value in payment.standing.items())
-    if payment.items or payment.programs:
-        text += '; '+', '.join((*payment.items, *payment.programs))
+    standing = payment.standing
+    if standing:
+        values = set(standing.values())
+        if set(standing) == set(content.factions) and len(values) == 1:
+            text += f'; {values.pop():+d}{KEEP}with{KEEP}every{KEEP}faction'
+        else:
+            text += '; ' + ', '.join(f'{name_of(content.factions, fid, "short")}{KEEP}{value:+d}'
+                                     for fid, value in standing.items())
+    names = [*(name_of(content.items, i) for i in payment.items),
+             *(name_of(content.programs, p) for p in payment.programs)]
+    if names:
+        text += '; '+', '.join(names)
     return text
+
+
+def name_of(table: Any, key: str, field: str = 'name') -> str:
+    """A content entry's display name. Validated content always has one; an
+    unknown key (a broken override) falls back to the key rather than fail."""
+    entry = table.get(key)
+    return getattr(entry, field, None) or key if entry is not None else key
 
 
 def consequences(job: Any) -> list[str]:
@@ -73,9 +108,74 @@ class Panels:
 
     def close(self, session: Session) -> None:
         self.menus.pop(session.id, None)
+        self.owner.commerce.reach.pop(session.id, None)  # S48e: a talk page's reach closes with its menu.
         self.sim.external_views.pop(session.id, None)
         self.sim.published.pop(session.id, None)
         session.needs_full_view = True
+
+    def granted(self, session: Session, panel: Panel, instance: Instance) -> tuple[Any, str] | None:
+        """S48e finding 2 (technical lead, option A): on a board opened through a
+        talker-reach grant, the caller's current stage at that talker's counter
+        (its target and the board action's word), else None."""
+        owner, pid = self.owner, session.player_id
+        if (instance.state != 'active' or pid in instance.withdrawn or not panel.target
+                or pid not in {p.player for p in instance.roster}):
+            return None
+        label = granted_label(instance.stages[instance.index].stage)
+        actor = owner.game.combat.actor(owner.game.players[pid])
+        target = next((t for t in instance.stages[instance.index].targets
+                       if t.kind == 'zone_object' and t.object == panel.target), None)
+        if label is None or target is None or not owner.actions.granted(session, actor, target):
+            return None
+        return target, label
+
+    def place(self, target: Any, with_item: bool = True) -> str:
+        """S48e (presentation lead, item a): where an objective is, in display
+        names only, the most specific first and the zone last. A name equal to
+        one already shown (a counter named for its room) shows once; a field
+        with no display name (a tile, a sector) is dropped, never shown as an id.
+        An item leads when shown (`with_item`): a Next line shows it only for a
+        stage with no label, and a supply's source never does."""
+        content = self.owner.content
+        get = lambda key: getattr(target, key, None)
+        zone = content.zones.get(get('zone') or '')
+        core = content.cores.get(get('core') or '')
+        room = next((r for r in core.rooms if r.id == get('room')), None) if core else None
+        bands = content.silt.bands if content.silt else ()
+        band = next((b for b in bands if b.id == get('band')), None)
+        obj = next((o for o in zone.meta.objects if o.id == get('object')), None) if zone else None
+        npc = content.npcs.get(get('npc') or '')
+        item = content.items.get(get('item') or '') if with_item else None
+        data = next((d for d in (*(room.data if room else ()), *(band.data if band else ()))
+                     if d.id == get('data')), None)
+        cell = next((cell for sector in content.sectors.values() for cell in sector.cells
+                     if cell.id == get('cell')), None) if get('cell') else None
+        shown: list[str] = []
+        for name in (item.name if item else None, obj.params.get('name') if obj else None,
+                     npc.name if npc and npc.presents is None else None,  # Never a cover's real name.
+                     data.label if data else None,
+                     cell.label if cell else None, room.label if room else None, core.name if core else None,
+                     band.name if band else None, zone.meta.name if zone else None):
+            if name and name not in shown:
+                shown.append(name)
+        return ', '.join(shown)
+
+    def next_line(self, stage: Any, target: Any) -> str:
+        """The card's Next line. The item shows in the place part only when the
+        stage has no label of its own to name it (presentation lead)."""
+        where = self.place(target, with_item=not stage.label)
+        return 'Next: '+(stage.label or stage.verb)+('; '+where if where else '')
+
+    def board_of(self, giver: str) -> str:
+        """S48e (item a): a giver's board by display name: a faction's short
+        name, else the talker's (Vesper)."""
+        content = self.owner.content
+        faction = content.factions.get(giver)
+        talker = content.dialogue.get(giver)
+        name = faction.short if faction else talker.name if talker else ''
+        if not name:
+            return 'the board'
+        return name+("'" if name.endswith('s') else "'s")+' board'
 
     def rows(self, session: Session, panel: Panel) -> list[dict[str, Any]]:
         owner, pid = self.owner, session.player_id
@@ -137,12 +237,13 @@ class Panels:
                 asset = owner.content.text.get(row['asset'])
                 return (asset.body.splitlines() if asset else ['No additional source text.']), actions
             actions += [{'key': 'p', 'label': 'source text'}]
-            where = row['location']
-            place = ', '.join(str(where[k]) for k in ('zone', 'object', 'core', 'room', 'data') if where.get(k))
+            place = self.place(SimpleNamespace(**{k: row['location'].get(k)
+                                                  for k in ('zone', 'object', 'core', 'room', 'data')}))
             return [f"Observed: {row['observation']}", f"Source says: {row['source']}: {row['claim']}",
                     f"Open question: {row['question'] or 'No further question recorded.'}",
                     f"Next action: {row['next_action'] or 'Check the current contract objective.'}",
-                    'Where: '+place, 'Publication: '+(row['publication'] or 'not published')], actions
+                    *(['Where: '+place] if place else []),
+                    'Publication: '+(row['publication'] or 'not published')], actions
         if selected.startswith('service:') and selected[8:] in owner.state.services.nodes:
             sid = selected[8:]
             node, service = owner.state.services.nodes[sid], owner.content.services[selected[8:]]
@@ -150,7 +251,7 @@ class Panels:
             quoted = owner.state.engine.offer(job, 'service-preview', node.fault_expires).reward.scaled(
                 1, False, owner.game.players[pid].archetype == 'operator')
             detail = [service.name+': '+node.state, service.fault_label,
-                'Your reward: '+payment(quoted), 'Reserve for 10 min; completed allocation lasts 20 min.',
+                'Your reward: '+payment(quoted, self.owner.content), 'Reserve for 10 min; completed allocation lasts 20 min.',
                 'Return: '+service.safe_return]
             for allocation in service.allocations:
                 detail.append(allocation.label+': '+allocation.detail)
@@ -173,7 +274,7 @@ class Panels:
             quoted = (Payment(0, 0, {}, 'explicit') if helper else
                 proposal.offer.reward.scaled(len(proposal.roster), job.crew_scaling and not job.story and not job.service,
                                                   participant.archetype == 'operator'))
-            detail = ['Terms: '+(job.name or job.id), 'Your reward: '+payment(quoted),
+            detail = ['Terms: '+(job.name or job.id), 'Your reward: '+payment(quoted, self.owner.content),
                 'Approach: '+(job.approach_label if proposal.approach == 'default' else
                               next(a.label for a in job.approaches if a.id == proposal.approach)),
                 'Roster: '+', '.join(owner.game.players[p].name for p in proposal.roster),
@@ -201,7 +302,7 @@ class Panels:
             instance = owner.state.engine.instances[selected]
             participant = next(p for p in instance.roster if p.player == pid)
             helper = owner.state.engine.helper(instance, participant)
-            detail = ['Your reward: '+payment(owner.state.engine.quote(instance, participant)),
+            detail = ['Your reward: '+payment(owner.state.engine.quote(instance, participant), self.owner.content),
                       'Roster: '+', '.join(owner.game.players[p.player].name
                           if p.player in owner.game.players else 'Departed worker' for p in instance.roster)]
             if instance.expires_at is not None:
@@ -209,11 +310,16 @@ class Panels:
             else:
                 detail.append('Story: no overall deadline.')
             if instance.state == 'active':
+                if granted := self.granted(session, panel, instance):
+                    actions.insert(0, {'key': 'e', 'label': granted[1]})
                 progress = instance.stages[instance.index]
-                target = progress.stage.target
-                detail.insert(0, 'Next: '+(progress.stage.label or progress.stage.verb)+'; '+
-                    ', '.join(str(v) for v in (target.zone, target.object, target.core, target.room,
-                                              target.sector, target.band, target.data, target.npc, target.item) if v))
+                # S48e walk: the place this job drew from its stage's pool, not
+                # the stage's first candidate; the first one not yet done.
+                quota = Counter(target_key(t) for t in progress.targets)
+                target = next((t for t in progress.targets
+                               if progress.counts.get(target_key(t), 0) < quota[target_key(t)]),
+                              progress.targets[0])
+                detail.insert(0, self.next_line(progress.stage, target))
                 detail.insert(1, f'Progress: {sum(progress.counts.values())}/{len(progress.targets)}; '
                     +('retry allowed' if progress.stage.retry else 'no retry'))
                 restraint = progress.stage.verb == 'clear' and progress.stage.resolution == 'subdue'
@@ -225,23 +331,25 @@ class Panels:
                     detail.insert(2, f'Field window: {left} s remaining. Failure returns to the listed launch checkpoint.')
                 if progress.stage.destination:
                     dest = progress.stage.destination
-                    detail.insert(1, 'Destination: '+', '.join(str(v) for v in (dest.zone, dest.object, dest.tile) if v is not None))
+                    if where := self.place(dest):
+                        detail.insert(1, 'Destination: '+where)
                 supplies = owner.actions.supplies(instance)
                 if supplies:
                     source = supplies[0]
-                    verb = 'E reissues at ' if source.zone else 'lift a mission copy at '
-                    detail.insert(3, 'Missing supply? '+verb+', '.join(str(v)
-                        for v in (source.zone, source.object, source.tile, source.core, source.room,
-                                  source.sector, source.band, source.data) if v is not None)+'. Bound copies cannot be sold.')
+                    verb = 'E reissues' if source.zone else 'lift a mission copy'
+                    where = self.place(source, with_item=False)
+                    detail.insert(3, 'Missing supply? '+verb+(' at '+where if where else '')
+                                  +'. Bound copies cannot be sold.')
             elif instance.state == 'complete':
-                destination = instance.giver+"'s board" if instance.story or instance.service else "the Tin Halo or "+instance.giver+"'s board"
+                board = self.board_of(instance.giver)
+                destination = board if instance.story or instance.service else 'the Tin Halo or '+board
                 detail.insert(0, 'Next: return to '+destination+'.')
                 if takes_turnin(panel.handler, instance) and pid not in instance.withdrawn:
                     if instance.options:
                         if not helper and pid not in instance.paid:
                             for index, (option, terms) in enumerate(instance.options.items(), 1):
                                 actions.append({'key': str(index), 'label': terms['label']})
-                                detail.append(terms['label']+': '+payment(owner.state.engine.quote(instance, participant, option)))
+                                detail.append(terms['label']+': '+payment(owner.state.engine.quote(instance, participant, option), self.owner.content))
                         else:
                             detail.append('Eligible participants record their own publication choice.')
                     else:
@@ -262,7 +370,7 @@ class Panels:
         if selected and panel.handler:
             offer = owner.offer(selected, pid, panel.handler)
             job, person = owner.state.engine.templates[offer.template], owner.participant(pid)
-            detail = ['Your solo reward: '+payment(offer.reward.scaled(1, False, person.archetype == 'operator')),
+            detail = ['Your solo reward: '+payment(offer.reward.scaled(1, False, person.archetype == 'operator'), self.owner.content),
                 'Next: '+(job.stages[0].label or job.stages[0].verb),
                 'Route: '+job.approach_label,
                 'Grade: '+str(job.min_grade)+'. '+('Story; no overall deadline.' if job.story else 'Generated; 60 min after acceptance.'),
@@ -301,7 +409,7 @@ class Panels:
                 instance = self.owner.state.engine.instances[target]
                 terms = instance.options[option]
                 person = next(p for p in instance.roster if p.player == session.player_id)
-                detail = [terms['label'], 'Your reward: '+payment(self.owner.state.engine.quote(instance, person, option)),
+                detail = [terms['label'], 'Your reward: '+payment(self.owner.state.engine.quote(instance, person, option), self.owner.content),
                           'Publication scope: '+terms['audience']]
                 if terms.get('permit'):
                     permit = terms['permit']
@@ -310,7 +418,7 @@ class Panels:
             actions = [{'key': 'y', 'label': 'confirm'}]
         page = screen_layout(session.caps['width'], session.caps['height']).contracts
         width = page.width
-        lines = [line for paragraph in detail for line in (textwrap.wrap(paragraph, width) or [''])]
+        lines = [line.replace(KEEP, ' ') for paragraph in detail for line in (textwrap.wrap(paragraph, width) or [''])]
         count = page.rows
         pages = max(1, ceil(len(lines)/count))
         panel.page = min(panel.page, pages-1)
@@ -354,8 +462,11 @@ class Panels:
             obj = owner.commerce.nearby(session, panel.target)
             if not obj.spec.params.get('trade_counter') or not obj.spec.params.get('vendor'):
                 raise ValueError('That board has no trade counter.')
+            reach = owner.commerce.reach.get(session.id)
             self.close(session)
             owner.commerce.menus[session.id] = CommerceMenu('vendor', obj.spec.id, opened=owner.clock.now_tick())
+            if reach is not None:
+                owner.commerce.reach[session.id] = reach  # The trade inherits the board's reach (S48e).
         elif key == 'j':
             panel.tab = 'jobs' if panel.tab == 'journal' else 'journal'
             panel.cursor, panel.page, panel.prose = 0, 0, False
@@ -383,7 +494,9 @@ class Panels:
                 panel.confirmation = ('start', selected, '')
         elif selected in owner.state.engine.instances:
             instance = owner.state.engine.instances[selected]
-            if key == 't':
+            if key == 'e' and (granted := self.granted(session, panel, instance)):
+                owner.actions.perform(session, selected, granted[0], granted=True)
+            elif key == 't':
                 panel.confirmation = ('turn-in', selected, '')
             elif key.isdigit() and instance.options:
                 panel.confirmation = ('turn-in', selected, list(instance.options)[int(key)-1])
@@ -453,7 +566,7 @@ class Panels:
                     if name == 'menu_select':
                         request = frame.data.get('request_id', '')
                         if (not request or request in self.requests.get(session.id, [])
-                                or frame.data.get('expected_revision') != session.view_revision or args.get('row') != row):
+                                or not session.fresh(frame.data.get('expected_revision')) or args.get('row') != row):
                             return True
                         self.requests.setdefault(session.id, []).append(request)
                         self.requests[session.id] = self.requests[session.id][-128:]
@@ -490,6 +603,7 @@ class Panels:
             if not session or session.player_id not in self.game.players:
                 self.menus.pop(sid, None)
                 self.sim.external_views.pop(sid, None)
+                self.owner.commerce.reach.pop(sid, None)  # S48e: the grant goes with its menu.
                 continue
             actor = self.game.combat.actor(self.game.players[session.player_id])
             if actor and tick-panel.opened >= MENU_TIMEOUT_SECONDS*TICK_HZ and self.owner.world.zones[actor.zone].allows_hostile(actor.position):

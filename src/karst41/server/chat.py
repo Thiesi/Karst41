@@ -294,7 +294,7 @@ class Chat:
             elif name == "menu_cursor" and type(args.get("delta")) is int:
                 screen.cursor = max(0, min(len(self.online())-1, screen.cursor+args["delta"]))
             elif name == "menu_select" and args.get("key") == "h":
-                if frame.data.get("expected_revision") != session.view_revision or frame.data.get("request_id") == screen.last_request:
+                if not session.fresh(frame.data.get("expected_revision")) or frame.data.get("request_id") == screen.last_request:
                     return True
                 screen.last_request = frame.data["request_id"]
                 self.change_hidden(session, not self.settings(session).get("sitrep_hidden", False))

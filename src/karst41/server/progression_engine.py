@@ -364,7 +364,7 @@ class ProgressionEngine:
             self.menus[session.id] = max(0, min(len(LINE_GROUP)-1, self.menus[session.id]+args["delta"]))
             self.publish_menu(session)
         elif name == "menu_select":
-            if frame.data.get("expected_revision") != session.view_revision:
+            if not session.fresh(frame.data.get("expected_revision")):
                 return True
             request = frame.data.get("request_id", "")
             if request and request in self.requests.get(session.id, ()):

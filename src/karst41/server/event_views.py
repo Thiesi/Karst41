@@ -231,7 +231,7 @@ class Views:
                 if type(delta) is int:
                     panel.cursor = max(0, min(panel.cursor+delta, len(self.ids(session, panel))-1))
             elif name == 'menu_select' or key:
-                if name == 'menu_select' and frame.data.get('expected_revision') != session.view_revision:
+                if name == 'menu_select' and not session.fresh(frame.data.get('expected_revision')):
                     return True
                 action = str(args.get('key', 'enter')).lower() if name == 'menu_select' else key
                 if action == 'h':

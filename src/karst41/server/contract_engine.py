@@ -694,7 +694,7 @@ class Contracts:
             if success:
                 self.proposals.pop(proposal, None)
                 for pid in offered.roster:
-                    self.log(pid, 'Contract accepted. Your objective roster is frozen.')
+                    self.log(pid, 'Contract accepted. Nobody can join it now.')
         self.write(draft, callback=committed)
 
     def reward(self, draft: Ledger, iid: str, payouts: tuple[Payout, ...]) -> tuple[dict[str, Any], dict[str, Any], dict[str, ItemInstance], int]:

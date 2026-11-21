@@ -318,7 +318,7 @@ class Views:
             if name in actions or bank_collect or panel and name == 'menu_select':
                 request = frame.data.get('request_id', '')
                 if (not request or request in self.requests.get(session.id, [])
-                        or frame.data.get('expected_revision') != session.view_revision):
+                        or not session.fresh(frame.data.get('expected_revision'))):
                     return True
                 self.requests.setdefault(session.id, []).append(request)
                 self.requests[session.id] = self.requests[session.id][-128:]

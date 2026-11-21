@@ -33,6 +33,7 @@ class Channel:
     tile: tuple[int, int]
     last_hit: int | float | None
     until: int
+    granted: bool = False  # S48e finding 2: started from a talker-reach board.
 
 
 class Actions:
@@ -192,7 +193,17 @@ class Actions:
             tile = obj.spec.tile
         return tile is not None and max(abs(actor.x-tile[0]), abs(actor.y-tile[1])) <= 1
 
-    def perform(self, session: Session, iid: str, target: StageTarget, finished: bool = False) -> None:
+    def granted(self, session: Session, actor: Any, target: StageTarget) -> bool:
+        """S48e finding 2 (technical lead, option A): a board opened through a
+        talker-reach grant reaches that grant's counter, while the caller is
+        on the tile it was granted from, as if beside it. Residents-only and
+        every other check stay as they are."""
+        obj = self.world.zones[actor.zone].objects.get(target.object) if target.object else None
+        return (obj is not None and target.zone == actor.zone and self.world.object_access(actor, obj.spec)
+                and self.owner.commerce.reach.get(session.id) == (actor.zone, target.object, actor.position))
+
+    def perform(self, session: Session, iid: str, target: StageTarget, finished: bool = False,
+                granted: bool = False) -> None:
         owner = self.owner
         if not owner.commerce.ready(session) or owner.commerce.pending:
             raise ValueError('Return to the objective when the current action settles.')
@@ -207,7 +218,10 @@ class Actions:
             raise ValueError('Choose a target on the current objective card.')
         stage = progress.stage
         actor = self.game.combat.actor(player)
-        if not self.near(actor, target):
+        # A granted channel's finish keeps the grant it started with: the
+        # channel itself is cancelled if the caller moves, changes zone or is
+        # hit, so closing the board meanwhile loses nothing (S48e review).
+        if not (self.near(actor, target) or granted and (finished or self.granted(session, actor, target))):
             raise ValueError('Move next to the labelled objective.')
         seconds = owner.duration(player.id, stage)
         if seconds and not finished:
@@ -215,7 +229,7 @@ class Actions:
                 raise ValueError('Finish or cancel the current channel first.')
             self.channels[session.id] = Channel(iid, stage.id, progress.attempt, target,
                 actor.zone, actor.position, actor.cooldowns.get('last_hit'),
-                owner.clock.now_tick()+round(seconds*TICK_HZ))
+                owner.clock.now_tick()+round(seconds*TICK_HZ), granted)
             actor.behaviour['channel'] = {'owner': 'contract', 'label': stage.label or stage.verb,
                                           'remaining': seconds}
             self.world.zones[actor.zone].revision += 1
@@ -337,14 +351,40 @@ class Actions:
                 continue
             for target in instance.stages[instance.index].targets:
                 if self.near(actor, target):
-                    choice = self.target_interaction(actor, target, stage.verb)
+                    choice = self.target_interaction(actor, target, stage.verb, stage)
                     return Interaction(choice.focus, (iid, target), choice.tile, kind='contract_action')
         return None
 
-    def target_interaction(self, actor: Any, target: Any, verb: str) -> Interaction:
+    def handled_item(self, stage: Stage | None, target: Any) -> tuple[str, str] | None:
+        """The verb and item name of a fetch that hands an item over or takes
+        one, or None: the one helper behind both E focuses."""
+        if stage is None or stage.verb != 'fetch':
+            return None
+        if stage.completion == 'delivered':
+            item = self.required(stage)
+            verb = 'hand over'
+        elif stage.completion == 'carried':
+            item = getattr(target, 'item', None)
+            verb = 'take'
+        else:
+            return None
+        template = self.owner.content.items.get(item) if item else None
+        return (verb, template.name) if template else None
+
+    def target_interaction(self, actor: Any, target: Any, verb: str, stage: Stage | None = None) -> Interaction:
         zone = self.world.zones[target.zone]
         obj = zone.objects.get(target.object)
         verb = 'take' if verb == 'fetch' else verb
+        if handled := self.handled_item(stage, target):
+            # S48e (presentation lead, items c and walk 3): a stage that gives
+            # or takes an item names the item, not the counter or shelf: "E
+            # hand over Stuck-door Package", "E take Route marker"; UI 11's
+            # short form keeps the last word. Same target, tile and outcome.
+            verb, name = handled
+            if obj:
+                return Interaction(Focus(obj.spec.id, name, verb), target, obj.spec.tile)
+            x, y = target.tile
+            return Interaction(Focus(f'{target.zone}:{x},{y}', name, verb), target, target.tile)
         if obj:
             choice = object_interaction(obj, 'plant at' if verb == 'plant' else verb)
             return Interaction(choice.focus, target, choice.tile)
@@ -391,7 +431,7 @@ class Actions:
             if typed:
                 request = frame.data.get('request_id', '')
                 if (not request or request in self.requests.get(session.id, [])
-                        or frame.data.get('expected_revision') != session.view_revision):
+                        or not session.fresh(frame.data.get('expected_revision'))):
                     return True
                 self.requests.setdefault(session.id, []).append(request)
                 self.requests[session.id] = self.requests[session.id][-128:]
@@ -455,7 +495,8 @@ class Actions:
             if tick >= channel.until and not self.owner.commerce.pending:
                 self.cancel(session)
                 try:
-                    self.perform(session, channel.instance, channel.target, finished=True)
+                    self.perform(session, channel.instance, channel.target, finished=True,
+                                 granted=channel.granted)
                 except (ValueError, KeyError) as exc:
                     self.owner.commerce.toast(session, str(exc))
         self.requests = {sid: rows for sid, rows in self.requests.items() if sid in self.game.sessions.active}

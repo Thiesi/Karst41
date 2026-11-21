@@ -635,7 +635,7 @@ class Apartments:
                 elif name == "menu_cursor" and screen and type(args.get("delta")) is int:
                     screen.cursor = max(0, min(screen.cursor+args["delta"], len(self.body(session, screen)["rows"])-1))
                 elif name == "menu_select" or name.startswith("housing."):
-                    if frame.data.get("expected_revision") != session.view_revision:
+                    if not session.fresh(frame.data.get("expected_revision")):
                         return True
                     request = frame.data.get("request_id")
                     if request and request in self.requests.get(session.id, ()):
@@ -652,7 +652,7 @@ class Apartments:
                 return True
             bank_menu = self.commerce.menus.get(session.id)
             if name == "menu_select" and bank_menu and bank_menu.kind == "bank" and args.get("row") == "impound":
-                if frame.data.get("expected_revision") == session.view_revision:
+                if session.fresh(frame.data.get("expected_revision")):
                     target = bank_menu.target
                     self.commerce.close(session)
                     self.counter(session, target)

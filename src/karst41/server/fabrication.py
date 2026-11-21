@@ -240,7 +240,7 @@ class Fabrication:
                     count = len(self.recipes(self.game.players[session.player_id]))
                     self.menus[session.id] = target, max(0, min(cursor+args["delta"], count-1)), opened
                 elif name == "menu_select":
-                    if frame.data.get("expected_revision") != session.view_revision:
+                    if not session.fresh(frame.data.get("expected_revision")):
                         return True
                     request = frame.data.get("request_id")
                     if request and request in self.requests.get(session.id, ()):

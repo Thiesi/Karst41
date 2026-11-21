@@ -508,3 +508,45 @@ runner contract with the creative lead's fixes.
   item; Ghost's rig is in the body and gets none.
 - **Dialogue before the record:** talking needs `Commerce.present` (in
   the body, free to act); everything that writes still needs `ready`.
+
+## Implementation notes (PR #271, S48e)
+
+### Edge cases (technical lead's rulings on the S48e walk)
+
+- **Talk-page actions reach through the talker** (finding 1, technical
+  lead, 2026-11-19, option B; game design 3.x lets a caller talk from one
+  tile away and never asks for the counter as well). A Work board, Trade or
+  service chosen on a talk page opened in person passes reach when the
+  caller is within one tile of the talker or of the counter. It resolves to
+  the counter bound to that talker in the same zone (the offer's vendor
+  object, or the giver's `contract_handler`; one beside the caller first,
+  else the one nearest the talker). Through the talker it reaches only
+  their own counter: a bound counter more than two tiles from where the
+  talker stands is refused with the usual copy, so the Halo contract board
+  at (38,3), which also names Vesper as handler, is never opened from her
+  talk page (technical lead, 2026-11-20). The validator holds every
+  talker spawned beside a bound counter within two tiles of it on each
+  tile of its spawn, so the dormant talkers cannot ship out of reach.
+  The menu it opens stays in reach while
+  the caller stays on the tile they chose it from, so a talker wandering
+  off mid-trade cuts nobody off. Only the distance check changed: Marked,
+  resident-only access, the unread body, lattice contacts and commerce
+  contention refuse as before, and using a counter directly is unchanged.
+  The reach lives in `Commerce.reach`, beside the menus, not on them, so
+  no menu record and no P3 digest moved. It ends when its menu closes, on
+  disconnect, and on the first tick the caller is off that tile, even if
+  they come back to it. Talkers bound to a counter today: Vesper (Tin
+  Halo) and Lindgren (Precinct quartermaster).
+- **A stage at the talker's counter is done from their board** (finding
+  2, technical lead, 2026-11-19, option A). On a board opened through a
+  talk page's reach, a job whose current stage the caller holds at that
+  talker's own counter gets a board action (E), and the board opens with
+  the cursor on that job. It is the same contract action on the same code
+  path, with its reach taken from the grant while the caller stays on its
+  tile; Marked, the roster, residents-only access and the stage order are
+  unchanged, and a board used at the counter itself shows no such action.
+  The word is the presentation lead's, by stage and the same at 80x24 and
+  132x50: a delivery "hand over", a pickup "take", a survey "inspect", a
+  plant "plant"; other stages get no board action. So a caller who talks
+  to Vesper from (8,13) hands the parcel over and turns the job in without
+  moving.

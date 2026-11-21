@@ -273,6 +273,7 @@ class _Validator:
         self.check_events()
         self.check_services()
         self.check_dialogue()
+        self.check_talker_reach()
         self.check_scripts()
         self.check_walls()
         self.check_seasons()
@@ -2131,6 +2132,52 @@ class _Validator:
                 return
             if text_width(shown) > limit:
                 self.report(*owner, f"{where}: {text_width(shown)} cells with the {getattr(keymap, 'id', 'default')} keymap; {limit} at most")
+
+    def check_talker_reach(self) -> None:
+        """S48e (technical lead, finding 1): a talk-page action reaches through
+        the talker only to a bound counter within two tiles of where the
+        talker stands. A talker spawned in a zone that holds a counter bound to
+        one of its offers must therefore stand within two tiles of one on every
+        passable tile of its spawn, or that action fails from the talk page. An
+        offer with no bound counter in the talker's zone at all can never be
+        used and is reported too (technical lead, Okafor's clinic terms)."""
+        for zone in self.t.zones.values():
+            for sp in zone.meta.spawners:
+                npc = self.t.npcs.get(sp.npc)
+                node = self.t.dialogue.get(npc.dialogue) if npc and npc.dialogue else None
+                if node is None:
+                    continue
+                if sp.region is not None:
+                    tiles = [(x, y) for x in range(sp.region.x, sp.region.x+sp.region.w)
+                             for y in range(sp.region.y, sp.region.y+sp.region.h)]
+                else:
+                    tiles = [sp.tile] if sp.tile is not None else []
+                tiles = [tile for tile in tiles if self.passable(zone, tile)]
+                for offer in node.offers:
+                    giver = None
+                    if offer.kind == 'contract' and offer.ref in self.t.contracts:
+                        giver = self.t.contracts[offer.ref].giver
+                    elif offer.kind == 'service' and offer.ref in self.t.services:
+                        contract = self.t.contracts.get(self.t.services[offer.ref].contract)
+                        giver = contract.giver if contract else None
+                    if giver is not None:
+                        key, value = 'contract_handler', giver
+                    elif offer.kind in ('vendor', 'service'):
+                        key, value = 'vendor', offer.ref
+                    else:
+                        continue
+                    counters = [o.tile for o in zone.meta.objects if o.params.get(key) == value]
+                    if not counters:
+                        self.report("zones", zone.id, f"spawner {sp.id}: offer {offer.label!r} of talker "
+                                    f"{npc.dialogue}: no counter in this zone is bound to it, so it can "
+                                    "never be used from the talk page", sp.id)
+                        continue
+                    far = [tile for tile in tiles if all(
+                        max(abs(tile[0]-c[0]), abs(tile[1]-c[1])) > 2 for c in counters)]
+                    if far:
+                        self.report("zones", zone.id, f"spawner {sp.id}: offer {offer.label!r} of talker "
+                                    f"{npc.dialogue}: spawn tile {list(far[0])} is more than 2 tiles from "
+                                    "every counter bound to it in this zone", sp.id)
 
     def check_dialogue(self) -> None:
         for did, node in self.each("dialogue"):
