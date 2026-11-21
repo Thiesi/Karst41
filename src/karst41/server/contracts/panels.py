@@ -47,13 +47,36 @@ def takes_turnin(handler: str, instance: Instance) -> bool:
     return handler == instance.giver or (handler == 'vesper' and not instance.service)
 
 
-def payment(payment: Payment) -> str:
+# S48e (presentation lead, ruling (a)): a faction's name and its number stay on
+# one row. The detail wrap keeps this space whole and shows a plain space.
+KEEP = chr(0xA0)  # A no-break space.
+
+
+def payment(payment: Payment, content: Any) -> str:
+    """A reward in display names only (ruling (a)): factions by their short
+    name, or "+5 with every faction" when every faction moves alike; items and
+    programs by name."""
     text = f'{payment.chits} chits; {payment.xp} XP'
-    if payment.standing:
-        text += '; ' + ', '.join(f'{fid} {value:+d}' for fid, value in payment.standing.items())
-    if payment.items or payment.programs:
-        text += '; '+', '.join((*payment.items, *payment.programs))
+    standing = payment.standing
+    if standing:
+        values = set(standing.values())
+        if set(standing) == set(content.factions) and len(values) == 1:
+            text += f'; {values.pop():+d}{KEEP}with{KEEP}every{KEEP}faction'
+        else:
+            text += '; ' + ', '.join(f'{name_of(content.factions, fid, "short")}{KEEP}{value:+d}'
+                                     for fid, value in standing.items())
+    names = [*(name_of(content.items, i) for i in payment.items),
+             *(name_of(content.programs, p) for p in payment.programs)]
+    if names:
+        text += '; '+', '.join(names)
     return text
+
+
+def name_of(table: Any, key: str, field: str = 'name') -> str:
+    """A content entry's display name. Validated content always has one; an
+    unknown key (a broken override) falls back to the key rather than fail."""
+    entry = table.get(key)
+    return getattr(entry, field, None) or key if entry is not None else key
 
 
 def consequences(job: Any) -> list[str]:
@@ -228,7 +251,7 @@ class Panels:
             quoted = owner.state.engine.offer(job, 'service-preview', node.fault_expires).reward.scaled(
                 1, False, owner.game.players[pid].archetype == 'operator')
             detail = [service.name+': '+node.state, service.fault_label,
-                'Your reward: '+payment(quoted), 'Reserve for 10 min; completed allocation lasts 20 min.',
+                'Your reward: '+payment(quoted, self.owner.content), 'Reserve for 10 min; completed allocation lasts 20 min.',
                 'Return: '+service.safe_return]
             for allocation in service.allocations:
                 detail.append(allocation.label+': '+allocation.detail)
@@ -251,7 +274,7 @@ class Panels:
             quoted = (Payment(0, 0, {}, 'explicit') if helper else
                 proposal.offer.reward.scaled(len(proposal.roster), job.crew_scaling and not job.story and not job.service,
                                                   participant.archetype == 'operator'))
-            detail = ['Terms: '+(job.name or job.id), 'Your reward: '+payment(quoted),
+            detail = ['Terms: '+(job.name or job.id), 'Your reward: '+payment(quoted, self.owner.content),
                 'Approach: '+(job.approach_label if proposal.approach == 'default' else
                               next(a.label for a in job.approaches if a.id == proposal.approach)),
                 'Roster: '+', '.join(owner.game.players[p].name for p in proposal.roster),
@@ -279,7 +302,7 @@ class Panels:
             instance = owner.state.engine.instances[selected]
             participant = next(p for p in instance.roster if p.player == pid)
             helper = owner.state.engine.helper(instance, participant)
-            detail = ['Your reward: '+payment(owner.state.engine.quote(instance, participant)),
+            detail = ['Your reward: '+payment(owner.state.engine.quote(instance, participant), self.owner.content),
                       'Roster: '+', '.join(owner.game.players[p.player].name
                           if p.player in owner.game.players else 'Departed worker' for p in instance.roster)]
             if instance.expires_at is not None:
@@ -326,7 +349,7 @@ class Panels:
                         if not helper and pid not in instance.paid:
                             for index, (option, terms) in enumerate(instance.options.items(), 1):
                                 actions.append({'key': str(index), 'label': terms['label']})
-                                detail.append(terms['label']+': '+payment(owner.state.engine.quote(instance, participant, option)))
+                                detail.append(terms['label']+': '+payment(owner.state.engine.quote(instance, participant, option), self.owner.content))
                         else:
                             detail.append('Eligible participants record their own publication choice.')
                     else:
@@ -347,7 +370,7 @@ class Panels:
         if selected and panel.handler:
             offer = owner.offer(selected, pid, panel.handler)
             job, person = owner.state.engine.templates[offer.template], owner.participant(pid)
-            detail = ['Your solo reward: '+payment(offer.reward.scaled(1, False, person.archetype == 'operator')),
+            detail = ['Your solo reward: '+payment(offer.reward.scaled(1, False, person.archetype == 'operator'), self.owner.content),
                 'Next: '+(job.stages[0].label or job.stages[0].verb),
                 'Route: '+job.approach_label,
                 'Grade: '+str(job.min_grade)+'. '+('Story; no overall deadline.' if job.story else 'Generated; 60 min after acceptance.'),
@@ -386,7 +409,7 @@ class Panels:
                 instance = self.owner.state.engine.instances[target]
                 terms = instance.options[option]
                 person = next(p for p in instance.roster if p.player == session.player_id)
-                detail = [terms['label'], 'Your reward: '+payment(self.owner.state.engine.quote(instance, person, option)),
+                detail = [terms['label'], 'Your reward: '+payment(self.owner.state.engine.quote(instance, person, option), self.owner.content),
                           'Publication scope: '+terms['audience']]
                 if terms.get('permit'):
                     permit = terms['permit']
@@ -395,7 +418,7 @@ class Panels:
             actions = [{'key': 'y', 'label': 'confirm'}]
         page = screen_layout(session.caps['width'], session.caps['height']).contracts
         width = page.width
-        lines = [line for paragraph in detail for line in (textwrap.wrap(paragraph, width) or [''])]
+        lines = [line.replace(KEEP, ' ') for paragraph in detail for line in (textwrap.wrap(paragraph, width) or [''])]
         count = page.rows
         pages = max(1, ceil(len(lines)/count))
         panel.page = min(panel.page, pages-1)
