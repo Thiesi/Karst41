@@ -9,6 +9,7 @@ SQLite on the loop after admission, and the stop sequence of architecture
 from __future__ import annotations
 
 import asyncio
+import json
 import sqlite3
 import threading
 import time
@@ -17,7 +18,7 @@ from pathlib import Path
 import pytest
 
 from karst41.server import app
-from karst41.server.app import DEADLINE_EXIT, Server
+from karst41.server.app import DEADLINE_EXIT, WRITER_LOST_EXIT, Server
 from karst41.server.storage.lease import Lease
 from karst41.server.storage.writer import LoopThreadSQLite
 from tests import storage_reader
@@ -97,7 +98,7 @@ def test_a_held_close_hits_the_deadline_exits_3_and_keeps_the_lease(scratch_dir:
         server.io.writer.gate = lambda command: release.wait(10) if command.kind == "close" else None
         try:
             await server.stop()
-            assert server.exit_code == DEADLINE_EXIT
+            assert server.exit_code == DEADLINE_EXIT  # A live writer stuck in a command: exit 3.
             with pytest.raises(Exception, match="lease"):
                 Lease(scratch_dir / "world.db.sessions").acquire()  # Still held: never released early.
             log = (scratch_dir / "logs" / "server.log").read_text(encoding="utf-8")
@@ -110,8 +111,8 @@ def test_a_held_close_hits_the_deadline_exits_3_and_keeps_the_lease(scratch_dir:
     asyncio.run(scenario())
 
 
-def test_a_dead_writer_takes_the_deadline_branch_at_once(scratch_dir: Path) -> None:
-    """Technical lead, change 4: no 10 s wait on a corpse."""
+def test_a_writer_killed_mid_run_exits_1_at_once_and_names_what_was_in_flight(scratch_dir: Path) -> None:
+    """Technical lead, change 4 as corrected: no 10 s wait on a corpse, and a restartable exit."""
     async def scenario() -> None:
         server = Server(scratch_dir, tcp=True)
         await server.start()
@@ -127,9 +128,11 @@ def test_a_dead_writer_takes_the_deadline_branch_at_once(scratch_dir: Path) -> N
         try:
             await server.stop()
             assert time.monotonic() - began < 3
-            assert server.exit_code == DEADLINE_EXIT
+            assert server.exit_code == WRITER_LOST_EXIT == 1
             log = (scratch_dir / "logs" / "server.log").read_text(encoding="utf-8")
-            assert '"stop deadline"' in log
+            lost = next(json.loads(row) for row in log.splitlines() if '"writer lost"' in row)
+            assert lost["stuck"] and lost["stuck"][0]["command"] == "log", lost  # What it died holding.
+            assert '"stop deadline"' not in log
         finally:
             server.lease.release()
     asyncio.run(scenario())
@@ -219,7 +222,7 @@ def test_a_writer_that_dies_during_startup_fails_start_instead_of_hanging(scratc
                 await asyncio.wait_for(server.start(), 5)  # Fails, never hangs.
         finally:
             app.Writer = original
-        assert server.exit_code == DEADLINE_EXIT  # The dead writer takes the deadline branch.
+        assert server.exit_code == WRITER_LOST_EXIT  # A lost writer is an ordinary, restartable failure.
         server.lease.release()
     asyncio.run(scenario())
 

@@ -31,7 +31,8 @@ from karst41.server.transport import Listener
 from karst41.version import PACKAGE_VERSION
 
 STOP_SECONDS = 10  # Architecture §3.4.
-DEADLINE_EXIT = 3  # Architecture §3.4: stopped at the deadline; the unit doesn't restart it.
+DEADLINE_EXIT = 3  # Architecture §3.4: a live writer hit the stop deadline; the unit doesn't restart it.
+WRITER_LOST_EXIT = 1  # Architecture §3.4: the writer thread is gone; an ordinary, restartable failure.
 HELLO_SECONDS = 5  # Local transport policy, not a gameplay timer.
 
 
@@ -328,9 +329,13 @@ class Server:
         4. settle: apply every in-flight receipt's result on the loop;
         5. Close: the writer flushes what is dirty and closes, on its thread;
         6. lease: release it, remove run/ files, exit 0.
-        Deadline (the 10 s run out, or the writer is already dead): skip the
-        rest, log what is queued or in flight, keep the connection and the
-        lease untouched, exit with code 3.
+        Deadline: the 10 s run out while the writer is still alive (typically
+        inside an fsync): skip the rest, log what is queued or in flight, keep
+        the connection and the lease untouched, exit with code 3, which the
+        unit doesn't restart (a restart would only stall again).
+        Writer lost: the writer thread has died. Skip the drain at once, log
+        what was queued or in flight, leave the connection and the lease
+        alone, and exit 1, which the unit restarts.
         """
         if self.stopping:
             await self.stopped.wait()
@@ -367,11 +372,12 @@ class Server:
                 pass
             self.listener.cleanup()
             if io is not None and not io.writer.closed:
-                # Deadline: the 10 s ran out or the writer is dead. Keep the
-                # connection and the lease untouched; the process exits 3.
-                io.log_event("stop deadline", level="ERROR", direct=True, stuck=io.stuck(),
-                             queued_lines=len(io.backlog))
-                self.exit_code = DEADLINE_EXIT
+                # Keep the connection and the lease untouched either way.
+                lost = io.writer.crash is not None or not io.writer.thread.is_alive()
+                io.log_event("writer lost" if lost else "stop deadline", level="ERROR", direct=True,
+                             stuck=io.stuck(), queued_lines=len(io.backlog))
+                # Exit 3 only for a live writer at the deadline; a lost writer is restartable (exit 1).
+                self.exit_code = WRITER_LOST_EXIT if lost else DEADLINE_EXIT
             else:
                 if self.logs:
                     try:

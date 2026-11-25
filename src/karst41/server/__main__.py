@@ -53,7 +53,7 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.flush()
         sys.stderr.flush()
         os._exit(DEADLINE_EXIT)
-    return code
+    return code or server.exit_code  # A lost writer exits 1 (restartable) even without an exception.
 
 
 if __name__ == "__main__":

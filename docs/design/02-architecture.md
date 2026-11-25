@@ -224,12 +224,19 @@ minimum-version line. This external path also supports local development.
    connection on its own thread.
 6. Lease: release it, remove `run/` files, exit 0.
 
-Deadline: if the 10 s run out, or the writer has already died, skip what
-is left. Log the commands still queued or in flight, keep the connection
-and the lease untouched, and exit with code 3. The OS drops the lease with
-the process, and persistence is crash-safe: WAL recovery applies at the
-next start, and nothing unacknowledged counts as committed. Code 3 means
-"stopped at the deadline", so a service manager does not restart it.
+Deadline: if the 10 s run out while the writer is still alive (typically
+inside an fsync), skip what is left. Log the commands still queued or in
+flight, keep the connection and the lease untouched, and exit with code 3.
+Code 3 means "a live writer hit the deadline", so a service manager does
+not restart it: a restart would only stall again.
+
+Writer lost: if the writer thread has died, skip the drain at once. Log
+the commands still queued or in flight, leave the connection and the lease
+alone, and exit 1, an ordinary failure a service manager restarts.
+
+In both cases the OS drops the lease with the process, and persistence is
+crash-safe: WAL recovery applies at the next start, and nothing
+unacknowledged counts as committed.
 
 ## 4. Authentication and trust
 
