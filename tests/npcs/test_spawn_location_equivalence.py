@@ -118,3 +118,57 @@ def test_a_rebuilt_zone_instance_never_uses_the_old_instances_ground(row: Any) -
         rebuilt.rng.setstate(state)
         assert spawners.location(rebuilt, regular) == expected
         assert expected is None or expected[0] >= 60, "never a tile the new geometry walls off"
+
+
+def zones_with_spawners() -> list[str]:
+    content = load_content(Path(__file__).parents[2] / "src/karst41/content")
+    return sorted(zid for zid, zone in content.zones.items() if zone.meta.spawners)
+
+
+@pytest.mark.parametrize("zone_id", zones_with_spawners())
+def test_every_shipped_spawner_in_every_zone_picks_mains_tile(zone_id: str) -> None:
+    """Technical lead, after #276: the Row's equivalence, extended to every shipped zone and spawner."""
+    from types import SimpleNamespace
+    content = load_content(Path(__file__).parents[2] / "src/karst41/content")
+    game = HeadlessServer(content, character_state={})
+    game.connect()
+    game.step()
+    zone = game.core.world.zones[zone_id]
+    spawners = game.core.npcs.spawners
+    specs = [*zone.template.meta.spawners, *spawners.extra(zone)]
+    assert specs
+    shuffle = random.Random(f"194:{zone_id}")
+    width, height = zone.template.width, zone.template.height
+    wall = next(key for key, tile in zone.tiles.items() if not tile.passable)
+    doors = list(zone.doors.values())
+    saved = (dict(zone.actors), dict(zone.geometry), zone.geometry_revision, [door.open for door in doors])
+    try:
+        for layout in range(30):
+            zone.actors.clear()
+            zone.actors.update(saved[0])
+            for n in range(shuffle.randrange(0, 40)):  # A crowd: only positions, behaviour and kind are read.
+                zone.actors[f"stand-in:{n}"] = SimpleNamespace(
+                    position=(shuffle.randrange(width), shuffle.randrange(height)), behaviour={}, kind="npc")
+            if layout % 2:  # A player in the zone, so the clearance rule runs.
+                zone.actors["stand-in:player"] = SimpleNamespace(
+                    position=(shuffle.randrange(width), shuffle.randrange(height)), behaviour={}, kind="player")
+            if layout % 7 == 3 and doors:
+                door = shuffle.choice(doors)
+                door.open = not door.open
+            if layout % 11 == 5:
+                zone.geometry = {**zone.geometry, **{(shuffle.randrange(width), shuffle.randrange(height)): wall
+                                                     for _ in range(max(8, width * height // 60))}}
+                zone.geometry_revision += 1
+            for spec in specs:
+                state = zone.rng.getstate()
+                expected = reference_location(spawners, zone, spec)
+                after = zone.rng.getstate()
+                zone.rng.setstate(state)
+                assert spawners.location(zone, spec) == expected, (zone_id, layout, spec.id)
+                assert zone.rng.getstate() == after, (zone_id, layout, spec.id, "RNG draws differ")
+    finally:
+        zone.actors.clear()
+        zone.actors.update(saved[0])
+        zone.geometry, zone.geometry_revision = saved[1], saved[2]
+        for door, opened in zip(doors, saved[3]):
+            door.open = opened
