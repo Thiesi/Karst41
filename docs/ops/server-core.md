@@ -36,6 +36,9 @@ If saves can't drain within the 10 s stop limit, or the writer thread has
 died, the server logs `stop deadline` with the commands still queued or in
 flight and exits with code 3 (architecture §3.4); the systemd unit doesn't
 restart it (`RestartPreventExitStatus=3`).
+Hand edits to the `bans` table (an INSERT to ban, a DELETE to unban) apply
+within 30 s, at the caller's next login; connected callers aren't
+disconnected.
 Stop requests received during bootstrap are retained. The service
 finishes the in-progress content copy and validation, then closes before
 opening the listener. Its log ends with `world closed`.

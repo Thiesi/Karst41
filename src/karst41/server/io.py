@@ -31,6 +31,8 @@ from karst41.server.storage.db import IMMEDIATE_REASONS, PLAYER_FLUSH_SECONDS, W
 from karst41.server.storage.writer import Command, Result, frozen
 
 LOG_BOUND = 1024  # Log lines held loop-side at most; the oldest drop first, counted.
+REFRESH_SECONDS = WORLD_FLUSH_SECONDS  # The read cache's refresh: hand edits to bans apply within it.
+REFRESHED = ("season",)  # Meta keys the refresh reads with the bans.
 STATS_BOUND = 8192  # Timing samples kept per figure; fixed memory for the server's lifetime.
 ALL_KINDS = ("players", "items", "meta", "identities")
 RECOVERABLE = (OSError, sqlite3.Error)  # A receipt that fails with these settles false.
@@ -59,6 +61,8 @@ class IO:
         self.awaiting: list[Command] = []  # Startup and stop commands awaited directly.
         self.barrier: Command | None = None
         self.flushing = False
+        self.reading = False
+        self.last_read = clock.now_tick()
         self.backlog: deque[tuple[str, str, int]] = deque()
         self.dropped = 0
         self.audits: deque[tuple[dict[str, Any], Callable[[], None]]] = deque()
@@ -317,6 +321,8 @@ class IO:
         game = core.characters
         if game is not None:
             self.mark_world()
+        if self.alive and self.fatal is None:
+            self._refresh_due()  # A read: it never waits on the barrier, only the FIFO's order.
         if self.barrier is not None or not self.alive or self.fatal is not None:
             return
         # Lines, reports and audits frozen earlier go first, in order.
@@ -402,6 +408,15 @@ class IO:
                 continue  # A newer mark than this effect's frozen snapshot: keep it.
             self.mark(key[0], key[1], value)
 
+    def _refresh_due(self) -> None:
+        """Re-read bans and season from the database every REFRESH_SECONDS (technical lead, (B))."""
+        tick = self.clock.now_tick()
+        if self.reading or tick - self.last_read < REFRESH_SECONDS * TICK_HZ:
+            return
+        if self._submit("read", {"meta": list(REFRESHED)}) is not None:
+            self.reading = True
+            self.last_read = tick
+
     def _flush_due(self) -> None:
         if self.flushing:
             return
@@ -458,6 +473,15 @@ class IO:
             # The dirty state stays for the next flush; the failure stops the server, as before.
             self._fatal("flush failed", result)
         self._clear(local["generations"])
+
+    def _settle_read(self, command: Command, result: Result, local: dict[str, Any]) -> None:
+        self.reading = False
+        if not result.ok:
+            # Never fatal: the cache keeps its last good value.
+            self.log_event("read cache refresh failed", level="WARNING", error=type(result.error).__name__)
+            return
+        self.bans = result.value["bans"]
+        self.meta.update(result.value["meta"])
 
     def _settle_log(self, command: Command, result: Result, local: dict[str, Any]) -> None:
         if not result.ok:

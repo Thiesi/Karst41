@@ -31,7 +31,7 @@ from typing import Any
 from karst41.server.storage.db import Storage
 
 BOUND = 256  # Commands queued for the writer at most (S47; the barrier keeps far fewer).
-KINDS = frozenset({"bootstrap", "flush", "commerce", "character", "report", "audit", "log", "close"})
+KINDS = frozenset({"bootstrap", "read", "flush", "commerce", "character", "report", "audit", "log", "close"})
 RECEIPTS = frozenset({"commerce", "character"})
 
 
@@ -169,6 +169,11 @@ class Executor:
         return {"origin": storage.origin, "bans": storage.bans(),
                 "meta": {key: storage.meta(key) for key in payload["meta"]},
                 "character_state": storage.character_state() if payload["characters"] else None}
+
+    def _read(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """The loop's read cache, refreshed: the whole bans table and named meta keys."""
+        storage = self._store()
+        return {"bans": storage.bans(), "meta": {key: storage.meta(key) for key in payload["meta"]}}
 
     def _batch(self, batch: dict[str, Any]) -> None:
         """Load a frozen dirty batch into the writer's scratch map."""

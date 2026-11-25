@@ -153,3 +153,44 @@ def test_the_s11_guard_matches_this_world_db_by_target_however_it_is_named(tmp_p
         with storage_reader.reader(world) as store:  # The read-only test reader passes.
             store.db.execute("SELECT 1")
     assert storage_reader.target(("file:world.db?mode=ro",), {}) == world.resolve()
+
+
+def test_a_hand_ban_applies_to_a_live_server_with_the_loop_guard_armed(scratch_dir: Path, monkeypatch) -> None:
+    from karst41.server import io as io_module
+    from karst41.server.auth import load_secret
+    from karst41.server.protocol import encode, read_frame
+    from karst41.server.transport import connect
+    from tests.harness import hello
+    monkeypatch.setattr(io_module, "REFRESH_SECONDS", 1)
+    db = scratch_dir / "world.db"
+
+    def edit(sql: str) -> None:  # The operator's own process: never the loop thread.
+        operator = sqlite3.connect(db, timeout=5)
+        with operator:
+            operator.execute(sql)
+        operator.close()
+
+    async def first_frame() -> str:
+        reader, writer = await connect(scratch_dir)
+        writer.write(encode(hello(secret=load_secret(scratch_dir / "secrets" / "door.secret"))))
+        await writer.drain()
+        frame = await asyncio.wait_for(read_frame(reader, "server"), 2)
+        writer.close()
+        return frame.type if frame.type != "bye" else "bye:" + frame.data["reason"]
+
+    async def scenario() -> None:
+        server = Server(scratch_dir, tcp=True)
+        await server.start()
+        try:
+            with storage_reader.loop_guard(database=db):
+                assert await first_frame() == "welcome"
+                await asyncio.to_thread(edit, "INSERT INTO bans(bbs_user_id, expires_at, reason) VALUES('1', NULL, 'probe')")
+                await asyncio.sleep(1.5)
+                assert await first_frame() == "bye:banned"
+                await asyncio.to_thread(edit, "DELETE FROM bans WHERE bbs_user_id='1'")
+                await asyncio.sleep(1.5)
+                assert await first_frame() == "welcome"
+        finally:
+            await server.stop()
+        assert server.exit_code == 0
+    asyncio.run(scenario())

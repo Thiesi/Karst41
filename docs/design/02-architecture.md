@@ -797,8 +797,9 @@ supplies combat flags and clone-debt consequences; S07 has no combat.
   for the receipt's records is re-frozen from the settled live state, so
   an older snapshot never overwrites a durable reward.
 - Reads: the startup snapshot comes from the writer before admission.
-  Later lookups (bans, season) read a loop-side cache, which a committed
-  change updates on the loop before it is acknowledged.
+  Later lookups (bans, season) read a loop-side cache, refreshed by the
+  writer every 30 s; a committed change updates it on the loop before it
+  is acknowledged.
 - A commit whose result never reaches the loop has an unknown outcome. It
   is never reported as rolled back and never retried automatically.
 - Every flush is one transaction. A crash loses at most 5 s of position

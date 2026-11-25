@@ -466,3 +466,42 @@ def test_a_failed_immediate_save_never_overwrites_a_newer_mark_at_the_stop(rig: 
     asyncio.run(stop())
     assert rig.writer.closed
     assert rig.saved()["health"] == old_health - 7  # Read back through a fresh connection.
+
+
+# --- The read cache's refresh (technical lead's ruling on bans, (B)) --------
+
+def refresh(rig: Rig) -> None:
+    from karst41.server.io import REFRESH_SECONDS
+    rig.game.clock.advance(REFRESH_SECONDS * 10)
+    rig.cycle()
+    assert "read" in rig.writer.kinds()
+    run_writes(rig.io)
+
+
+def test_a_hand_ban_and_unban_apply_at_the_next_login_within_one_refresh(rig: Rig) -> None:
+    from karst41.server.auth import Authenticator, sign
+    from tests.harness import ADMIN_SECRET, DOOR_SECRET
+    auth = Authenticator(DOOR_SECRET, ADMIN_SECRET, rig.io.banned)
+    info = {"user_id": 77, "handle": "Banned", "node_name": "test"}
+    assert auth.authenticate(info, sign(info, DOOR_SECRET)) == "caller"
+    operator = sqlite3.connect(rig.path)  # A separate connection: the operator's hand edit.
+    with operator:
+        operator.execute("INSERT INTO bans(bbs_user_id, expires_at, reason) VALUES('77', NULL, 'probe')")
+    assert auth.authenticate(info, sign(info, DOOR_SECRET)) == "caller", "not before the refresh"
+    refresh(rig)
+    with pytest.raises(ValueError, match="banned"):
+        auth.authenticate(info, sign(info, DOOR_SECRET))
+    with operator:
+        operator.execute("DELETE FROM bans WHERE bbs_user_id='77'")
+    refresh(rig)
+    assert auth.authenticate(info, sign(info, DOOR_SECRET)) == "caller"
+    operator.close()
+
+
+def test_a_failed_refresh_keeps_the_last_good_cache_and_logs(rig: Rig) -> None:
+    rig.io.bans = {"9": None}
+    rig.store.db.execute("ALTER TABLE bans RENAME TO bans_away")
+    refresh(rig)
+    assert rig.io.bans == {"9": None} and rig.io.fatal is None
+    assert "read cache refresh failed" in rig.logs.messages()
+    rig.store.db.execute("ALTER TABLE bans_away RENAME TO bans")
