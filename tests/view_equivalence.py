@@ -83,7 +83,9 @@ def checking() -> Iterator[dict[str, int]]:
         checked["deltas"] += result[1] is not None
         return result
     delta.ViewStore.frames = frames
+    reuse, delta.CHECK_REUSE = delta.CHECK_REUSE, True
     try:
         yield checked
     finally:
         delta.ViewStore.frames = original
+        delta.CHECK_REUSE = reuse

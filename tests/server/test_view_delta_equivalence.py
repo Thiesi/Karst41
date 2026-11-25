@@ -82,3 +82,23 @@ def test_a_long_walk_sends_byte_identical_frames(content: Any, size: tuple[int, 
             game.step()
             game.frames_for(client)
         assert counts["calls"] - before >= 120 and counts["deltas"] - deltas >= 60
+
+
+def test_a_grid_edited_in_place_after_publishing_fails_loudly() -> None:
+    """The carried sizes rely on build() replacing grids; an in-place edit must not pass silently."""
+    from karst41.server.views import delta
+
+    class Session:
+        view_revision, needs_full_view = 0, False
+
+        def publish_view(self, full: Frame, delta_frame: Any, tick: int) -> bool:
+            self.view_revision += 1
+            return True
+    assert delta.CHECK_REUSE, "the test suite turns the check on"
+    store, session = ViewStore(), Session()
+    tiles = [[1, 2, 3], [4, 5, 6]]
+    store.publish(session, {"tiles": tiles, "me": {"hp": 9}}, 1)
+    store.publish(session, {"tiles": tiles, "me": {"hp": 8}}, 2)  # Reused unchanged: fine.
+    tiles[0][1] = 7  # A future in-place edit.
+    with pytest.raises(AssertionError, match="'tiles' was edited in place"):
+        store.publish(session, {"tiles": tiles, "me": {"hp": 7}}, 3)

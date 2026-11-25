@@ -11,12 +11,19 @@ choice and the ops and their order are byte-identical
 """
 
 import json
+import zlib
 from typing import Any
 
 from karst41.server.protocol import MAX_FRAME, Frame, ProtocolError, validate
 from karst41.server.sessions import Session
 
 _COMPACT = {"ensure_ascii": False, "separators": (",", ":")}
+
+# The carried sizes rely on the zone view replacing its grids, never editing them in
+# place (zone_view.build). The test suite and the equivalence runs set this, so a
+# grid reused by identity with different content fails loudly instead of sending a
+# wrong delta.
+CHECK_REUSE = False
 
 
 def _size(value: object) -> int:
@@ -132,6 +139,10 @@ def _payload(frame: Frame, measure: Measure) -> int:
     return size
 
 
+def _digest(value: object) -> int:
+    return zlib.crc32(json.dumps(value, **_COMPACT).encode("utf-8"))
+
+
 class ViewStore:
     def __init__(self) -> None:
         self.previous: dict[str, Any] | None = None
@@ -141,6 +152,13 @@ class ViewStore:
         # a published document is never modified afterwards.
         self.carry: dict[int, tuple[object, int]] = {}
         self.measure: Measure | None = None
+        self.digests: dict[int, tuple[object, int]] = {}  # CHECK_REUSE only.
+
+    def _check_reuse(self, body: dict[str, Any]) -> None:
+        for key, value in body.items():
+            seen = self.digests.get(id(value))
+            if seen is not None and seen[0] is value and _digest(value) != seen[1]:
+                raise AssertionError(f"view value {key!r} was edited in place after it was published")
 
     def frames(self, session: Session, body: dict[str, Any], kind: str = "zone") -> tuple[Frame, Frame | None]:
         """The full frame, and the delta when it's smaller (no side effects)."""
@@ -165,6 +183,8 @@ class ViewStore:
                 kind: str = "zone") -> bool:
         """Take ownership of a snapshot whose nested arrays stay immutable."""
         document = {"kind": kind, "body": body}
+        if CHECK_REUSE:
+            self._check_reuse(body)
         if document == self.previous and not session.needs_full_view:
             return False
         self.measure = None
@@ -174,6 +194,9 @@ class ViewStore:
             memo = self.measure.memo if self.measure is not None else {}
             self.carry = {id(value): memo[id(value)] for value in body.values()
                           if id(value) in memo and memo[id(value)][0] is value}
+            if CHECK_REUSE:
+                self.digests = {id(value): (value, _digest(value)) for value in body.values()
+                                if isinstance(value, (list, dict))}
             self.measure = None
             return True
         self.measure = None

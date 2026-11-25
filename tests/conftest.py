@@ -82,3 +82,12 @@ def view_equivalence() -> object:
     with checking() as counts:
         yield counts
     print(f"\nview equivalence: {counts['calls']} frames checked, {counts['deltas']} deltas, all byte-identical")
+
+
+@pytest.fixture(autouse=True, scope="session")
+def view_reuse_checks() -> object:
+    """#194: the whole suite checks that a view grid reused by identity was never edited in place."""
+    from karst41.server.views import delta
+    previous, delta.CHECK_REUSE = delta.CHECK_REUSE, True
+    yield None
+    delta.CHECK_REUSE = previous
