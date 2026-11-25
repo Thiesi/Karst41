@@ -38,6 +38,21 @@
       ],
       "reason": "S48c2 talkers",
       "pr": 252
+    },
+    {
+      "removed": [],
+      "added": [
+        [
+          "harvest",
+          "Hull salvage (3 left)"
+        ],
+        [
+          "harvest",
+          "Optics salvage (2 left)"
+        ]
+      ],
+      "reason": "#211 salvage nodes carry a live harvest focus (P3 walks generated nodes in fx-open)",
+      "pr": null
     }
   ]
 }

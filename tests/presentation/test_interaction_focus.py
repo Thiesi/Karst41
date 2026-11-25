@@ -81,7 +81,14 @@ def assert_label_source(core: Any, session: Any, focus: Any) -> None:
         return
     zone = core.world.zones[actor.zone]
     if focus.id in zone.objects:
-        assert focus.label == zone.objects[focus.id].spec.params.get('name')
+        obj = zone.objects[focus.id]
+        if obj.spec.kind == 'salvage_node':
+            # #211: built live from the node's grade item name and units.
+            name = next(item.name for item in core.characters.content.items.values()
+                        if item.salvage and item.salvage.grade == obj.state['grade'])
+            assert focus.verb == 'harvest' and focus.label == f"{name} ({obj.state['units']} left)"
+            return
+        assert focus.label == obj.spec.params.get('name')
         return
     for exit in zone.template.meta.exits:
         if focus.id == exit.id:

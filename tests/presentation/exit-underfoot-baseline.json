@@ -1,6 +1,7 @@
 {
   "_notes": [
-    "S48c2 re-pin (technical lead): the Wake Hall's arrival line is its first sentence (#220 4.12), and NPC instance serials are +2 because the hall's two talkers spawn first. Nothing else moved: with both normalised, a fresh run equals the previous baseline."
+    "S48c2 re-pin (technical lead): the Wake Hall's arrival line is its first sentence (#220 4.12), and NPC instance serials are +2 because the hall's two talkers spawn first. Nothing else moved: with both normalised, a fresh run equals the previous baseline.",
+    "#211 (engineer): four salvage cases added, executed against main 0016e7e7's unchanged production core with this matrix file. Main gives E to fabrication in all four (no focus, as the node has no name); existing cases are unchanged."
   ],
   "shipped-street": {
     "e": {
@@ -1216,6 +1217,245 @@
         "logs": [
           "You wake on a gurney under a number.",
           "This terminal has no live district link."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    }
+  },
+  "salvage-adjacent": {
+    "e": {
+      "predicted": "fabrication",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "fabrication",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          2,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number.",
+          "You harvest. Hold still for 2s. Damage interrupts; Esc cancels."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    },
+    "j": {
+      "predicted": "lattice",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "lattice",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          2,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number.",
+          "Move next to a public terminal, or carry a rig."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    }
+  },
+  "salvage-off-exit": {
+    "e": {
+      "predicted": "fabrication",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "fabrication",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          3,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number.",
+          "You harvest. Hold still for 2s. Damage interrupts; Esc cancels."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    },
+    "j": {
+      "predicted": "lattice",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "lattice",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          3,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number.",
+          "Move next to a public terminal, or carry a rig."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    }
+  },
+  "salvage-underfoot": {
+    "e": {
+      "predicted": "fabrication",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "fabrication",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          3,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number.",
+          "You harvest. Hold still for 2s. Damage interrupts; Esc cancels."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    },
+    "j": {
+      "predicted": "lattice",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "lattice",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          3,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number.",
+          "Move next to a public terminal, or carry a rig."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    }
+  },
+  "salvage-empty-adjacent": {
+    "e": {
+      "predicted": "fabrication",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "fabrication",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          2,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number."
+        ],
+        "pending": false,
+        "waiting": 0,
+        "dialogue": null,
+        "missions": []
+      }
+    },
+    "j": {
+      "predicted": "lattice",
+      "focus": [
+        null,
+        null
+      ],
+      "outcome": {
+        "handler": "lattice",
+        "menus": {},
+        "body": [
+          "sodium-tin-halo",
+          2,
+          2,
+          "normal",
+          130,
+          70
+        ],
+        "presence": null,
+        "travel": null,
+        "logs": [
+          "You wake on a gurney under a number.",
+          "Move next to a public terminal, or carry a rig."
         ],
         "pending": false,
         "waiting": 0,

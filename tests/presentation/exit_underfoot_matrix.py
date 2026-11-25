@@ -5,6 +5,7 @@ their inserted exits/objects or moved NPCs; none edits shipped content.
 """
 
 from copy import deepcopy
+from random import Random
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -24,9 +25,13 @@ from tests.presentation.interaction_matrix import outcome
 CASES = ('shipped-street', 'talker-off-exit', 'hidden-exit', 'lift', 'tram',
          'legacy-talker', 'vendor-adjacent', 'vendor-off-exit', 'vendor-underfoot',
          'prop-underfoot', 'open-dialogue', 'open-shop', 'contract-giver',
-         'mission-action', 'board', 'doorstep', 'talker-before-terminal')
+         'mission-action', 'board', 'doorstep', 'talker-before-terminal',
+         'salvage-adjacent', 'salvage-off-exit', 'salvage-underfoot', 'salvage-empty-adjacent')
 PROMOTED = {'shipped-street', 'hidden-exit', 'lift', 'tram', 'legacy-talker',
-            'vendor-adjacent', 'contract-giver'}
+            'vendor-adjacent', 'contract-giver', 'salvage-adjacent', 'salvage-empty-adjacent'}
+# #211: these keep main's handler and outcome; only their E focus is new.
+FOCUS_ADDED = {'salvage-off-exit': {'id': 's211-node', 'label': 'Hull salvage (3 left)', 'verb': 'harvest'},
+               'salvage-underfoot': {'id': 's211-node', 'label': 'Hull salvage (3 left)', 'verb': 'harvest'}}
 
 
 def mission(core: Any, session: Any, zone: str, object_id: str) -> str:
@@ -100,12 +105,20 @@ def setup(content: ContentTree, case: str) -> tuple[HeadlessServer, FakeClient]:
     elif case == 'board':
         zone.objects['s39-board'] = ObjectState(ObjectSpec('s39-board', adjacent, 'terminal',
             {'name': 'Threshold board', 'contract_handler': 'vesper'}))
+    elif case.startswith('salvage-'):
+        # #211: a node placed through Salvage.sync, as ring-fall leaves one.
+        target = (tile[0], tile[1]+1) if case == 'salvage-underfoot' else adjacent
+        salvage = core.salvage
+        salvage.state['zones'][zone.id] = {'ring': 1, 'respawn_at': salvage.uptime+600, 'rng': Random(42).getstate(),
+            'nodes': {'s211-node': {'tile': list(target), 'grade': 'hull',
+                                    'units': 0 if case == 'salvage-empty-adjacent' else 3}}}
+        salvage.sync()
     elif case == 'doorstep':
         unit = next(iter(core.apartments.geometry.units.values()))
         place(game, caller, unit.zone, unit.anchor.doorstep)
         game.commit_commerce()
-    if case in ('talker-off-exit', 'vendor-off-exit'):
-        # Both exit and contact are adjacent to this tile.
+    if case in ('talker-off-exit', 'vendor-off-exit', 'salvage-off-exit', 'salvage-underfoot'):
+        # Both exit and contact are adjacent to this tile (the node is underfoot in salvage-underfoot).
         core.world.enter(sim.avatars[session.user_id].actor, zone.id, (tile[0], tile[1]+1))
     if case == 'mission-action':
         mission(core, session, zone.id, 's39-contact')

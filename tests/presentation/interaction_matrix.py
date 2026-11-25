@@ -8,6 +8,7 @@ object's own tile when it is not walkable; they are not movement acceptance.
 
 from collections import Counter
 from copy import deepcopy
+from random import Random
 from dataclasses import asdict
 from hashlib import sha256
 import json
@@ -26,6 +27,13 @@ from tests.harness import HeadlessServer
 ORDER = ('wake', 'events', 'market', 'contracts', 'factions', 'crews', 'relays',
          'apartments', 'progression', 'lattice', 'interlock', 'combat',
          'fabrication', 'commerce', 'npcs', 'chat', 'terminal', 'characters')
+
+# #211: generated salvage nodes, walked after the authored tiles as added
+# cases (zone id suffixed `+salvage`), so every earlier row stays byte-identical.
+# One node beside an exit, one alone, one empty beside the other exit.
+SALVAGE_ZONE = 'fx-open'
+SALVAGE_NODES = {'p3-node-exit': ((2, 6), 'hull', 3), 'p3-node-alone': ((32, 9), 'optics', 2),
+                 'p3-node-empty': ((2, 14), 'hull', 0)}
 
 
 def matrix_content(root: Path) -> tuple[Any, list[str]]:
@@ -137,13 +145,13 @@ def run_matrix(root: Path, *, verify: bool = True,
 
     rows = []
     counts: Counter[str] = Counter()
-    for zid in zones:
+
+    def around(zone: Any, points: Any) -> list[tuple[int, int]]:
+        return sorted({(x+dx, y+dy) for x, y in points for dx in (-1, 0, 1) for dy in (-1, 0, 1)
+                       if 0 <= x+dx < zone.template.width and 0 <= y+dy < zone.template.height})
+
+    def walk(zid: str, label: str, points: list[tuple[int, int]]) -> None:
         zone = core.world.zones[zid]
-        points = {obj.spec.tile for obj in zone.objects.values()}
-        points.update(ex.tile for ex in zone.template.meta.exits)
-        points.update(actor.position for actor in zone.actors.values() if actor is not body)
-        points = sorted({(x+dx, y+dy) for x, y in points for dx in (-1, 0, 1) for dy in (-1, 0, 1)
-                         if 0 <= x+dx < zone.template.width and 0 <= y+dy < zone.template.height})
         for tile in points:
             for jacked in (False, True):
                 for action in ('interact', 'jack'):
@@ -151,6 +159,7 @@ def run_matrix(root: Path, *, verify: bool = True,
                         for mapping in mappings:
                             mapping.clear()
                         core.commerce.outbox.clear()
+                        core.fabrication.channels.clear()
                         core.commerce.waiting.clear()
                         core.commerce.pending = None
                         core.characters.outbox.clear()
@@ -191,8 +200,24 @@ def run_matrix(root: Path, *, verify: bool = True,
                                 zid, tile, jacked, action, transport,
                                 prediction.route.name if prediction else None, actual)
                         result = outcome(game, client, actual)
-                        rows.append([zid, tile, jacked, action, transport, result])
+                        rows.append([label, tile, jacked, action, transport, result])
                         counts[actual] += 1
+
+    for zid in zones:
+        zone = core.world.zones[zid]
+        points = {obj.spec.tile for obj in zone.objects.values()}
+        points.update(ex.tile for ex in zone.template.meta.exits)
+        points.update(actor.position for actor in zone.actors.values() if actor is not body)
+        walk(zid, zid, around(zone, points))
+    if SALVAGE_ZONE in zones:
+        salvage = core.salvage
+        salvage.state['zones'][SALVAGE_ZONE] = {'ring': 1, 'respawn_at': salvage.uptime+600, 'rng': Random(42).getstate(),
+            'nodes': {oid: {'tile': list(tile), 'grade': grade, 'units': units}
+                      for oid, (tile, grade, units) in SALVAGE_NODES.items()}}
+        salvage.sync()
+        zone = core.world.zones[SALVAGE_ZONE]
+        saved_objects[SALVAGE_ZONE] = {oid: deepcopy(obj.__dict__) for oid, obj in zone.objects.items()}
+        walk(SALVAGE_ZONE, SALVAGE_ZONE+'+salvage', around(zone, [tile for tile, _, _ in SALVAGE_NODES.values()]))
     encoded = json.dumps(rows, ensure_ascii=True, sort_keys=True, separators=(',', ':')).encode()
     return {'sha256': sha256(encoded).hexdigest(), 'cases': len(rows), 'zones': zones,
             'handlers': dict(sorted(counts.items()))}, rows

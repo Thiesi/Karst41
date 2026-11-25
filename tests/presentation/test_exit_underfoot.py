@@ -11,7 +11,7 @@ from karst41.server.protocol import Frame
 from karst41.content.schema import ObjectSpec
 from karst41.server.npcs.templates import make_actor
 from karst41.server.world.zone import ObjectState
-from tests.presentation.exit_underfoot_matrix import CASES, PROMOTED, execute, setup
+from tests.presentation.exit_underfoot_matrix import CASES, FOCUS_ADDED, PROMOTED, execute, setup
 
 
 @pytest.fixture(scope='module')
@@ -34,13 +34,18 @@ def test_game_5_6_predicted_equals_dispatched_and_j_equals_main(
         assert actual['predicted'] == baseline['predicted']
         assert actual['focus'][1] == baseline['focus'][1]
         assert actual['outcome'] == baseline['outcome']
+    elif case in FOCUS_ADDED:
+        # #211: main's handler and outcome; the node now names its harvest.
+        assert actual['focus'][0] == FOCUS_ADDED[case] and baseline['focus'][0] is None
+        assert {**actual, 'focus': None} == {**baseline, 'focus': None}, (case, key, actual, baseline)
+        assert actual['focus'][1] == baseline['focus'][1]
     elif case not in PROMOTED:
         assert actual == baseline, (case, key, actual, baseline)
     else:
         assert actual['outcome']['handler'] == 'characters'
         assert actual['focus'][0]['verb'] == 'go to'
         assert not actual['outcome']['dialogue'] and not actual['outcome']['menus']
-        assert baseline['outcome']['handler'] in ('contracts', 'commerce', 'npcs')
+        assert baseline['outcome']['handler'] in ('contracts', 'commerce', 'npcs', 'fabrication')
         if case in ('lift', 'tram'):
             assert actual['outcome']['travel']
         else:

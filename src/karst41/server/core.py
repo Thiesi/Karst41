@@ -281,8 +281,9 @@ class Core:
     def resolve_interaction(self, session: Session, frame: Frame,
                             routes: list[InputRoute] | None = None) -> ResolvedInteraction | None:
         # Game 5.6 / architecture 5.5.2: only an exit underfoot can pass
-        # physical dialogue and adjacent commerce. A different choice, even
-        # an empty open-screen marker, is a barrier to that promotion.
+        # physical dialogue, adjacent commerce and an adjacent salvage node
+        # (#211). A different choice, even an empty open-screen marker, is a
+        # barrier to that promotion.
         sim = self.characters.sim if self.characters else self.simulation
         avatar = sim.avatars.get(session.user_id) if sim else None
         promote = avatar is not None and (interact(frame) or key_action(self.keymap, session, frame) == 'interact')
@@ -299,7 +300,7 @@ class Core:
             if isinstance(choice.value, Exit) and choice.tile == avatar.actor.position:
                 return result
             if (choice.kind == 'dialogue' and choice.tile is not None
-                    or (route.name == 'commerce' or choice.kind == 'vendor') and choice.value is not None
+                    or (route.name == 'commerce' or choice.kind in ('vendor', 'salvage')) and choice.value is not None
                     and choice.tile is not None and choice.tile != avatar.actor.position):
                 continue
             return first
