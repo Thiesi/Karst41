@@ -417,7 +417,7 @@ outs: [[x, y], ...]                  exit cells flagged `out` that this view alr
 looks: {theme, regions[], signs[], marks[], glints[], names{}}  place layer, masked, see 5.5.4 (P6)
 place: {places[{name, rect, at, text, view?}], here}   named places and the fixed camera (V3)
 scene: {lights[], pieces[]}          set dressing for the picture, masked (V3)
-focus: {id, label, verb} | null      what E does now, see 5.5.2 (P3)
+focus: {id, label, verb, short?} | null  what E does now, see 5.5.2 (P3)
 jack_focus: {id, label, verb} | null what J does now (Ctrl-O in vi), see 5.5.2 (P3)
 ```
 
@@ -559,7 +559,9 @@ and forced exits before they pass input onward. The hint uses the
 existing hint rectangle, naming E first and J when both have targets.
 Its wording requires the P3 presentation review; it adds no HERE panel.
 An unnamed target still owns its input, but its internal id is never a
-display label. Active channel progress owns the hint row. For focus
+display label. A focus may add an optional `short`, an authored form for
+side-panel rows that cannot fit `label` (a salvage node's `Hull (3 left)`);
+the hint row keeps `label`, and clients that do not know `short` ignore it. Active channel progress owns the hint row. For focus
 hints, the client fits whole key-help groups after the E/J context,
 with the objective and current cost ahead of context (terminal UI 11).
 It shortens each label to its last whole word before any trailing

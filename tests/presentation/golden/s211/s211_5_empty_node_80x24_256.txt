@@ -17,7 +17,7 @@
 │ ·   ·   ·   ·   ·   ·   ·───────────────────·   ·   · │ SHK ░░░░░░░░░░ 0     │
 │ ·  ·   ·   ·   ·   ·   · │ COLD CHAIN  ·   │   ·   ·  │ 200 ch   day 1/90    │
 ├───────────────────────────────────────────────────────┴──────────────────────┤
-│                                                                              │
+│» You wake on a gurney under a number.                                        │
 │                                                                              │
 │                                                                              │
 │J jack in  ? help  Tab target  F fire  X weapon  1-5 quick  V abilities       │

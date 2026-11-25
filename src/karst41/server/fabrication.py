@@ -28,6 +28,8 @@ class Fabrication:
         self.progression, self.salvage = progression, salvage
         self.commerce, self.game, self.clock = progression.commerce, progression.game, progression.clock
         self.sim, self.content = self.commerce.sim, progression.content
+        # #211: each salvage grade's item name, for the harvest focus (one item per grade, validated).
+        self.grade_names = {item.salvage.grade: item.name for item in self.content.items.values() if item.salvage}
         self.channels: dict[str, PhysicalChannel] = {}
         self.menus: dict[str, tuple[str, int, int]] = {}
         self.requests: dict[str, list[str]] = {}
@@ -230,10 +232,10 @@ class Fabrication:
 
     def harvest_interaction(self, obj: Any) -> Interaction:
         """#211: a node's focus, built live from its grade item name and units."""
-        grade, units = obj.state.get('grade'), obj.state.get('units', 0)
-        name = next((item.name for item in self.content.items.values()
-                     if item.salvage and item.salvage.grade == grade), None)
-        focus = Focus(obj.spec.id, f"{name} ({units} left)", 'harvest') if name else None
+        name, units = self.grade_names.get(obj.state.get('grade')), obj.state.get('units', 0)
+        # The panel form keeps the grade, which the hint's UI 11 short form drops.
+        focus = Focus(obj.spec.id, f"{name} ({units} left)", 'harvest',
+                      f"{name.removesuffix(' salvage')} ({units} left)") if name else None
         return Interaction(focus, obj, obj.spec.tile, kind='salvage')
 
     def input(self, session: Session, frame: Frame, tick: int, *, interaction: Interaction | None = None) -> bool:

@@ -30,8 +30,8 @@ CASES = ('shipped-street', 'talker-off-exit', 'hidden-exit', 'lift', 'tram',
 PROMOTED = {'shipped-street', 'hidden-exit', 'lift', 'tram', 'legacy-talker',
             'vendor-adjacent', 'contract-giver', 'salvage-adjacent', 'salvage-empty-adjacent'}
 # #211: these keep main's handler and outcome; only their E focus is new.
-FOCUS_ADDED = {'salvage-off-exit': {'id': 's211-node', 'label': 'Hull salvage (3 left)', 'verb': 'harvest'},
-               'salvage-underfoot': {'id': 's211-node', 'label': 'Hull salvage (3 left)', 'verb': 'harvest'}}
+FOCUS_ADDED = {'salvage-off-exit': {'id': 's211-node', 'label': 'Hull salvage (3 left)', 'verb': 'harvest', 'short': 'Hull (3 left)'},
+               'salvage-underfoot': {'id': 's211-node', 'label': 'Hull salvage (3 left)', 'verb': 'harvest', 'short': 'Hull (3 left)'}}
 
 
 def mission(core: Any, session: Any, zone: str, object_id: str) -> str:

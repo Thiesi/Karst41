@@ -22,7 +22,7 @@ from tests.presentation.test_hint_labels import focus_context
 
 ZONE = 'vatside-clinics'
 EXIT = {'id': 'to-wake-hall', 'label': 'Wake Hall', 'verb': 'go to'}
-NODE = {'id': 'n211', 'label': 'Hull salvage (3 left)', 'verb': 'harvest'}
+NODE = {'id': 'n211', 'label': 'Hull salvage (3 left)', 'verb': 'harvest', 'short': 'Hull (3 left)'}
 
 # The #211 table: caller tile, node tile (None: no node), node units, then the
 # expected E focus and the route that both predicts and consumes E.
@@ -82,7 +82,7 @@ def test_211_exit_underfoot_outranks_an_adjacent_node_and_focus_matches_dispatch
 def test_211_label_uses_the_grade_item_name_and_counts_down_live(content: ContentTree) -> None:
     game, caller = scene(content, (10, 3), (11, 3), 3, grade='optics')
     focus, _ = game.core.interaction_views(caller.session)
-    assert focus == {'id': 'n211', 'label': 'Optics salvage (3 left)', 'verb': 'harvest'}
+    assert focus == {'id': 'n211', 'label': 'Optics salvage (3 left)', 'verb': 'harvest', 'short': 'Optics (3 left)'}
     game.core._echo(Event('input', {'session': caller.session, 'frame': Frame('key', {'k': 'e'}),
                                     'tick': game.clock.now_tick()}))
     assert game.core.fabrication.channels[caller.session.player_id].kind == 'harvest'
@@ -95,7 +95,7 @@ def test_211_label_uses_the_grade_item_name_and_counts_down_live(content: Conten
             break
     assert units == 2
     focus, _ = game.core.interaction_views(caller.session)
-    assert focus == {'id': 'n211', 'label': 'Optics salvage (2 left)', 'verb': 'harvest'}
+    assert focus == {'id': 'n211', 'label': 'Optics salvage (2 left)', 'verb': 'harvest', 'short': 'Optics (2 left)'}
 
 
 def test_211_hint_row_full_and_short_form(content: ContentTree) -> None:
@@ -167,3 +167,22 @@ def test_211_s24_travel_step_passes_with_a_node_beside_the_exit(content: Content
     assert core.world.zones[ZONE].objects['n211'].state['units'] == 3
     asyncio.run(probe.travel(connection, 'vatside-wake-hall'))
     assert avatar.zone == 'vatside-wake-hall'
+
+
+@pytest.mark.parametrize('change', ['duplicate', 'missing'])
+def test_211_every_salvage_grade_has_exactly_one_item(change: str) -> None:
+    """The harvest focus names the grade's item; the validator makes a missing
+    or ambiguous name impossible instead of a silent null focus."""
+    from copy import deepcopy
+    from dataclasses import replace
+    from karst41.content.validate import validate
+    tree = load_content(Path(__file__).resolve().parents[2]/'src/karst41/content')
+    assert not [p for p in validate(tree) if 'salvage grade' in p.message]
+    tree = deepcopy(tree)
+    hull = tree.items['slv_hull']
+    if change == 'duplicate':
+        tree.items['slv_hull_copy'] = replace(hull, id='slv_hull_copy', name='Hull scrap')
+    else:
+        tree.items['slv_hull'] = replace(hull, salvage=None)
+    messages = [p.message for p in validate(tree) if 'salvage grade' in p.message]
+    assert messages == [f"salvage grade hull needs exactly one item template, found {2 if change == 'duplicate' else 0}"]

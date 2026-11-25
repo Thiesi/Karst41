@@ -20,9 +20,13 @@ class Focus:
     id: str
     label: str
     verb: str
+    short: str = ''  # #211: an optional authored panel form; additive, old clients ignore it.
 
     def record(self) -> dict[str, str]:
-        return {"id": self.id, "label": self.label, "verb": self.verb}
+        record = {"id": self.id, "label": self.label, "verb": self.verb}
+        if self.short:
+            record["short"] = self.short
+        return record
 
 
 @dataclass(frozen=True)

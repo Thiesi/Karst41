@@ -53,12 +53,13 @@ def press_e(game: HeadlessServer, client: Any) -> None:
 
 
 def shoot(game: HeadlessServer, client: Any, info: DoorInfo, width: int, height: int, tier: str,
-          before_render: Callable[[Display], None] | None = None, keep_toast: bool = False) -> tuple[FakeTerminal, Display]:
+          before_render: Callable[[Display], None] | None = None, keep_toast: bool = False,
+          earlier: list[Frame] | None = None) -> tuple[FakeTerminal, Display]:
     client.session.needs_full_view = True
     game.step(2)
     model = Display(replace(info, width=width, height=height, color_depth=tier), presentation=True)
     now = game.core.clock.now_tick() / TICK_HZ
-    for frame in game.frames_for(client):
+    for frame in [*(earlier or []), *game.frames_for(client)]:
         model.receive(frame, now)
     if not keep_toast:
         model.toast = None
@@ -97,8 +98,8 @@ def test_state_2_beside_a_node_full_hint_and_here(info, repo_root, request, widt
     pin(request, '2_beside_node', terminal, width, height, tier)
     screen = terminal.screen_text()
     assert 'E harvest Hull salvage (3 left)' in rows(terminal)[-2]
-    # UI 6 (#261): HERE fits names in 18 cells, so the grade word drops there.
-    assert '* salvage (3 left)' in screen
+    # UI 6 (#261): HERE fits 18 cells; the focus's authored panel form keeps the grade.
+    assert '* Hull (3 left)' in screen and '* salvage' not in screen
 
 
 @pytest.mark.parametrize('width,height,tier', SIZES)
@@ -133,18 +134,32 @@ def test_state_4_the_count_drops_live_after_one_harvest(info, repo_root, request
     terminal, _ = shoot(game, client, info, width, height, tier)
     pin(request, '4_after_harvest', terminal, width, height, tier)
     assert 'E harvest Hull salvage (2 left)' in rows(terminal)[-2]
-    assert '* salvage (2 left)' in terminal.screen_text()
+    assert '* Hull (2 left)' in terminal.screen_text()
 
 
 @pytest.mark.parametrize('width,height,tier', SIZES)
 def test_state_5_beside_an_empty_node_no_focus_and_no_toast(info, repo_root, request, width, height, tier):
     game, client = scene(repo_root, width, height, (20, 1), (21, 1), units=0)
     game.step(2)
-    game.frames_for(client)  # Drop the login notices, so only E's own answer could show.
+    opening = game.frames_for(client)  # The session's opening frames, palette included.
     press_e(game, client)
-    terminal, model = shoot(game, client, info, width, height, tier, keep_toast=True)
+    game.step(2)
+    after = game.frames_for(client)
+    # E's own answer: no toast at all, and no log line naming the node.
+    assert not [frame for frame in after if frame.type == 'toast']
+    terminal, model = shoot(game, client, info, width, height, tier, earlier=opening+after)
     pin(request, '5_empty_node', terminal, width, height, tier)
     screen = terminal.screen_text()
     assert 'harvest' not in screen and 'salvage' not in screen.lower()
-    assert model.toast is None or 'salvage' not in str(model.toast[0]).lower()
     assert 'n211' not in screen  # An internal id is never a display label (architecture 5.5.2).
+
+
+def test_state_6_a_node_two_tiles_away(info, repo_root, request):
+    """Out of reach: on the map only. NEARBY lists actors, never objects (#283)."""
+    width, height, tier = 80, 24, '256'
+    game, client = scene(repo_root, width, height, (20, 1), (22, 1))
+    terminal, _ = shoot(game, client, info, width, height, tier)
+    pin(request, '6_node_two_away', terminal, width, height, tier)
+    screen = terminal.screen_text()
+    assert 'harvest' not in rows(terminal)[-2] and 'Hull' not in screen
+    assert '@·*' in screen

@@ -1225,6 +1225,11 @@ class _Validator:
                 for item in self.t.items.values()) for grade in weights)
         if not valid:
             self.report("salvage", "salvage", "invalid salvage bounds, ring weights or grade templates")
+        # #211: a node's harvest focus names its grade's item, so each grade needs exactly one.
+        for grade in sorted({grade for weights in rules.weights.values() for grade in weights}):
+            count = sum(1 for item in self.t.items.values() if item.salvage and item.salvage.grade == grade)
+            if count != 1:
+                self.report("salvage", grade, f"salvage grade {grade} needs exactly one item template, found {count}")
 
     def check_progression(self) -> None:
         grades = list(self.each("grades"))
