@@ -77,7 +77,7 @@ def percentiles(values: list[float]) -> dict[str, float | int]:
 
 def writer_window(io: Any, marks: dict[str, int], counters: dict[str, int]) -> dict[str, Any]:
     """S47 figures over the sampling window (technical lead's ruling (e))."""
-    window = {key: io.stats[key][marks.get(key, 0):] for key in ('commit_seconds', 'latency_seconds', 'apply_seconds')}
+    window = {key: io.samples(key, marks.get('sample', 0)) for key in ('commit_seconds', 'latency_seconds', 'apply_seconds')}
     summary = {'commit': percentiles(window['commit_seconds']),
                'submit_to_settle': percentiles(window['latency_seconds']),
                'max_queue_depth': io.stats['max_depth'],
@@ -186,7 +186,7 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         await asyncio.sleep(2)
         sampling_tick = probe.service.clock.now_tick()
         loop.timings.clear()
-        marks = {key: len(value) for key, value in io.stats.items() if isinstance(value, list)}
+        marks = {'sample': io.sample}
         counters = {key: io.stats[key] for key in ('ticks_in_flight_across_step', 'steps')}
         io.stats['max_depth'] = 0
         await asyncio.sleep(10)

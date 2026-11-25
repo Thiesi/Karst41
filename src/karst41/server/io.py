@@ -31,6 +31,7 @@ from karst41.server.storage.db import IMMEDIATE_REASONS, PLAYER_FLUSH_SECONDS, W
 from karst41.server.storage.writer import Command, Result, frozen
 
 LOG_BOUND = 1024  # Log lines held loop-side at most; the oldest drop first, counted.
+STATS_BOUND = 8192  # Timing samples kept per figure; fixed memory for the server's lifetime.
 ALL_KINDS = ("players", "items", "meta", "identities")
 RECOVERABLE = (OSError, sqlite3.Error)  # A receipt that fails with these settles false.
 
@@ -72,8 +73,12 @@ class IO:
         self.fatal: BaseException | None = None
         self.wake = asyncio.Event()
         # S11 figures (technical lead's ruling (e)).
-        self.stats: dict[str, Any] = {"commit_seconds": [], "latency_seconds": [], "apply_seconds": [], "max_depth": 0,
-                                      "ticks_in_flight_across_step": 0, "steps": 0}
+        # Each timing figure is a fixed-size deque of (sample number, seconds); the
+        # S11 harness reads the samples numbered after its window opened.
+        self.sample = 0
+        self.stats: dict[str, Any] = {key: deque(maxlen=STATS_BOUND) for key in
+                                      ("commit_seconds", "latency_seconds", "apply_seconds")}
+        self.stats.update(max_depth=0, ticks_in_flight_across_step=0, steps=0)
 
     # --- lifecycle -------------------------------------------------------
 
@@ -416,7 +421,7 @@ class IO:
             head = self.in_flight.popleft()
             assert head is command, "the writer answered out of order"
             local = self.context.pop(command.seq)
-            self.stats["commit_seconds"].append(result.seconds)
+            self._sample("commit_seconds", result.seconds)
             began = time.perf_counter()
             try:
                 getattr(self, "_settle_" + command.kind)(command, result, local)
@@ -426,8 +431,8 @@ class IO:
                 raise
             finally:
                 if command.kind in ("commerce", "character"):
-                    self.stats["latency_seconds"].append(time.perf_counter() - local["submitted"])
-                self.stats["apply_seconds"].append(time.perf_counter() - began)
+                    self._sample("latency_seconds", time.perf_counter() - local["submitted"])
+                self._sample("apply_seconds", time.perf_counter() - began)
         if self.fatal is not None:
             raise StorageFailure(str(self.fatal)) from self.fatal
 
@@ -535,6 +540,14 @@ class IO:
                 self.mark(kind, record_id, recorders[record_id]())
 
     # --- S11 bookkeeping --------------------------------------------------
+
+    def _sample(self, figure: str, seconds: float) -> None:
+        self.sample += 1
+        self.stats[figure].append((self.sample, seconds))
+
+    def samples(self, figure: str, after: int = 0) -> list[float]:
+        """The figure's samples numbered after `after` (still held: at most STATS_BOUND)."""
+        return [seconds for number, seconds in self.stats[figure] if number > after]
 
     def stepped(self) -> None:
         """Called once per simulation step: count a receipt in flight across it."""

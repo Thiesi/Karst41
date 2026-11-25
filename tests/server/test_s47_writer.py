@@ -425,3 +425,17 @@ def test_a_full_writer_queue_holds_work_loop_side_and_shows_todays_busy_text(tmp
     rig.writer.bound = 256
     run_writes(rig.io)
     assert calls == [True]
+
+
+def test_the_timing_figures_hold_fixed_memory_for_the_servers_lifetime(rig: Rig) -> None:
+    """Technical lead's review, item 1: no per-command growth in the live server."""
+    from karst41.server.io import STATS_BOUND
+    for n in range(STATS_BOUND + 500):
+        rig.io.log_event("line", n=n)
+        rig.cycle()
+        rig.writer.complete()
+    rig.cycle()
+    for figure in ("commit_seconds", "latency_seconds", "apply_seconds"):
+        assert len(rig.io.stats[figure]) <= STATS_BOUND
+    assert len(rig.io.stats["commit_seconds"]) == STATS_BOUND
+    assert len(rig.io.samples("commit_seconds", rig.io.sample - 10)) <= 10
