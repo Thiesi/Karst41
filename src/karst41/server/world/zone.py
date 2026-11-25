@@ -3,6 +3,7 @@
 from collections import deque
 from dataclasses import dataclass, field
 from collections.abc import Callable
+from typing import Any
 import random
 
 from karst41.content.schema import ObjectSpec, Tile, TileType, Zone, ZoneLayout
@@ -51,6 +52,9 @@ class ZoneInstance:
     position_update: Callable[[Actor], None] = field(default=lambda actor: None, repr=False)
     escape_origin: Callable[[Actor], Tile] = field(default=lambda actor: actor.position, repr=False)
     geometry_revision: int = 0
+    # #194: Spawners.location's per-region cache of statically passable ground, held
+    # on the instance so a rebuilt instance always starts cold.
+    spawn_ground: dict[str, tuple[Any, ...]] = field(default_factory=dict, repr=False, compare=False)
     rng: random.Random = field(init=False, repr=False)
     doors: dict[Tile, ObjectState] = field(init=False, repr=False)
     base_opaque: set[Tile] = field(init=False, repr=False)

@@ -69,3 +69,25 @@ def scratch_dir(tmp_path: Path) -> Path:
     path = tmp_path / "scratch"
     path.mkdir()
     return path
+
+
+@pytest.fixture(autouse=True, scope="session")
+def view_equivalence() -> object:
+    """#194: KARST41_VIEW_EQUIVALENCE=1 checks every view publish against the original diff."""
+    import os
+    if os.environ.get("KARST41_VIEW_EQUIVALENCE") != "1":
+        yield None
+        return
+    from tests.view_equivalence import checking
+    with checking() as counts:
+        yield counts
+    print(f"\nview equivalence: {counts['calls']} frames checked, {counts['deltas']} deltas, all byte-identical")
+
+
+@pytest.fixture(autouse=True, scope="session")
+def view_reuse_checks() -> object:
+    """#194: the whole suite checks that a view grid reused by identity was never edited in place."""
+    from karst41.server.views import delta
+    previous, delta.CHECK_REUSE = delta.CHECK_REUSE, True
+    yield None
+    delta.CHECK_REUSE = previous
