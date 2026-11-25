@@ -99,3 +99,22 @@ def test_the_rows_regular_region_is_now_cheap(row: Any) -> None:
         del zone.actors[key]
     print(f"sodium-regular location with 60 actors: {old:.2f} ms -> {new:.2f} ms")
     assert new < old / 2, (old, new)
+
+
+def test_a_rebuilt_zone_instance_never_uses_the_old_instances_ground(row: Any) -> None:
+    """Technical lead: a new instance at geometry revision 0 with different geometry starts cold."""
+    from karst41.server.world.zone import ZoneInstance
+    game, zone, _ = row
+    spawners = game.core.npcs.spawners
+    regular = next(sp for sp in zone.template.meta.spawners if sp.id == "sodium-regular")
+    spawners.location(zone, regular)  # Fill the cache from the old instance.
+    wall = next(key for key, tile in zone.tiles.items() if not tile.passable)
+    rebuilt = ZoneInstance(zone.template, zone.tiles, zone.seed)  # Same template, revision 0...
+    rebuilt.geometry = {(x, y): wall for x in range(3, 60) for y in range(3, 27)}  # ...different geometry.
+    rebuilt.geometry_revision = zone.geometry_revision  # The same revision number as the cached state.
+    for _ in range(5):
+        state = rebuilt.rng.getstate()
+        expected = reference_location(spawners, rebuilt, regular)
+        rebuilt.rng.setstate(state)
+        assert spawners.location(rebuilt, regular) == expected
+        assert expected is None or expected[0] >= 60, "never a tile the new geometry walls off"
