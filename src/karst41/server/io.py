@@ -33,12 +33,12 @@ from karst41.server.storage.writer import Command, Result, frozen
 LOG_BOUND = 1024  # Log lines held loop-side at most; the oldest drop first, counted.
 REFRESH_SECONDS = WORLD_FLUSH_SECONDS  # The read cache's refresh: hand edits to bans apply within it.
 REFRESHED = ("season",)  # Meta keys the refresh reads with the bans.
-STATS_BOUND = 8192
+STATS_BOUND = 8192  # Timing samples kept per figure; fixed memory for the server's lifetime.
 # Backpressure (technical lead's ruling on the queue bound): once this many system jobs wait
 # behind a pending commit, simulation steps pause until they drain below PAUSE_LOW. Settling,
 # pumping, publishing and connections carry on. That's the pre-S47 freeze, entered only
 # during a pathological writer stall, and far below commerce.SYSTEM_LIMIT.
-PAUSE_HIGH, PAUSE_LOW = 1024, 256  # Timing samples kept per figure; fixed memory for the server's lifetime.
+PAUSE_HIGH, PAUSE_LOW = 1024, 256
 ALL_KINDS = ("players", "items", "meta", "identities")
 RECOVERABLE = (OSError, sqlite3.Error)  # A receipt that fails with these settles false.
 
@@ -172,7 +172,14 @@ class IO:
     async def drain(self) -> None:
         """Pump and settle until everything accepted has settled (the stop path)."""
         while True:
-            self.settle()
+            try:
+                self.settle()
+            except StorageFailure:
+                # A fatal result: every other result is still applied, as it arrives, so each
+                # committed receipt's re-freeze runs before Close freezes the dirty map
+                # (automated review 7170219330). Then the failure propagates.
+                await self._settle_remaining()
+                raise
             self.pump()
             if self.idle() or not self.alive:
                 return
@@ -463,9 +470,24 @@ class IO:
 
     # --- settle: apply results on the loop, in order -----------------------
 
-    def settle(self) -> None:
-        """Apply every result that has arrived. Raises StorageFailure on a fatal one."""
-        if self.fatal is not None and not self.completed:
+    async def _settle_remaining(self) -> None:
+        """After a fatal result: apply every result still to come, never raising."""
+        while True:
+            self.settle(strict=False)
+            if not self.in_flight or not self.alive:
+                return
+            self.wake.clear()
+            if self.completed:
+                continue
+            await self.wake.wait()
+
+    def settle(self, strict: bool = True) -> None:
+        """Apply every result that has arrived. Raises StorageFailure on a fatal one.
+
+        With strict=False a fatal result is recorded and the remaining results are
+        still applied; nothing is raised (the stop path after a failure).
+        """
+        if strict and self.fatal is not None and not self.completed:
             raise StorageFailure(str(self.fatal)) from self.fatal
         while self.completed:
             command, result = self.completed.popleft()
@@ -477,14 +499,15 @@ class IO:
             try:
                 getattr(self, "_settle_" + command.kind)(command, result, local)
             except StorageFailure as exc:
-                self.fatal = exc
+                self.fatal = self.fatal or exc
                 self.direct = True
-                raise
+                if strict:
+                    raise
             finally:
                 if command.kind in ("commerce", "character"):
                     self._sample("latency_seconds", time.perf_counter() - local["submitted"])
                 self._sample("apply_seconds", time.perf_counter() - began)
-        if self.fatal is not None:
+        if strict and self.fatal is not None:
             raise StorageFailure(str(self.fatal)) from self.fatal
 
     def _fatal(self, what: str, result: Result) -> None:

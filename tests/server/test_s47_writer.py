@@ -505,3 +505,37 @@ def test_a_failed_refresh_keeps_the_last_good_cache_and_logs(rig: Rig) -> None:
     assert rig.io.bans == {"9": None} and rig.io.fatal is None
     assert "read cache refresh failed" in rig.logs.messages()
     rig.store.db.execute("ALTER TABLE bans_away RENAME TO bans")
+
+
+def test_a_fatal_flush_still_settles_the_receipt_behind_it_before_the_final_flush(rig: Rig, monkeypatch) -> None:
+    """Automated review 7170219330: the stop path must refreeze a committed receipt's records."""
+    import asyncio
+    from karst41.server.storage import writer as writer_module
+    player, manager = rig.player(), rig.game.core.characters
+    before = player.chits_hand
+    manager.queue("save", player.bbs_user_id, player)  # A pre-receipt mark: the old chits.
+    rig.cycle()
+    rig.game.clock.advance(60)
+    rig.cycle()
+    assert rig.writer.kinds() == ["flush"]  # A periodic flush, in flight...
+    calls: list[bool] = []
+    rig.reward(player, 50, calls)
+    rig.cycle()
+    assert rig.writer.kinds() == ["flush", "commerce"]  # ...and a receipt behind it (flushes take no barrier).
+    real = writer_module.Executor._flush
+    monkeypatch.setattr(writer_module.Executor, "_flush", lambda self, payload: (_ for _ in ()).throw(
+        sqlite3.OperationalError("database is locked")))
+    rig.writer.complete(1)  # The flush fails.
+    monkeypatch.setattr(writer_module.Executor, "_flush", real)
+    rig.writer.complete(1)  # The receipt commits.
+
+    async def stop() -> None:
+        with pytest.raises(StorageFailure):
+            await rig.io.drain()
+        closing = asyncio.ensure_future(rig.io.close())
+        await asyncio.sleep(0)
+        rig.writer.complete()
+        await closing
+    asyncio.run(stop())
+    assert calls == [True], "the receipt settled on the stop path"
+    assert rig.saved()["chits_hand"] == before + 50, "the final flush kept the reward"
