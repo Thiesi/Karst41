@@ -15,7 +15,6 @@ import time
 import threading
 from typing import Any
 
-import karst41
 from accept_s10_netbbs import Connection, NativeProbe, wait
 from tests import storage_reader
 from acceptance_hall import crossed_quietly
@@ -86,7 +85,7 @@ def writer_window(io: Any, marks: dict[str, int], counters: dict[str, int]) -> d
                'steps': io.stats['steps']-counters.get('steps', 0)}
     return {'summary': summary,
             'guard': 'armed for the whole run: GuardedConnection on the live connection (any other thread raises '
-                     'LoopThreadSQLite) and storage_reader.loop_guard on the loop thread for karst41 code',
+                     'LoopThreadSQLite) and storage_reader.loop_guard: no connection to this world.db opens on the loop thread',
             'commit_seconds': window['commit_seconds'], 'latency_seconds': window['latency_seconds']}
 
 
@@ -294,8 +293,8 @@ async def accept(root: Path, door_python: Path, show: bool,
     probe=NativeProbe(root,door_python,show)
     await probe.start()
     results=[]
-    # S47: no SQLite connection opens on the loop thread from karst41 code for the whole run.
-    guard=storage_reader.loop_guard(threading.get_ident(),scope=Path(karst41.__file__).parent)
+    # S47: no SQLite connection to this install's world.db opens on the loop thread for the whole run.
+    guard=storage_reader.loop_guard(threading.get_ident(),database=probe.service.install_dir/"world.db")
     guard.__enter__()
     try:
         for width,height in sizes:

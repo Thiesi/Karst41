@@ -133,3 +133,23 @@ def test_a_dead_writer_takes_the_deadline_branch_at_once(scratch_dir: Path) -> N
         finally:
             server.lease.release()
     asyncio.run(scenario())
+
+
+def test_the_s11_guard_matches_this_world_db_by_target_however_it_is_named(tmp_path: Path, monkeypatch) -> None:
+    """Technical lead's choice (C): the harness check names the database, never the calling code."""
+    world, other = tmp_path / "world.db", tmp_path / "netbbs.db"
+    for path in (world, other):
+        sqlite3.connect(path).close()
+    monkeypatch.chdir(tmp_path)
+    with storage_reader.loop_guard(database=world):
+        for spelled in ("world.db", str(world), world, str(world).encode(),
+                        f"file:{world.as_posix()}?mode=ro", "file:world.db?mode=rw",
+                        "file:///" + world.as_posix().lstrip("/")):
+            uri = isinstance(spelled, str) and spelled.startswith("file:")
+            with pytest.raises(storage_reader.LoopSQLite):
+                sqlite3.connect(spelled, uri=uri)
+        sqlite3.connect(other).close()  # Another database (NetBBS's own) passes.
+        sqlite3.connect(":memory:").close()
+        with storage_reader.reader(world) as store:  # The read-only test reader passes.
+            store.db.execute("SELECT 1")
+    assert storage_reader.target(("file:world.db?mode=ro",), {}) == world.resolve()
