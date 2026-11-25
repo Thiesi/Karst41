@@ -202,19 +202,34 @@ minimum-version line. This external path also supports local development.
    another server holds it.
 2. Load and validate content (`content/` then `content.local/`); fail
    loudly on any invariant in `01-entities.md` §5.
-3. Open `world.db`, run migrations (schema version in `meta`).
+3. Start the writer thread (§6.2). It opens `world.db`, runs migrations
+   (schema version in `meta`) and returns the startup snapshot; the server
+   waits for it before admitting anyone.
 4. Rebuild live state: zone instances, relay ownership, core states,
    season pointer, event cooldowns.
 5. Create secrets if missing, bind the socket, write pid, start the tick
-   loop, the persistence task, and the event engine.
+   loop and the event engine.
 6. Log "world open" with content hash and season.
 
 ### 3.4 Server stop
 
-`SIGTERM` or `karst41 admin stop`: stop accepting, tell clients
-`bye {reason: "maintenance"}`, apply the sleeper rule to everyone as if
-they had logged out, flush persistence, remove `run/` files, exit 0.
-Hard limit 10 s, then exit anyway; persistence is crash-safe.
+`SIGTERM` or `karst41 admin stop`. One 10 s deadline covers steps 1-6:
+
+1. Admissions: stop accepting connections.
+2. Shutdown: tell clients `bye {reason: "maintenance"}` and apply the
+   sleeper rule to everyone as if they had logged out.
+3. Pump: hand the writer every pending save, receipt, report and audit.
+4. Settle: apply every in-flight receipt's result on the loop (§6.2).
+5. Close: the writer flushes what is still dirty and closes the
+   connection on its own thread.
+6. Lease: release it, remove `run/` files, exit 0.
+
+Deadline: if the 10 s run out, or the writer has already died, skip what
+is left. Log the commands still queued or in flight, keep the connection
+and the lease untouched, and exit with code 3. The OS drops the lease with
+the process, and persistence is crash-safe: WAL recovery applies at the
+next start, and nothing unacknowledged counts as committed. Code 3 means
+"stopped at the deadline", so a service manager does not restart it.
 
 ## 4. Authentication and trust
 
@@ -765,12 +780,27 @@ input. Expiry follows authored zone links to the nearest safe/pocket zone;
 the Wake Hall is the fallback while the city graph is incomplete. S10
 supplies combat flags and clone-debt consequences; S07 has no combat.
 
-- SQLite in WAL mode with a single writer task. Live entities are marked
-  dirty; the writer flushes dirty players every 5 s, world state every
-  30 s, and immediately on: death, trade, market action, item transfer,
-  relay change, contract state change, season change, logout, evidence
+- SQLite in WAL mode with a single writer thread. It owns the one live
+  connection: it creates it (migrations and seeds included), runs every
+  read and write on it, and closes it. No SQLite call runs on the event
+  loop. The loop freezes each write as an immutable command carrying its
+  originating tick, and the writer runs commands in one bounded FIFO, in
+  submission order. Live entities are marked dirty on the loop; the
+  writer flushes dirty players every 5 s, world state every 30 s, and
+  immediately on: death, trade, market action, item transfer, relay
+  change, contract state change, season change, logout, evidence
   publication, work-order allocation, contribution, ballot, settlement
   and event-plan commitment.
+- Settlement barrier: a receipt's commit does not end its turn. Its result
+  is applied on the loop (callbacks, deferred work, refreshed saves), and
+  only then is any later save, receipt or flush submitted. Dirty state
+  for the receipt's records is re-frozen from the settled live state, so
+  an older snapshot never overwrites a durable reward.
+- Reads: the startup snapshot comes from the writer before admission.
+  Later lookups (bans, season) read a loop-side cache, which a committed
+  change updates on the loop before it is acknowledged.
+- A commit whose result never reaches the loop has an unknown outcome. It
+  is never reported as rolled back and never retried automatically.
 - Every flush is one transaction. A crash loses at most 5 s of position
   and health. Rewarded actions and their receipts are committed before
   success is acknowledged or broadcast; ordinary dirty-state flushes

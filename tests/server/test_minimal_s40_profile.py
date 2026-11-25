@@ -77,7 +77,7 @@ def test_s40_failed_commit_is_observed_without_losing_rollback_or_dirty_state(
                 raise sqlite3.OperationalError('commit rejected')
             return super().__exit__(*args)
     connect = sqlite3.connect
-    monkeypatch.setattr(sqlite3, 'connect', lambda *a, **kw: connect(*a, **kw, factory=RejectedCommit))
+    monkeypatch.setattr(sqlite3, 'connect', lambda *a, **kw: connect(*a, **{**kw, 'factory': RejectedCommit}))
     store = Storage(scratch_dir/'world.db', ManualClock())
     stamps = iter((10, 20))
     monkeypatch.setattr('karst41.server.storage.db.perf_counter_ns', lambda: next(stamps))

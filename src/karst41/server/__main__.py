@@ -2,16 +2,18 @@
 
 import argparse
 import asyncio
+import os
 import signal
 import sqlite3
 import sys
 from pathlib import Path
 
-from karst41.server.app import Server
+from karst41.server.app import DEADLINE_EXIT, Server
 
 
-async def run(args: argparse.Namespace) -> None:
-    server = Server(args.install_dir, args.tcp, args.log_level, spawn_zone=args.spawn_zone)
+async def run(args: argparse.Namespace, server: Server | None = None) -> None:
+    if server is None:
+        server = Server(args.install_dir, args.tcp, args.log_level, spawn_zone=args.spawn_zone)
     previous: dict[signal.Signals, object] = {}
 
     def stop(signum: int, frame: object) -> None:
@@ -36,12 +38,22 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--spawn-zone", help="preview a supplied zone before character entry")
     parser.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")
     args = parser.parse_args(argv)
+    server = Server(args.install_dir, args.tcp, args.log_level, spawn_zone=args.spawn_zone)
+    code = 0
     try:
-        asyncio.run(run(args))
+        asyncio.run(run(args, server))
     except (OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
         print(f"karst41 server: {exc}", file=sys.stderr)
-        return 1
-    return 0
+        code = 1
+    if server.exit_code == DEADLINE_EXIT:
+        # Architecture §3.4: the writer may still be inside an fsync, holding
+        # the connection and the log lock. End the process now; the OS drops
+        # the lease and WAL recovery applies at the next start.
+        print("karst41 server: stopped at the deadline", file=sys.stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(DEADLINE_EXIT)
+    return code
 
 
 if __name__ == "__main__":

@@ -32,6 +32,10 @@ The watching bot prints `bye maintenance`, the server exits zero,
 and `run/` becomes empty. The advisory-lock sidecar remains on disk;
 its existence does not mean a server is running. Never delete it to
 force a start while another process holds the lease.
+If saves can't drain within the 10 s stop limit, or the writer thread has
+died, the server logs `stop deadline` with the commands still queued or in
+flight and exits with code 3 (architecture §3.4); the systemd unit doesn't
+restart it (`RestartPreventExitStatus=3`).
 Stop requests received during bootstrap are retained. The service
 finishes the in-progress content copy and validation, then closes before
 opening the listener. Its log ends with `world closed`.

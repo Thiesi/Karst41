@@ -6,6 +6,7 @@ from pathlib import Path
 from karst41.bot.__main__ import run
 from karst41.server.app import Server
 from karst41.version import PACKAGE_VERSION
+from tests import storage_reader
 
 
 def test_zone_upgrade_seed_restart_and_walk_bot(scratch_dir: Path, capsys: object) -> None:
@@ -13,9 +14,8 @@ def test_zone_upgrade_seed_restart_and_walk_bot(scratch_dir: Path, capsys: objec
         first = Server(scratch_dir, tcp=True)
         await first.start()
         try:
-            seeds = dict(first.storage.meta("rng_seeds"))
-            first.storage.mark_dirty("meta", "content_package_version", "0.0.1")
-            first.storage.flush_now()
+            seeds = dict(storage_reader.meta(scratch_dir / "world.db", "rng_seeds"))
+            first.io.mark("meta", "content_package_version", "0.0.1")  # The stop's Close flushes it.
         finally:
             await first.stop()
         # Recreate an old installed content tree missing the new map.
@@ -23,8 +23,8 @@ def test_zone_upgrade_seed_restart_and_walk_bot(scratch_dir: Path, capsys: objec
         second = Server(scratch_dir, tcp=True, spawn_zone="vatside-wake-hall")
         await second.start()
         try:
-            assert second.storage.meta("content_package_version") == PACKAGE_VERSION
-            assert second.storage.meta("rng_seeds") == seeds
+            assert storage_reader.meta(scratch_dir / "world.db", "content_package_version") == PACKAGE_VERSION
+            assert storage_reader.meta(scratch_dir / "world.db", "rng_seeds") == seeds
             assert {key: zone.seed for key, zone in second.world.zones.items()} == seeds
             async with asyncio.timeout(5):
                 await run(scratch_dir, False, 80, 24, steps=4, seed=3)
