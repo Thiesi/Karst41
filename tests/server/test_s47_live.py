@@ -194,3 +194,31 @@ def test_a_hand_ban_applies_to_a_live_server_with_the_loop_guard_armed(scratch_d
             await server.stop()
         assert server.exit_code == 0
     asyncio.run(scenario())
+
+
+def test_a_writer_that_dies_during_startup_fails_start_instead_of_hanging(scratch_dir: Path) -> None:
+    """Automated review 7167698411: an awaited startup command never waits on a dead writer."""
+    from karst41.server.io import StorageFailure
+    from karst41.server.storage import writer as writer_module
+
+    class DyingWriter(writer_module.Writer):
+        def __init__(self, *args, **kwargs) -> None:
+            super().__init__(*args, **kwargs)
+            self.gate = self.crash_on_bootstrap
+
+        def crash_on_bootstrap(self, command) -> None:
+            if command.kind == "bootstrap":
+                raise RuntimeError("thread lost")
+
+    async def scenario() -> None:
+        server = Server(scratch_dir, tcp=True)
+        original = app.Writer
+        app.Writer = DyingWriter
+        try:
+            with pytest.raises(StorageFailure):
+                await asyncio.wait_for(server.start(), 5)  # Fails, never hangs.
+        finally:
+            app.Writer = original
+        assert server.exit_code == DEADLINE_EXIT  # The dead writer takes the deadline branch.
+        server.lease.release()
+    asyncio.run(scenario())

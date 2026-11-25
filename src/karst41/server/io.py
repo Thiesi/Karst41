@@ -59,6 +59,7 @@ class IO:
         self.context: dict[int, dict[str, Any]] = {}
         self.completed: deque[tuple[Command, Result]] = deque()
         self.awaiting: list[Command] = []  # Startup and stop commands awaited directly.
+        self.futures: dict[int, asyncio.Future[Result]] = {}
         self.barrier: Command | None = None
         self.flushing = False
         self.reading = False
@@ -109,11 +110,13 @@ class IO:
         def done(cmd: Command, result: Result) -> None:
             if cmd in self.awaiting:
                 self.awaiting.remove(cmd)
+            self.futures.pop(cmd.seq, None)
             if not future.done():
                 future.set_result(result)
         if not self.writer.submit(command, done):
             raise StorageFailure(f"the writer refused {command.kind}")
         self.awaiting.append(command)
+        self.futures[command.seq] = future
         return await future
 
     async def flush_all(self) -> None:
@@ -136,6 +139,10 @@ class IO:
         if self.logs is not None:
             self._direct_backlog()  # Held lines go out now, in order (technical lead, change 2).
         self.fatal = self.fatal or StorageFailure("the writer stopped" + (f": {error!r}" if error else ""))
+        for future in self.futures.values():  # Startup and stop never wait on a dead writer.
+            if not future.done():
+                future.set_exception(StorageFailure("the writer stopped before answering"))
+        self.futures.clear()
         for command in self.in_flight:
             if command.kind in ("commerce", "character", "report", "audit", "flush"):
                 self.log_event("commit outcome unknown", level="ERROR", command=command.kind, seq=command.seq,
