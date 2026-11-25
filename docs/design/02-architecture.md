@@ -731,15 +731,19 @@ Housing resolves a dedicated public doorstep to its door before adjacent
 props, while respecting a prop underfoot. Dropping a delivery key beside
 the doorstep must not divert entry into the private core-log menu.
 An exit on the caller's own tile resolves ahead of an adjacent talker's
-dialogue or vendor's trade, in
+dialogue, vendor's trade or salvage node's harvest, in
 the same composed resolver that focus and dispatch share. An exit on an
 adjacent tile is not promoted. Only the selected route may consume a
 selected E or J. Physical dialogue choices are identified by their
 `dialogue` kind, including those delivered by the composite `contracts`
 route. Contract actions, boards and empty open-screen markers are never
-jumped. A commerce choice underfoot also keeps its precedence. Only E
+jumped. A commerce choice or salvage node underfoot also keeps its precedence. Only E
 promotes the exit; explicit targeted talk and J retain their order.
 Every other pair keeps the route order.
+A salvage node's harvest query returns `{id, label, verb: "harvest"}`,
+the label built from the node's live grade item name and units after
+`Salvage.sync` (`Hull salvage (3 left)`). A node with no units returns
+nothing and passes E onward, so it neither takes E nor shows focus.
 
 Admission/reconnect preserves a valid saved position. If an expired
 opening makes it invalid, `World.free_tile` searches the public spawn's
