@@ -375,20 +375,32 @@ class IO:
         generations: dict[tuple[str, str], int] = {}
         if action != "delete":
             payload["batch"], generations = self._batch(ALL_KINDS)
-        command = self._submit("character", payload, {"effect": effect, "generations": generations})
+        # The effect's own records and their generations now: a failure re-marks
+        # only those nothing has marked since (technical lead's review, item 2).
+        covered = {key: self.generation.get(key, 0) for key, _ in self._effect_records(effect)}
+        command = self._submit("character", payload, {"effect": effect, "generations": generations,
+                                                      "covered": covered})
         if command is None:
             return False
         self.barrier = command
         return True
 
-    def _mark_effect(self, effect: dict[str, Any]) -> None:
-        self.mark("identities", effect["user"], effect["identity"])
+    @staticmethod
+    def _effect_records(effect: dict[str, Any]) -> list[tuple[tuple[str, str], Any]]:
+        records: list[tuple[tuple[str, str], Any]] = [(("identities", effect["user"]), effect["identity"])]
         if effect.get("player"):
-            self.mark("players", effect["player"]["id"], effect["player"])
-        for item in effect.get("items", []):
-            self.mark("items", item["id"], item)
+            records.append((("players", effect["player"]["id"]), effect["player"]))
+        records += [(("items", item["id"]), item) for item in effect.get("items", [])]
         if "serial" in effect:
-            self.mark("meta", "player_serial", effect["serial"])
+            records.append((("meta", "player_serial"), effect["serial"]))
+        return records
+
+    def _mark_effect(self, effect: dict[str, Any], covered: dict[tuple[str, str], int] | None = None) -> None:
+        """Mark the effect's records; with `covered`, never over a mark made since submission."""
+        for key, value in self._effect_records(effect):
+            if covered is not None and key in self.dirty and self.generation.get(key, 0) != covered.get(key, 0):
+                continue  # A newer mark than this effect's frozen snapshot: keep it.
+            self.mark(key[0], key[1], value)
 
     def _flush_due(self) -> None:
         if self.flushing:
@@ -485,7 +497,8 @@ class IO:
             game.committed(effect, error=True)
             self.log_event("character commit failed", level="ERROR", action=action)
             return
-        self._mark_effect(effect)  # Ordinary state keeps its frozen snapshot, as before.
+        # Ordinary state keeps its frozen snapshot, as before, unless a newer mark exists.
+        self._mark_effect(effect, local["covered"])
         self._fatal("character commit failed", result)
 
     def _purge_deleted(self, effect: dict[str, Any]) -> None:

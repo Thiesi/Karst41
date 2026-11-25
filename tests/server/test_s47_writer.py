@@ -439,3 +439,30 @@ def test_the_timing_figures_hold_fixed_memory_for_the_servers_lifetime(rig: Rig)
         assert len(rig.io.stats[figure]) <= STATS_BOUND
     assert len(rig.io.stats["commit_seconds"]) == STATS_BOUND
     assert len(rig.io.samples("commit_seconds", rig.io.sample - 10)) <= 10
+
+
+def test_a_failed_immediate_save_never_overwrites_a_newer_mark_at_the_stop(rig: Rig) -> None:
+    """Technical lead's review, item 2: the stop's Close flushes the newer state."""
+    import asyncio
+    player, manager = rig.player(), rig.game.core.characters
+    old_health = player.health
+    manager.queue("save", player.bbs_user_id, player, immediate=True)
+    rig.cycle()
+    assert rig.writer.kinds() == ["character"]
+    rig.store.db.execute("CREATE TRIGGER reject BEFORE UPDATE ON players BEGIN SELECT RAISE(ABORT,'probe'); END")
+    newer = {**player.record(), "health": old_health - 7}
+    rig.io.mark("players", player.id, newer)  # Marked after submission: newer than the effect's snapshot.
+    rig.writer.complete()
+    with pytest.raises(StorageFailure):
+        rig.cycle()
+    assert rig.io.dirty[("players", player.id)]["health"] == old_health - 7
+    rig.store.db.execute("DROP TRIGGER reject")
+
+    async def stop() -> None:
+        closing = asyncio.ensure_future(rig.io.close())
+        await asyncio.sleep(0)
+        rig.writer.complete()
+        await closing
+    asyncio.run(stop())
+    assert rig.writer.closed
+    assert rig.saved()["health"] == old_health - 7  # Read back through a fresh connection.
