@@ -119,6 +119,9 @@ def test_operator_stop_and_audit(scratch_dir: Path) -> None:
     asyncio.run(scenario())
 
 
+PARTIAL_HELLOS = 20
+
+
 def test_failed_start_releases_lease_and_partial_hello_stops(scratch_dir: Path) -> None:
     async def scenario() -> None:
         local = scratch_dir / "content.local"
@@ -131,12 +134,22 @@ def test_failed_start_releases_lease_and_partial_hello_stops(scratch_dir: Path) 
         # Bootstrap's failed temporary tree must not prevent a corrected retry.
         server = Server(scratch_dir, tcp=True, characters=False)
         await server.start()
-        reader, writer = await connect(scratch_dir)
-        writer.write(b"\x00")
-        await writer.drain()
+        # A server holding partial hellos stops cleanly (#257). Wait until the
+        # server has accepted every connection: a connection still in the
+        # listen backlog, or admitted after the stop began, is reset by design.
+        clients = []
+        for _ in range(PARTIAL_HELLOS):
+            reader, writer = await connect(scratch_dir)
+            writer.write(b"\x00")
+            await writer.drain()
+            clients.append(writer)
+        async with asyncio.timeout(5):
+            while len(server.connections) < PARTIAL_HELLOS:
+                await asyncio.sleep(0.01)
         await server.stop()
-        writer.close()
-        await writer.wait_closed()
+        for writer in clients:
+            writer.close()
+            await writer.wait_closed()  # A clean close, never ConnectionResetError.
         assert list((scratch_dir / "run").iterdir()) == []
     asyncio.run(scenario())
 
