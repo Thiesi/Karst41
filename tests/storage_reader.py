@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import contextlib
 import sqlite3
+import sys
 import threading
 from collections.abc import Iterator
 from pathlib import Path
@@ -69,14 +70,22 @@ def count(path: Path, sql: str, *args: Any) -> int:
 
 
 @contextlib.contextmanager
-def loop_guard(thread: int | None = None) -> Iterator[None]:
-    """Fail if `thread` (default: this one) opens an SQLite connection other than a reader's."""
+def loop_guard(thread: int | None = None, scope: Path | None = None) -> Iterator[None]:
+    """Fail if `thread` (default: this one) opens an SQLite connection other than a reader's.
+
+    `scope` limits the check to connections opened from code under that
+    directory (S11: the karst41 package, since the in-process NetBBS node
+    keeps its own database on the same loop).
+    """
     armed = thread if thread is not None else threading.get_ident()
     original = sqlite3.connect
+    prefix = str(Path(scope).resolve()) if scope is not None else None
 
     def guarded(*args: Any, **kwargs: Any) -> sqlite3.Connection:
         if threading.get_ident() == armed and not getattr(_local, "reader", False):
-            raise LoopSQLite("an SQLite connection was opened on the loop thread")
+            caller = sys._getframe(1).f_code.co_filename
+            if prefix is None or str(Path(caller).resolve()).startswith(prefix):
+                raise LoopSQLite(f"an SQLite connection was opened on the loop thread ({caller})")
         return original(*args, **kwargs)
     sqlite3.connect = guarded  # type: ignore[assignment]
     try:
