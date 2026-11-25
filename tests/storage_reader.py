@@ -83,3 +83,13 @@ def loop_guard(thread: int | None = None) -> Iterator[None]:
         yield
     finally:
         sqlite3.connect = original  # type: ignore[assignment]
+
+
+async def committed_state(service: Any) -> dict[str, Any]:
+    """What a live server has committed: settle everything accepted, then read it.
+
+    Acceptance scripts used to read through the server's own connection.
+    That connection is the writer thread's now (S47), so they read here.
+    """
+    await service.io.drain()
+    return character_state(service.install_dir / "world.db")

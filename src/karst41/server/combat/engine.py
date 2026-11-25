@@ -41,6 +41,9 @@ class Combat:
         self.world, self.content, self.clock = self.game.world, self.game.content, self.game.clock
         self.warnings: dict[tuple[str, str], int] = {}
         self.casts: dict[str, dict[str, Any]] = {}
+        # S47 (technical lead, ruling (b)): source id -> (first tick queued, count)
+        # for attacks waiting behind a commit. See queue_attack.
+        self.queued_attacks: dict[str, tuple[int, int]] = {}
         self.menus: dict[str, int] = {}
         self.verbose: set[str] = set()
         self.restored: dict[str, Actor] = {}
@@ -433,10 +436,41 @@ class Combat:
         candidates.sort(key=lambda a:(rules.distance(target.position,a.position),a.id))
         return [target,*candidates] if weapon.cone else [target,*candidates[:weapon.targets-1]]
 
+    def queue_attack(self, source: Actor, action: Callable[[], None]) -> None:
+        """Queue one attack behind a pending commit: per source, earlier tick.
+
+        S47 (technical lead, ruling (b)). While a commit is pending, a
+        source's new attack is refused, a no-op, only if that source already
+        has an attack queued from an earlier tick. The follow-ups of one
+        attack (a cone's targets, a second hit, an area cast's recipients)
+        all queue in the same tick, and all run. A turn taken a cooldown
+        later during a stalled commit is refused: a frozen server never took
+        it. A queued attack whose source died, despawned or changed zone is
+        discarded when it comes up. Raises ValueError when the queue is full.
+        """
+        tick = self.clock.now_tick()
+        marker = self.queued_attacks.get(source.id)
+        if marker is not None and marker[0] < tick:
+            return
+        zone = source.zone
+
+        def run() -> None:
+            first, count = self.queued_attacks.get(source.id, (tick, 1))
+            if count <= 1:
+                self.queued_attacks.pop(source.id, None)
+            else:
+                self.queued_attacks[source.id] = (first, count - 1)
+            if (self.world.actors.get(source.id) is not source or source.zone is None or source.zone != zone
+                    or source.stance in ("down", "dead")):
+                return
+            action()
+        self.commerce.enqueue_system(run)
+        self.queued_attacks[source.id] = (marker[0] if marker else tick, (marker[1] if marker else 0) + 1)
+
     def shot(self, source: Actor, target: Actor, weapon: WeaponBlock, quality: float = 1, skill: float = 0) -> None:
         if self.commerce.pending:
             try:
-                self.commerce.enqueue_system(lambda: self.shot(source, target, weapon, quality, skill))
+                self.queue_attack(source, lambda: self.shot(source, target, weapon, quality, skill))
             except ValueError:
                 return  # Match hurt: overload declines harm instead of aborting the tick.
             return
@@ -506,11 +540,19 @@ class Combat:
                     if body is not actor:
                         self.remember(player,body,immediate=False)
 
-    def hurt(self, source: Actor, target: Actor, amount: int, shock: float = 0, *, damage_type: str = "") -> None:
+    def hurt(self, source: Actor, target: Actor, amount: int, shock: float = 0, *, damage_type: str = "",
+             attack: bool = False) -> None:
         if target.stance in ("down", "dead"):
             return
         if self.commerce.pending:
-            try: self.commerce.enqueue_system(lambda:self.hurt(source,target,amount,shock,damage_type=damage_type))
+            # S47 ruling (b): an attack (an area cast's recipient) queues per source and
+            # earlier tick; elapsed time (a damage-over-time tick) keeps every tick.
+            again = lambda: self.hurt(source, target, amount, shock, damage_type=damage_type, attack=attack)
+            try:
+                if attack:
+                    self.queue_attack(source, again)
+                else:
+                    self.commerce.enqueue_system(again)
             except ValueError: self.log(source,"The city is busy. Try again.",True)
             return
         if not self.legal(source,target) or target.stance in ("down","dead"): return
@@ -835,7 +877,13 @@ class Combat:
 
     def complete_cast(self, actor: Actor, cast: dict[str,Any]) -> None:
         if self.commerce.pending:
-            try: self.commerce.enqueue_system(lambda:self.complete_cast(actor,cast))
+            again = lambda: self.complete_cast(actor, cast)
+            ability = self.content.hymns.get(cast["ability"])
+            try:
+                if ability is not None and ability.kind == "dissonance":
+                    self.queue_attack(actor, again)  # S47 ruling (b): an attack.
+                else:
+                    self.commerce.enqueue_system(again)
             except ValueError: self.log(actor,"The city is busy. Try again.",True)
             return
         if actor.stance in ("down","dead","sleeper") or actor.zone is None: return
@@ -870,7 +918,8 @@ class Combat:
             if ability.kind == "dissonance": self.exchange(actor,other)
             if effect.get("damage"):
                 self.hurt(actor,other,rules.damage(effect["damage"]*actor.modifiers.get("dissonance_damage_multiplier", 1),
-                    player.skills.get("dissonance",0),self.armour(other,"dissonance")),float(effect.get("shock",0)),damage_type="dissonance")
+                    player.skills.get("dissonance",0),self.armour(other,"dissonance")),float(effect.get("shock",0)),damage_type="dissonance",
+                    attack=True)
             elif effect.get("shock"):
                 other.shock = max(0,other.shock+effect["shock"]*factor)
             ongoing = {key:value for key,value in effect.items() if key not in ("damage","shock","area","seconds","revive")}

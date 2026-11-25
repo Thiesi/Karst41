@@ -34,6 +34,7 @@ from karst41.server.items import make_item
 from karst41.server.rules import character
 from karst41.server.world.exits import MAX_HOLD_SECONDS
 from karst41.version import PACKAGE_VERSION
+from tests import storage_reader
 
 
 async def wait(condition: Any, timeout: float = 10) -> None:
@@ -568,7 +569,7 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
             assert b.avatar.actor.health==before
             assert any("Protected" in row["text"] for row in a.session.log_ring)
             assert both_hurt and shock_seen and a.caller.hit_border_seen
-            saved=next(p for p in probe.service.storage.character_state()["players"] if p["id"]==player.id)
+            saved=next(p for p in (await storage_reader.committed_state(probe.service))["players"] if p["id"]==player.id)
             assert saved["chits_hand"]==900 and saved["chits_bank"]==500
             probe.report(f"PASS combat {width}x{height}: both HP fall, shock slow, Jam, down/dead/decant, clone charge 100, loot, loan kit, plaza safety, 16-colour border")
             await probe.leave(a,f"combat-cantor-{width}x{height}");await probe.leave(b,f"combat-ghost-{width}x{height}")
