@@ -1,0 +1,24 @@
+┌─VATSIDE─Clinic Row─CONTESTED─PvP G5+─Cold Chain normal┬────────────00:00─────┐
+│  WAKE HALL            CLONE INSURANCE: RENEW TODAY    │─ HERE ───────────────│
+│ ·······∙·∙·····∙···@*∙·∙···∙··☻··∙·∙···········∙·····∙│ * salvage (2 left)   │
+│ ∙·   ·∙·  ∙   ∙     ∙·  ∙·∙   ∙· ·     ·              │─ TARGET ─────────────│
+│ ·∙  MERIDIAN PLAZA →    ·   ·   ·  ∙   ∙      ·∙  ·∙ ∙│ none   Tab picks     │
+│ ∙·∙·∙·······∙········ ∙  ·∙·∙  · ·∙ ∙·············∙·∙·│─ NEARBY ─────────────│
+│ · ·  SABLIER CLINIC  · ·,   ,  ·   ,·   SABLIER PHARMA│ ☻ Clinic patient ~   │
+│ ·                    `     ····,    ·                 │                      │
+│ ·                    ` ,  · ,`  ,·,                   │                      │
+│ ·                    , ·    ,  ,· ·`                  │                      │
+│ · ·                  ,,` ,  ` ,`,,, ,                 │                      │
+│ ··                      ·  · ,  ,  ··                 │                      │
+│ ·                        ·  `                         │──────────────────────│
+│ ···        · SURGERY ·`   ``   , ,, ·         · RECRUI│ Picker           G1  │
+│ · ········· ········· ·   ·   ·   ·  ·················│ HP  ██████████ 90    │
+│ ··   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·   ·│ STA ██████████ 77    │
+│ ·   ·   ·   ·   ·   ·   ·───────────────────·   ·   · │ SHK ░░░░░░░░░░ 0     │
+│ ·  ·   ·   ·   ·   ·   · │ COLD CHAIN  ·   │   ·   ·  │ 200 ch   day 1/90    │
+├───────────────────────────────────────────────────────┴──────────────────────┤
+│+ You harvest. Hold still for 2s. Damage interrupts; Esc cancels.             │
+│+ You recover Hull salvage. One unit.                                         │
+│+ You stop working. Completed harvest units stay with you.                    │
+│E harvest Hull salvage (2 left)  J jack in  ? help  Tab target  F fire        │
+└──────────────────────────────────────────────────────────────────────────────

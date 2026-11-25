@@ -2,7 +2,7 @@
   "source_base": "9907c90a66c036c0876803a180c22f9d53b403d3",
   "reference_checkout": "4142cc31850be2daa8e68c480bc8c84569d65222",
   "note": "Runtime Python source, harness and character helpers match source_base; both independent executions used the same matrix driver and content.",
-  "sha256": "7e7e534894d9cf22840d20d3d007a92beab6dc455cb6f07f3cd8215917dfa9c7",
+  "sha256": "ebdad60301516f9b34d69e7dbd1a60f90846d9d0978bf5b7435d9dda76db6498",
   "cases": 11016,
   "handlers": {
     "characters": 1476,
@@ -40,7 +40,7 @@
     },
     {
       "sha256_from": "0d32be6dd128dc527471d719045676a8a6dd089f8f69e80996caca71a5a7315b",
-      "reason": "#211: generated salvage nodes walked after the authored tiles in fx-open (one beside an exit, one alone, one empty beside the other exit); 216 added cases (zone fx-open+salvage), the 10800 earlier rows byte-identical (their digest is still 0d32be6d); E beside a node with units harvests (fabrication 34), an exit underfoot beside a node and every E around the empty node pass to characters (20)",
+      "reason": "#211: generated salvage nodes walked after the authored tiles in fx-open (one beside an exit, one alone, one empty beside the other exit); 216 added cases (zone fx-open+salvage), the 10800 earlier rows byte-identical (their digest is still 0d32be6d); E beside a node with units harvests (fabrication 34), an exit underfoot beside a node and every E around the empty node pass to characters (20), which neither inspects the empty node nor names its id",
       "approval": "pending: owner approval on the #211 PR"
     }
   ]

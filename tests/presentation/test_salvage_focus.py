@@ -75,6 +75,7 @@ def test_211_exit_underfoot_outranks_an_adjacent_node_and_focus_matches_dispatch
         assert channel is not None and channel.kind == 'harvest' and channel.object == 'n211'
     # The empty node no longer answers E with its refusal.
     assert not any('salvage node' in text for text in actual['outcome']['logs'])
+    assert not any('n211' in text for text in actual['outcome']['logs'])  # Never the internal id.
     assert not any('salvage node' in str(frame.data) for frame in caller.session.send_queue)
 
 
