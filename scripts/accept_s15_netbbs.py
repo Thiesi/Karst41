@@ -184,6 +184,8 @@ async def private(probe: NativeProbe, width: int, height: int, record: dict[str,
         item.secured = secured
         items[iid] = item
         record['storage'].append(iid)
+    # S47: a receipt can still be in flight between ticks; settle refuses while one is.
+    await wait(lambda:not probe.commerce.pending)
     assert probe.commerce.settle(None,{},items,probe.commerce.caches,serial,lambda success:None)
     await wait(lambda:not probe.commerce.pending)
     interlock.private.register(record)
