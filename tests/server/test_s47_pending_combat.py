@@ -93,6 +93,7 @@ def fight(tmp_path: Path, content: Any, monkeypatch: pytest.MonkeyPatch, hold: b
         rig.step()
     rig.writer.complete()
     rig.cycle()
+    assert not game.core.combat.queued_attacks, "every marker cleared after the scenario"
     return trace
 
 
@@ -156,6 +157,7 @@ def dot(tmp_path: Path, content: Any, monkeypatch: pytest.MonkeyPatch, hold: boo
         rig.writer.complete()
         rig.cycle()
         rig.step()
+    assert not game.core.combat.queued_attacks
     return trace
 
 
@@ -287,6 +289,7 @@ def test_an_area_cast_whose_first_recipient_dies_still_lands_on_all_three(tmp_pa
         scene.rig.cycle()
     print("area cast, hold", hold, scene.hits)
     assert sorted(target for _, target in scene.hits) == sorted(npc.id for npc in scene.npcs)
+    assert not scene.rig.game.core.combat.queued_attacks
 
 
 def test_an_area_cast_with_no_death_lands_on_all_three_at_once(tmp_path, content, monkeypatch):
@@ -310,6 +313,7 @@ def test_a_second_cast_completing_during_a_hold_is_refused(tmp_path, content, mo
         rig.writer.complete()
         rig.cycle()
     assert len(scene.hits) == 3, "one cast's three recipients, not two casts' six"
+    assert not scene.rig.game.core.combat.queued_attacks
 
 
 # --- Ruling (b), the technical lead's list ----------------------------------
@@ -340,6 +344,10 @@ def test_two_enforcers_on_one_target_each_keep_one_shot(tmp_path, content) -> No
     for source in (first, second):
         combat.shot(source, runner, arm)  # Each source's later turn: refused.
     assert len(commerce.waiting) == 2 and set(combat.queued_attacks) == {first.id, second.id}
+    for _ in range(5):
+        rig.writer.complete()
+        rig.cycle()
+    assert not commerce.waiting and not combat.queued_attacks
 
 
 def test_a_source_that_dies_with_a_shot_queued_runs_nothing_and_clears(tmp_path, content) -> None:
@@ -362,3 +370,20 @@ def test_a_source_that_dies_with_a_shot_queued_runs_nothing_and_clears(tmp_path,
         rig.writer.complete()
         rig.cycle()
     assert ran == [] and enforcer.id not in combat.queued_attacks
+
+
+def test_a_leaked_marker_is_cleared_when_nothing_waits(tmp_path, content) -> None:
+    """Technical lead's review, item 3: an empty waiting queue means no queued attack."""
+    rig = Rig(tmp_path, content)
+    [enforcer] = enforcers(rig, 1)
+    game = rig.game
+    combat, commerce = game.core.combat, game.core.commerce
+    runner = game.core.characters.sim.avatars[rig.clients[0].session.user_id].actor
+    combat.queued_attacks[enforcer.id] = (0, 1)  # A marker whose closure is gone.
+    assert not commerce.waiting
+    calls: list[bool] = []
+    rig.reward(rig.player(), 1, calls)
+    rig.cycle()
+    arm = npc_weapon(game.core.loop.content, game.core.loop.content.npcs["npc-sable-enforcer"])
+    combat.shot(enforcer, runner, arm)
+    assert len(commerce.waiting) == 1, "queued, not refused by the stale marker"

@@ -448,6 +448,10 @@ class Combat:
         it. A queued attack whose source died, despawned or changed zone is
         discarded when it comes up. Raises ValueError when the queue is full.
         """
+        if not self.commerce.waiting:
+            # Invariant (technical lead's review, item 3): nothing waits, so nothing is queued.
+            # A marker that outlived its closure would refuse this source's attacks for good.
+            self.queued_attacks.clear()
         tick = self.clock.now_tick()
         marker = self.queued_attacks.get(source.id)
         if marker is not None and marker[0] < tick:
