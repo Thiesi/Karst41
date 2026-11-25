@@ -82,7 +82,8 @@ def writer_window(io: Any, marks: dict[str, int], counters: dict[str, int]) -> d
                'max_queue_depth': io.stats['max_depth'],
                'ticks_with_receipt_in_flight_across_step':
                    io.stats['ticks_in_flight_across_step']-counters.get('ticks_in_flight_across_step', 0),
-               'steps': io.stats['steps']-counters.get('steps', 0)}
+               'steps': io.stats['steps']-counters.get('steps', 0),
+               'paused_ticks': io.stats['paused_ticks']-counters.get('paused_ticks', 0)}
     return {'summary': summary,
             'guard': 'armed for the whole run: GuardedConnection on the live connection (any other thread raises '
                      'LoopThreadSQLite) and storage_reader.loop_guard: no connection to this world.db opens on the loop thread',
@@ -186,7 +187,7 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         sampling_tick = probe.service.clock.now_tick()
         loop.timings.clear()
         marks = {'sample': io.sample}
-        counters = {key: io.stats[key] for key in ('ticks_in_flight_across_step', 'steps')}
+        counters = {key: io.stats[key] for key in ('ticks_in_flight_across_step', 'steps', 'paused_ticks')}
         io.stats['max_depth'] = 0
         await asyncio.sleep(10)
         status=await request(probe.service.install_dir,"status")

@@ -1002,7 +1002,7 @@ class Combat:
             if action == "fire":
                 target = args.get("target")
                 if target is not None and not isinstance(target,str): raise ValueError("Choose a target.")
-                self.commerce.enqueue_system(lambda:self.fire(player.id,target)); return True
+                self.commerce.enqueue_player(lambda:self.fire(player.id,target)); return True
             if name == "combat_log_verbose":
                 if actor.id in self.verbose: self.verbose.remove(actor.id)
                 else: self.verbose.add(actor.id)
@@ -1042,10 +1042,10 @@ class Combat:
                         self.pickup(actor, choice.value)
                     else:
                         vat = choice.value
-                        self.commerce.enqueue_system(lambda:self.recover_at_vat(player.id,vat.spec.id))
+                        self.commerce.enqueue_player(lambda:self.recover_at_vat(player.id,vat.spec.id))
                     return True
             if name == "recovery":
-                self.commerce.enqueue_system(lambda:self.recover_at_vat(player.id,str(args.get("target","")))); return True
+                self.commerce.enqueue_player(lambda:self.recover_at_vat(player.id,str(args.get("target","")))); return True
             # Movement wins (#249, beat 6): a key the caller's keymap binds to
             # a move (vi `b`) walks; literal B still skips and is consumed.
             if key in ("b","B") and not action.startswith("move_") and any(a.owner == actor.id and a.behaviour.get("training") and not a.behaviour.get("inert") for a in self.world.actors.values()):

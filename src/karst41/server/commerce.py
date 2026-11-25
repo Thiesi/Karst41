@@ -18,6 +18,25 @@ from karst41.server.loop import TickContext
 from karst41.server.players import Player
 from karst41.server.protocol import Frame
 from karst41.server.sessions import QUEUE_LIMIT, Session
+
+# S47 (technical lead): simulation outcomes queued behind a pending commit have their own
+# bound. A player's input may be refused with today's busy text at QUEUE_LIMIT; a system job
+# (an XP proposal, a shot, a hurt, a damage-over-time tick, a subdue, a cast) is never refused.
+# The loop pauses simulation steps long before this bound (io.PAUSE_HIGH); reaching it is a
+# controlled fatal failure, checked after the step (IO.pump), never an exception mid-tick.
+SYSTEM_LIMIT = 4096
+
+
+class PlayerJob:
+    """A player-originated callable in commerce.waiting: it counts against QUEUE_LIMIT."""
+
+    __slots__ = ("action",)
+
+    def __init__(self, action: Callable[[], None]) -> None:
+        self.action = action
+
+    def __call__(self) -> None:
+        self.action()
 from karst41.server.vendors import BUYBACK_BUDGET, VendorBudget, permitted, price
 from karst41.server.wake import menu
 from karst41.server.world.simulation import MENU_TIMEOUT_SECONDS
@@ -60,6 +79,8 @@ class Commerce:
         self.outbox: list[dict[str, Any]] = []
         self.pending = False
         self.waiting: deque[tuple[str,str,dict[str,Any],bool] | Callable[[], None]] = deque()
+        self.player_jobs = 0  # Player entries in waiting (tuples and PlayerJob); the rest are system jobs.
+        self.breach: int | None = None  # S47: the system queue's depth if it ever reached SYSTEM_LIMIT.
         self.prompt_serial = 0
         self.after_settle: Callable[[], None] = lambda: None
         self.program_season: Callable[[], int] = lambda: 0  # The Lattice binds its current season.
@@ -164,9 +185,10 @@ class Commerce:
         if self.unread(session.player_id):
             raise ValueError("Read your decant record first.")
         if self.pending:
-            if len(self.waiting) >= QUEUE_LIMIT:
+            if self.player_queued() >= QUEUE_LIMIT:
                 raise ValueError("The counter is busy. Try again.")
             self.waiting.append((session.id,name,deepcopy(args),from_channel))
+            self.player_jobs += 1
             return
         if name == "vendor.reserve":
             self.game.factions.reserve_stock(session, args.get("target", ""), args.get("item", ""))
@@ -405,12 +427,33 @@ class Commerce:
             patch["progress"] = current
         return patch
 
+    def player_queued(self) -> int:
+        self.player_jobs = min(self.player_jobs, len(self.waiting))
+        return self.player_jobs
+
+    def system_queued(self) -> int:
+        return len(self.waiting) - self.player_queued()
+
     def enqueue_system(self, action: Callable[[], None]) -> None:
-        """Server-owned combat actions share the bounded transfer queue."""
+        """A simulation outcome: queued behind a pending commit, never refused (S47).
+
+        At SYSTEM_LIMIT the job is still queued and the breach is recorded;
+        IO.pump turns it into the controlled fatal path after the step.
+        """
         if self.pending:
-            if len(self.waiting) >= QUEUE_LIMIT:
-                raise ValueError("The city is busy. Try again.")
             self.waiting.append(action)
+            if self.system_queued() >= SYSTEM_LIMIT and self.breach is None:
+                self.breach = self.system_queued()
+        else:
+            action()
+
+    def enqueue_player(self, action: Callable[[], None]) -> None:
+        """A player's input queued behind a pending commit: today's bound and busy text."""
+        if self.pending:
+            if self.player_queued() >= QUEUE_LIMIT:
+                raise ValueError("The city is busy. Try again.")
+            self.waiting.append(PlayerJob(action))
+            self.player_jobs += 1
         else:
             action()
 
@@ -482,6 +525,8 @@ class Commerce:
                         queued["identity"] = deepcopy(self.game.identities[current.bbs_user_id])
         while self.waiting and not self.pending:
             job = self.waiting.popleft()
+            if isinstance(job, PlayerJob) or not callable(job):
+                self.player_jobs = max(0, self.player_jobs - 1)
             if callable(job):
                 job()
                 continue

@@ -63,6 +63,17 @@ class TickLoop:
         for publish in self.publishers:
             publish(ctx)
 
+    def publish(self) -> None:
+        """Publish views without stepping (S47: the simulation pauses while the writer is far behind).
+
+        The simulation's tick doesn't advance; views carry the clock's tick, since a
+        session takes at most one view per tick. Publishers skip what hasn't changed.
+        """
+        sessions = tuple(s for s in self.sessions.active.values() if not s.closed)
+        ctx = TickContext(self.clock.now_tick(), self.clock, self.bus, sessions, self.content)
+        for publish in self.publishers:
+            publish(ctx)
+
     def record_timing(self, seconds: float) -> None:
         self.timings.append(seconds * 1000)
 

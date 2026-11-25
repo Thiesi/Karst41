@@ -147,7 +147,7 @@ class Trading:
 
     def request(self, session: Session, action: str, args: dict[str, Any]) -> None:
         args = deepcopy(args)
-        self.commerce.enqueue_system(lambda: self.execute(session, action, args))
+        self.commerce.enqueue_player(lambda: self.execute(session, action, args))
 
     def listable(self, player: Player, item: ItemInstance) -> bool:
         return bool(item.owner == player.id and item.id in player.inventory
@@ -296,7 +296,7 @@ class Trading:
                     self.game.screens[session.id] = ('sheet', 0)
                     self.game.dirty_screens.add(session.id)
             self.write(draft, session, finished)
-        self.commerce.enqueue_system(prepare)
+        self.commerce.enqueue_player(prepare)
 
     def interaction(self, session: Session, frame: Frame) -> Interaction | None:
         return self.views.interaction(session, frame) if True else None
@@ -342,7 +342,7 @@ class Trading:
             except (ValueError, KeyError) as exc:
                 reply({'ok': False, 'error': str(exc)})
         try:
-            self.commerce.enqueue_system(propose)
+            self.commerce.enqueue_player(propose)
         except ValueError as exc:
             reply({'ok': False, 'error': str(exc)})
 

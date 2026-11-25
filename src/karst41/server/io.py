@@ -33,7 +33,12 @@ from karst41.server.storage.writer import Command, Result, frozen
 LOG_BOUND = 1024  # Log lines held loop-side at most; the oldest drop first, counted.
 REFRESH_SECONDS = WORLD_FLUSH_SECONDS  # The read cache's refresh: hand edits to bans apply within it.
 REFRESHED = ("season",)  # Meta keys the refresh reads with the bans.
-STATS_BOUND = 8192  # Timing samples kept per figure; fixed memory for the server's lifetime.
+STATS_BOUND = 8192
+# Backpressure (technical lead's ruling on the queue bound): once this many system jobs wait
+# behind a pending commit, simulation steps pause until they drain below PAUSE_LOW. Settling,
+# pumping, publishing and connections carry on. That's the pre-S47 freeze, entered only
+# during a pathological writer stall, and far below commerce.SYSTEM_LIMIT.
+PAUSE_HIGH, PAUSE_LOW = 1024, 256  # Timing samples kept per figure; fixed memory for the server's lifetime.
 ALL_KINDS = ("players", "items", "meta", "identities")
 RECOVERABLE = (OSError, sqlite3.Error)  # A receipt that fails with these settles false.
 
@@ -83,7 +88,10 @@ class IO:
         self.sample = 0
         self.stats: dict[str, Any] = {key: deque(maxlen=STATS_BOUND) for key in
                                       ("commit_seconds", "latency_seconds", "apply_seconds")}
-        self.stats.update(max_depth=0, ticks_in_flight_across_step=0, steps=0)
+        self.stats.update(max_depth=0, ticks_in_flight_across_step=0, steps=0, paused_ticks=0, pauses=0)
+        self.paused_since: float | None = None
+        self.paused_at_tick = -1
+        self.pause_ticks_now = 0
 
     # --- lifecycle -------------------------------------------------------
 
@@ -322,6 +330,15 @@ class IO:
         core = self.core
         if core is None:
             return
+        commerce = core.commerce
+        if commerce is not None and commerce.breach is not None and self.fatal is None:
+            # The invariant (technical lead): the pause keeps system jobs far below the
+            # bound. Breaching it is the controlled fatal path, after the step, never mid-tick.
+            depth, commerce.breach = commerce.breach, None
+            self.log_event("system queue limit breached", level="ERROR", direct=True, depth=depth)
+            self.fatal = StorageFailure(f"system queue limit breached at depth {depth}")
+            self.direct = True
+            raise self.fatal
         if core.events:
             while core.events.diagnostics:
                 self.log_event("event source unavailable", level="WARNING", **core.events.diagnostics.pop(0))
@@ -592,6 +609,33 @@ class IO:
     def samples(self, figure: str, after: int = 0) -> list[float]:
         """The figure's samples numbered after `after` (still held: at most STATS_BOUND)."""
         return [seconds for number, seconds in self.stats[figure] if number > after]
+
+    def step_allowed(self) -> bool:
+        """False while the simulation is paused because the writer is far behind."""
+        commerce = self.core.commerce if self.core is not None else None
+        depth = commerce.system_queued() if commerce is not None else 0
+        if self.paused_since is None:
+            if depth < PAUSE_HIGH:
+                return True
+            self.paused_since, self.pause_ticks_now = time.monotonic(), 0
+            self.stats["pauses"] += 1
+            self.log_event("simulation paused: writer behind", level="WARNING", depth=depth)
+            return False
+        if depth >= PAUSE_LOW:
+            return False
+        self.log_event("resumed", level="WARNING", depth=depth, paused_ticks=self.pause_ticks_now,
+                       seconds=round(time.monotonic() - self.paused_since, 3))
+        self.paused_since = None
+        return True
+
+    def paused_tick(self, tick: int) -> bool:
+        """Count one paused tick; True the first time each tick number is seen."""
+        if tick == self.paused_at_tick:
+            return False
+        self.paused_at_tick = tick
+        self.pause_ticks_now += 1
+        self.stats["paused_ticks"] += 1
+        return True
 
     def stepped(self) -> None:
         """Called once per simulation step: count a receipt in flight across it."""

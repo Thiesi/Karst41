@@ -632,7 +632,7 @@ class Contracts:
                 action()
             except (ValueError, KeyError) as exc:
                 self.log(player, str(exc) if isinstance(exc, ValueError) else 'That contract changed. Read its current card.')
-        self.commerce.enqueue_system(execute)
+        self.commerce.enqueue_player(execute)
 
     def withdraw(self, draft: Ledger, iid: str, player: str) -> None:
         instance = draft.engine.instances[iid]

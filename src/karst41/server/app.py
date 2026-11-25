@@ -181,6 +181,7 @@ class Server:
         assert self.core is not None and self.io is not None
         result = self.core.status()
         result["persistence_lag"] = self.io.persistence_lag()
+        result["paused_ticks"] = self.io.stats["paused_ticks"]  # S47: simulation paused, writer behind.
         result.update(uptime_s=result["uptime"], tick_p50_ms=result["tick"]["p50_ms"],
                       tick_p99_ms=result["tick"]["p99_ms"], persist_lag_s=result["persistence_lag"],
                       content_hash=self.core.loop.content.hash, season=self.io.season)
@@ -290,11 +291,18 @@ class Server:
                 # Results apply between steps, as soon as they arrive (S47).
                 self._character_writes()
             if self.clock.now_tick() > self.core.loop.last_tick:
-                began = time.perf_counter()
-                io.stepped()
-                self.core.loop.step()
-                self._character_writes()
-                self.core.loop.record_timing(time.perf_counter() - began)
+                if io.step_allowed():
+                    began = time.perf_counter()
+                    io.stepped()
+                    self.core.loop.step()
+                    self._character_writes()
+                    self.core.loop.record_timing(time.perf_counter() - began)
+                elif io.paused_tick(self.clock.now_tick()):
+                    # Paused (the writer is far behind): no simulation step, but results
+                    # settle, writes go out and views publish. When steps resume, step()
+                    # jumps to the current tick (loop.py: last_tick = now), as after a freeze.
+                    self.core.loop.publish()
+                    self._character_writes()
             io.wake.clear()
             if io.completed:
                 continue

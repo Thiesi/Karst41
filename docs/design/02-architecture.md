@@ -809,6 +809,8 @@ supplies combat flags and clone-debt consequences; S07 has no combat.
   is acknowledged.
 - A commit whose result never reaches the loop has an unknown outcome. It
   is never reported as rolled back and never retried automatically.
+- If the writer falls far behind, the simulation pauses until it catches
+  up; inputs and views keep flowing.
 - Every flush is one transaction. A crash loses at most 5 s of position
   and health. Rewarded actions and their receipts are committed before
   success is acknowledged or broadcast; ordinary dirty-state flushes

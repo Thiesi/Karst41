@@ -340,7 +340,7 @@ class Relays:
                 for rid, relay in self.content.relays.items()], 'factions': deepcopy(self.ledger.state['factions'])})
             return
         if self.commerce.pending:
-            self.commerce.enqueue_system(lambda: self.admin(command, data, reply))
+            self.commerce.enqueue_player(lambda: self.admin(command, data, reply))
             return
         try:
             rid, faction = data.get('relay', ''), data.get('faction')
