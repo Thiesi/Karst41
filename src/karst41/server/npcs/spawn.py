@@ -32,11 +32,24 @@ class Spawners:
         return {ex.tile for ex in meta.exits} | {obj.spec.tile for obj in zone.objects.values()} | ({meta.spawn} if meta.spawn else set())
 
     def location(self, zone: ZoneInstance, spawner: Spawner) -> Tile | None:
-        candidates = spawner.region.tiles() if spawner.region else [spawner.tile]
         occupied = {a.position for a in zone.actors.values() if not a.behaviour.get("training")}
-        reserved = self.reserved(zone)
-        candidates = [t for t in candidates if t is not None and zone.can_enter(None, t)
-                      and not zone.tiles[zone.tile_id(t)].hazard and t not in occupied | reserved]
+        # #194: one union for the whole region, not one per candidate tile.
+        blocked = occupied | self.reserved(zone)
+        # The static checks depend only on the map: the template, its geometry
+        # (replaced with a new revision on every change) and the doors' states.
+        # Cached per region, so the Row's 92x24 regular region (2208 tiles, about
+        # 13 ms per spawn in S11) is walked again only when the map changes. Same
+        # candidates in the same order; the dynamic entry policy still runs per tile.
+        # Held on the zone instance (a rebuilt instance starts cold), and the template
+        # compared by identity, never by id(), which can be reused.
+        state = (zone.geometry_revision, tuple(door.open for door in zone.doors.values()))
+        cached = zone.spawn_ground.get(spawner.id)
+        if cached is None or cached[0] is not zone.template or cached[1] != state or cached[2] is not spawner:
+            tiles = spawner.region.tiles() if spawner.region else [spawner.tile]
+            ground = [t for t in tiles if t is not None and zone.passable(t)
+                      and not zone.tiles[zone.tile_id(t)].hazard]
+            zone.spawn_ground[spawner.id] = cached = (zone.template, state, spawner, ground)
+        candidates = [t for t in cached[3] if zone.entry_policy(None, t) and t not in blocked]
         players = [a.position for a in zone.actors.values() if a.kind == "player"]
         if players and candidates:
             clearance = {t: min(max(abs(t[0]-p[0]), abs(t[1]-p[1])) for p in players)
