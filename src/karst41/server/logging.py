@@ -28,6 +28,7 @@ class Logs:
                                          backupCount=3, encoding="utf-8")
         self.audit_file = (root / "audit.log").open("a", encoding="utf-8")
         self.lock = threading.Lock()
+        self.stuck = False  # A direct write already timed out on the lock: later ones don't wait.
 
     def enabled(self, level: str) -> bool:
         return getattr(logging, level) >= self.level
@@ -42,10 +43,20 @@ class Logs:
         return json.dumps({"at": self.clock.now_utc().isoformat(), **row}, ensure_ascii=False)
 
     def write(self, sink: str, line: str, level: int = logging.INFO, timeout: float = -1) -> None:
-        """Write one frozen line. `timeout` bounds the wait for the lock (direct writes)."""
-        if not self.lock.acquire(timeout=timeout):
+        """Write one frozen line. `timeout` bounds the wait for the lock (direct writes).
+
+        The first direct write that times out marks the lock stuck; later
+        direct writes then don't wait at all until the lock is free again, so
+        a whole direct backlog costs at most one LOCK_SECONDS (review
+        7167769920: the stop must exit 3 well inside TimeoutStopSec).
+        """
+        wait = 0 if timeout >= 0 and self.stuck else timeout
+        if not self.lock.acquire(timeout=wait):
+            if timeout >= 0:
+                self.stuck = True
             print(line, file=sys.stderr)  # The writer is stuck mid-write: never lose the line.
             return
+        self.stuck = False
         try:
             if sink == "audit":
                 self.audit_file.write(line + "\n")

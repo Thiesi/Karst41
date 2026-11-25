@@ -222,3 +222,24 @@ def test_a_writer_that_dies_during_startup_fails_start_instead_of_hanging(scratc
         assert server.exit_code == DEADLINE_EXIT  # The dead writer takes the deadline branch.
         server.lease.release()
     asyncio.run(scenario())
+
+
+def test_a_direct_backlog_behind_a_stuck_log_lock_waits_once_not_per_line(tmp_path: Path, capsys) -> None:
+    """Automated review 7167769920: the direct flush must stay well inside TimeoutStopSec."""
+    from karst41.server.clock import ManualClock
+    from karst41.server.logging import LOCK_SECONDS, Logs
+    logs = Logs(tmp_path, ManualClock())
+    logs.lock.acquire()  # The writer is stuck mid-write, holding the lock.
+    try:
+        began = time.monotonic()
+        for n in range(30):
+            logs.event("held line", n=n)
+        elapsed = time.monotonic() - began
+        assert elapsed < LOCK_SECONDS + 1, f"{elapsed:.1f} s for 30 direct lines"
+        assert capsys.readouterr().err.count("held line") == 30  # Every line reaches stderr.
+    finally:
+        logs.lock.release()
+    logs.event("after")  # The lock is free again: the next write waits normally and lands.
+    assert not logs.stuck
+    logs.close()
+    assert "after" in (tmp_path / "server.log").read_text(encoding="utf-8")
