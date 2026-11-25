@@ -246,3 +246,27 @@ def test_a_direct_backlog_behind_a_stuck_log_lock_waits_once_not_per_line(tmp_pa
     assert not logs.stuck
     logs.close()
     assert "after" in (tmp_path / "server.log").read_text(encoding="utf-8")
+
+
+def test_close_is_marked_closed_before_its_reply_reaches_the_loop(scratch_dir: Path) -> None:
+    """A clean stop must never read a finished Close as a stuck writer (exit 3, lease kept)."""
+    from karst41.server.storage import writer as writer_module
+    seen: list[bool] = []
+
+    class Watching(writer_module.Writer):
+        def _deliver(self, done, command, result) -> None:
+            if command.kind == "close":
+                seen.append(self.closed)
+            super()._deliver(done, command, result)
+
+    async def scenario() -> None:
+        server = Server(scratch_dir, tcp=True)
+        original = app.Writer
+        app.Writer = Watching
+        try:
+            await server.start()
+            await server.stop()
+        finally:
+            app.Writer = original
+        assert seen == [True] and server.exit_code == 0
+    asyncio.run(scenario())

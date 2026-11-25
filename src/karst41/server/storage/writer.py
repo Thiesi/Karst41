@@ -261,9 +261,12 @@ class Writer:
                 if self.gate is not None:
                     self.gate(command)
                 result = self.executor.run(command)
+                if command.kind == "close":
+                    # Before the reply: the loop reads `closed` as soon as Close's result
+                    # arrives, and must never see a finished Close as a stuck writer.
+                    self.closed = True
                 self._deliver(done, command, result)
                 if command.kind == "close":
-                    self.closed = True
                     return
         except BaseException as exc:
             error = self.crash = exc
