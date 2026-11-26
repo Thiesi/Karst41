@@ -54,7 +54,8 @@ class ZoneInstance:
     geometry_revision: int = 0
     # #194: Spawners.location's per-region cache of statically passable ground, held
     # on the instance so a rebuilt instance always starts cold.
-    spawn_ground: dict[str, tuple[Any, ...]] = field(default_factory=dict, repr=False, compare=False)
+    # Spawners._ground: per spawner, up to GROUND_STATES (map state, ground) entries (#277, C4).
+    spawn_ground: dict[str, list[tuple[Any, ...]]] = field(default_factory=dict, repr=False, compare=False)
     rng: random.Random = field(init=False, repr=False)
     doors: dict[Tile, ObjectState] = field(init=False, repr=False)
     base_opaque: set[Tile] = field(init=False, repr=False)

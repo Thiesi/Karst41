@@ -1,10 +1,12 @@
 """Pure player records and compact remembered terrain (entity 2.1)."""
 
 import base64
-from dataclasses import dataclass, field
+from copy import deepcopy
+from dataclasses import dataclass, field, fields
 from datetime import datetime
 import json
 import struct
+import types
 from typing import Any
 import zlib
 
@@ -35,6 +37,47 @@ def unpack_memory(blob: str, width: int, height: int) -> dict[Tile, str]:
     bits, terrain = base64.b64decode(bitmap), iter(struct.iter_unpack(">H", base64.b64decode(cells)))
     return {(x, y): legend[next(terrain)[0]] for y in range(h) for x in range(w)
             if bits[(y * w + x) // 8] & (1 << ((y * w + x) % 8))}
+
+
+# #277 (C2): the types dataclasses.asdict returns as they are (its _ATOMIC_TYPES).
+_ATOMIC = frozenset({type(None), bool, int, float, str, complex, bytes, type(Ellipsis), type(NotImplemented),
+                     types.CodeType, types.BuiltinFunctionType, types.FunctionType, type, range, property})
+
+
+def plain(obj: Any) -> Any:
+    """dataclasses.asdict's conversion, value for value and type for type (#277, C2).
+
+    The exact dict, list and tuple types take a fast path; every other case
+    follows asdict's own order: nested dataclasses become dicts, namedtuples
+    and list, tuple and dict subclasses (defaultdict included) keep their
+    type, and anything else is deep-copied. tests/server/test_277_record.py
+    holds it equal to asdict.
+    """
+    kind = type(obj)
+    if kind in _ATOMIC:
+        return obj
+    # The atomic check is inlined for the members: most are strings and numbers.
+    if kind is dict:
+        return {key if type(key) in _ATOMIC else plain(key): value if type(value) in _ATOMIC else plain(value)
+                for key, value in obj.items()}
+    if kind is list:
+        return [value if type(value) in _ATOMIC else plain(value) for value in obj]
+    if kind is tuple:
+        return tuple([value if type(value) in _ATOMIC else plain(value) for value in obj])
+    if hasattr(kind, "__dataclass_fields__"):
+        return {f.name: plain(getattr(obj, f.name)) for f in fields(obj)}
+    if isinstance(obj, tuple) and hasattr(obj, "_fields"):
+        return kind(*[plain(value) for value in obj])
+    if isinstance(obj, (list, tuple)):
+        return kind(plain(value) for value in obj)
+    if isinstance(obj, dict):
+        if hasattr(kind, "default_factory"):
+            result = kind(obj.default_factory)
+            for key, value in obj.items():
+                result[plain(key)] = plain(value)
+            return result
+        return kind((plain(key), plain(value)) for key, value in obj.items())
+    return deepcopy(obj)
 
 
 @dataclass
@@ -94,8 +137,13 @@ class Player:
         return cls(**{key: value for key, value in row.items() if key in cls.__dataclass_fields__ and value is not None or key in ("legal_at",)})
 
     def record(self) -> dict[str, Any]:
-        from dataclasses import asdict
-        return {**asdict(self), "name_key": rules.name_key(self.name)}
+        # asdict(self), without its per-value overhead (#277, C2).
+        record = {}
+        for f in fields(self):
+            value = getattr(self, f.name)
+            record[f.name] = value if type(value) in _ATOMIC else plain(value)
+        record["name_key"] = rules.name_key(self.name)
+        return record
 
     def actor(self) -> Actor:
         return Actor(self.id, self.name, self.bbs_handle, health=self.health,
