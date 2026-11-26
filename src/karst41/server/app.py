@@ -20,6 +20,7 @@ from karst41.content.validate import validate
 from karst41.server.auth import Authenticator, load_secret
 from karst41.server.clock import Clock, RealClock, TICK_HZ
 from karst41.server.core import Core
+from karst41.server.heap import freeze_startup_heap
 from karst41.server.io import IO, StorageFailure
 from karst41.server.logging import Logs
 from karst41.server.protocol import Frame, ProtocolError, encode, read_frame
@@ -38,7 +39,8 @@ HELLO_SECONDS = 5  # Local transport policy, not a gameplay timer.
 
 class Server:
     def __init__(self, install_dir: Path, tcp: bool = False, log_level: str = "INFO",
-                 clock: Clock | None = None, spawn_zone: str | None = None, characters: bool = True) -> None:
+                 clock: Clock | None = None, spawn_zone: str | None = None, characters: bool = True,
+                 freeze_heap: bool = False) -> None:
         self.install_dir = install_dir.resolve()
         self.clock = clock or RealClock()
         self.log_level = log_level
@@ -54,6 +56,9 @@ class Server:
         self.stop_requested = False
         self.spawn_zone = spawn_zone
         self.characters = characters
+        # #277 (D5-GC): production start-up (__main__) freezes the start-up heap before
+        # the first tick. Tests and harnesses keep the default collector unless they opt in.
+        self.freeze_heap = freeze_heap
         self.world: World | None = None
         self.failure: BaseException | None = None
         self.exit_code = 0
@@ -165,6 +170,8 @@ class Server:
             await self.listener.start(self._connected)
             self.io.log_event("world open", content_hash=content.hash, season=self.io.season)
             await self.io.drain()  # "world open" is on disk when start() returns.
+            if self.freeze_heap:  # After every start-up object exists, before the first tick.
+                self.io.log_event("startup heap frozen", objects=freeze_startup_heap())
             self._task(self._ticks())
         except BaseException:
             await self.stop()

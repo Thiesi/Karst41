@@ -83,7 +83,8 @@ class NativeProbe:
         self.renderer = 'present' if presentation_on(self.door_environment) else 'legacy'
         self.started_at = time.time()  # Only results this run writes get its renderer.
         self.show_all_tiers = show_all_tiers
-        self.service = Server(self.root/"world",tcp=True)
+        # Production start-up freezes the start-up heap (#277, D5-GC); the native probe measures that service.
+        self.service = Server(self.root/"world",tcp=True,freeze_heap=True)
         self.connections: list[Connection] = []
         self.accounts: deque[tuple[Any,bool]] = deque()
         self.homes: dict[str,tuple[int,int]] = {}  # Arrival tile per session (open, then create).
