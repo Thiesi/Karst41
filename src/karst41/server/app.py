@@ -167,11 +167,11 @@ class Server:
             if self.stop_requested:
                 self.core.request_stop()
                 return
+            if self.freeze_heap:  # Every start-up object exists; no session is admitted yet, no tick has run.
+                self.io.log_event("startup heap frozen", objects=freeze_startup_heap())
             await self.listener.start(self._connected)
             self.io.log_event("world open", content_hash=content.hash, season=self.io.season)
             await self.io.drain()  # "world open" is on disk when start() returns.
-            if self.freeze_heap:  # After every start-up object exists, before the first tick.
-                self.io.log_event("startup heap frozen", objects=freeze_startup_heap())
             self._task(self._ticks())
         except BaseException:
             await self.stop()

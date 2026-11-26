@@ -2,8 +2,8 @@
 
 - `freeze_startup_heap()` collects once and freezes what survives.
 - `python -m karst41.server` builds its Server with `freeze_heap=True`, and
-  `Server.start()` freezes after the world is open and before the tick task
-  starts. A Server built without the flag (tests, harnesses) never freezes.
+  `Server.start()` freezes once the world is built, before the listener
+  admits anyone and before the tick task starts. A Server built without the flag (tests, harnesses) never freezes.
 - Freezing changes no simulation outcome: the deterministic pursuit replay
   (scripts/bench_277.py) ends in the same world with and without it.
 
@@ -85,28 +85,41 @@ def test_the_production_entry_point_builds_the_server_with_the_freeze(monkeypatc
 
 
 @pytest.mark.parametrize("freeze_heap", [True, False])
-def test_start_freezes_after_the_world_opens_and_before_the_first_tick(monkeypatch, scratch_dir: Path,
-                                                                          unfrozen, freeze_heap: bool) -> None:
+def test_start_freezes_once_the_world_is_built_and_before_admission_and_the_first_tick(
+        monkeypatch, scratch_dir: Path, unfrozen, freeze_heap: bool) -> None:
+    """After the core exists, before the listener admits anyone (so no session is
+    frozen) and before the tick task starts."""
     events: list[str] = []
-    monkeypatch.setattr(app_module, "freeze_startup_heap", lambda: events.append("freeze") or 1)
-    task = Server._task
+    built: list[bool] = []
+    servers: list[Server] = []
+
+    def freeze() -> int:
+        built.append(servers[0].core is not None)
+        events.append("freeze")
+        return 1
+    monkeypatch.setattr(app_module, "freeze_startup_heap", freeze)
+    task, listen = Server._task, app_module.Listener.start
 
     def recorded(server: Server, coroutine: Any) -> Any:
         events.append(getattr(coroutine, "__name__", "task"))
         return task(server, coroutine)
+
+    async def listening(listener: Any, connected: Any) -> None:
+        events.append("listener")
+        return await listen(listener, connected)
     monkeypatch.setattr(Server, "_task", recorded)
+    monkeypatch.setattr(app_module.Listener, "start", listening)
 
     async def scenario() -> None:
         server = Server(scratch_dir, tcp=True, characters=False, freeze_heap=freeze_heap)
+        servers.append(server)
         await server.start()
-        try:
-            assert server.core is not None  # The world was built before the freeze.
-        finally:
-            await server.stop()
+        await server.stop()
     asyncio.run(scenario())
-    assert "_ticks" in events
+    assert "_ticks" in events and "listener" in events
     if freeze_heap:
-        assert events.index("freeze") < events.index("_ticks"), events
+        assert built == [True], "the world was built before the freeze"
+        assert events.index("freeze") < events.index("listener") < events.index("_ticks"), events
         log = (scratch_dir / "logs" / "server.log").read_text(encoding="utf-8")
         assert "startup heap frozen" in log
     else:

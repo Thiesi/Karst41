@@ -57,7 +57,7 @@ inspect these with the server stopped before retrying. Do not discard
 an operator's changes without comparing them first.
 
 Inspect `logs/server.log` for JSON `world open`, content hash and season.
-After `world open` and before the first tick, `python -m karst41.server` collects once and freezes the start-up heap (`startup heap frozen`, with the object count, from `server/heap.py`). Full garbage collections then skip it, which keeps their pauses short.
+Before the listener opens (so before `world open` and the first tick), `python -m karst41.server` collects once and freezes the start-up heap (`startup heap frozen`, with the object count, from `server/heap.py`). Full garbage collections then skip it, which keeps their pauses short.
 The caveat: reference counting still frees frozen objects, but cyclic garbage among objects that existed at start-up is never collected, so memory held that way stays until the process restarts.
 Operator actions go to both the database audit table and the append-only
 `logs/audit.log`. Authentication credentials are never logged.
