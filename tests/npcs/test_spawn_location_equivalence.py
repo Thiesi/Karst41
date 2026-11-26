@@ -17,6 +17,7 @@ from typing import Any
 import pytest
 
 from karst41.content.loader import load_content
+from karst41.server.npcs import spawn
 from karst41.server.npcs.spawn import SPAWN_CLEARANCE
 from tests.harness import HeadlessServer
 
@@ -76,9 +77,14 @@ def test_the_same_tile_and_the_same_rng_draws_across_layouts(row: Any) -> None:
         door.open = opened
 
 
-def test_the_rows_regular_region_is_now_cheap(row: Any) -> None:
+def test_the_rows_regular_region_is_now_cheap(row: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     """With an S11-like crowd on the Row (stand-ins: only their positions are read)."""
     from types import SimpleNamespace
+    # tests/conftest.py turns spawn.CHECK_REUSE on for the whole suite (#277): every
+    # ground cache hit then re-walks the region to compare, which is exactly the cost
+    # this timing measures the absence of. Time the production path, with it off.
+    # (Equivalence is checked elsewhere, with the guard on.)
+    monkeypatch.setattr(spawn, "CHECK_REUSE", False)
     game, zone, _ = row
     spawners = game.core.npcs.spawners
     regular = next(sp for sp in zone.template.meta.spawners if sp.id == "sodium-regular")
