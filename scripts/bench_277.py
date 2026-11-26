@@ -11,7 +11,9 @@ writer, completed after each tick and outside every timed section):
   the next NPC tick refills the zone at once (the S11 early-tick spike).
 
 The same content, seed and inputs give the same world on every repeat;
-the script checks that each repeat ends in the same actor and RNG state.
+the script checks that each repeat ends in the same actor and RNG state,
+and reports a fingerprint of that state: equal fingerprints on two trees
+mean the same simulation outcome.
 Timings are wall clock around Npcs.tick, the whole step, and the writes
 (IO.settle plus IO.pump). Run it on two trees for a before/after:
 
@@ -21,6 +23,7 @@ Timings are wall clock around Npcs.tick, the whole step, and the writes
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import statistics
 import sys
@@ -177,12 +180,16 @@ def main() -> int:
         report['repeats'].append(line)
         print(json.dumps(line), flush=True)
     report['deterministic'] = len(fingerprints) == 1
+    # The final world of both scenarios (actors, positions, health, states, targets and every
+    # zone's RNG). Equal across trees means the cuts changed no simulation outcome.
+    report['fingerprint'] = hashlib.sha256(json.dumps(sorted(fingerprints)).encode()).hexdigest()
     report['summary'] = {
         **{f'hit_{k}': {'median': round(statistics.median(v), 3), 'p99': round(quantile(v, .99), 3)} for k, v in hits_all.items()},
         **{f'quiet_{k}': {'median': round(statistics.median(v), 3), 'p99': round(quantile(v, .99), 3)} for k, v in quiet_all.items()},
         'refill_npcs': {'median': round(statistics.median(spikes_all), 3), 'p99': round(quantile(spikes_all, .99), 3)},
         'hit_ticks_per_repeat': report['repeats'][0]['hit_ticks']}
-    print(json.dumps({'deterministic': report['deterministic'], **report['summary']}, indent=1))
+    print(json.dumps({'deterministic': report['deterministic'], 'fingerprint': report['fingerprint'],
+                      **report['summary']}, indent=1))
     if args.json:
         args.json.write_text(json.dumps(report, indent=1) + '\n', encoding='utf-8')
     return 0 if report['deterministic'] else 1
