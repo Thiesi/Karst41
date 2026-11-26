@@ -4,6 +4,7 @@ Callers supply completed action receipts and eligibility facts, never
 client claims. Day/encounter caps are separate from grade-point spending.
 """
 
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from math import ceil
@@ -58,6 +59,25 @@ def eligible(use: Use) -> bool:
     if use.action in ("authored_cell", "hidden_authored"):
         return use.authored and use.changed
     return use.changed
+
+
+# The Player fields gain() writes. A proposal deep-copies exactly these;
+# tests/server/test_277_draft.py fails, naming the field, if gain() ever
+# writes another one.
+GAIN_FIELDS = ("progress", "skills", "attributes")
+
+
+def proposal(player: Player) -> Player:
+    """A draft for gain() (#277, C3): what deepcopy(player) gave it, for less.
+
+    A shallow copy shares the fields gain() only reads (archetype, grade and
+    the rest); the fields it writes are deep copies, so neither the live
+    player nor the proposal sees the other's changes.
+    """
+    draft = copy(player)
+    for name in GAIN_FIELDS:
+        setattr(draft, name, deepcopy(getattr(player, name)))
+    return draft
 
 
 def gain(player: Player, use: Use, now: datetime, definition: SkillDefinition | None = None) -> float:
