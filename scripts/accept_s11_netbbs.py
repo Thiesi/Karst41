@@ -200,8 +200,13 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         status=await request(probe.service.install_dir,"status")
         count = len(probe.service.world.zones)
         assert status["active_zones"]==count,status
-        verdict=enforce(status["tick_p99_ms"],f"admin status {width}x{height}",title=title)
-        probe.report(f"PASS admin status {width}x{height}: all {count} zones active, p99 {status['tick_p99_ms']:.3f} ms ({verdict})")
+        # diag/s277-npcs only: the probed gate is recorded, never a stop, so the
+        # canonical (pursuit) profile is always captured. Never on main.
+        try:
+            verdict=enforce(status["tick_p99_ms"],f"admin status {width}x{height}",title=title)
+        except AssertionError as error:
+            verdict=f"block, probes on: {error}"
+        probe.report(f"DIAG GATE (probes on, not enforced) admin status {width}x{height}: all {count} zones active, p99 {status['tick_p99_ms']:.3f} ms ({verdict})")
         return status["tick_p99_ms"]
     finally:
         loop.subsystems, loop.step = original_subsystems, original_step
@@ -209,7 +214,7 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         diag = diag_summary(rows)
         probe.report(f"S277 DIAG {width}x{height}: " + json.dumps({
             'probe_overhead_ms': diag['probe_overhead_ms'], 'record_sizes': probes.record_sizes,
-            'labels': dict(list(diag['labels'].items())[:40])}))
+            'labels': dict(list(diag['labels'].items())[:45]), 'slowest_npc_ticks': diag['slowest_npc_ticks'][:3]}))
         probe.service._character_writes = original_writes
         if gc_trace in gc.callbacks:
             gc.callbacks.remove(gc_trace)
@@ -392,7 +397,7 @@ async def accept(root: Path, door_python: Path, show: bool,
             results.append({"size":[width,height],"warning_seconds":response,"heat_wait":"actual 600-second deadline",
                 "safe_damage":False,"local_guards":True,"all_hub_p99_ms":p99})
         assert not probe.errors,probe.errors
-        (probe.root/"result.json").write_text(json.dumps({"passed":True,"transport":"NetBBS Telnet native stdio",
+        (probe.root/"result.json").write_text(json.dumps({"passed":True,"diag":"diag/s277-npcs: probes on, gate recorded but not enforced","transport":"NetBBS Telnet native stdio",
             "teleports":False,"human_playtest":False,"loop_thread_guard":"armed for the whole run (S47)",
             "runs":results},indent=2),encoding="utf-8")
     finally:

@@ -1,34 +1,36 @@
-"""Diagnostic S11 probes for #277 and #280 (branch diag/s277-npcs).
+"""Diagnostic S11 probes for #277 and #280 (branch diag/s277-npcs), pass 2.
 
 Harness only: every probe wraps a live function or method for the
 profiling window and is put back afterwards. Nothing in src/ changes.
 
-#277, the NPC tick one level below Npcs.act and Npcs.evaluate:
-- per zone: spawners.process, spawners.reserved, evaluate, act, calm_crowds;
-- navigation: step_toward, route_toward, patrol, search (with hit and miss
-  counts; a miss expands the full ROUTE_NODES bound), move;
-- the checks: Npcs.hostile, shared_crowd, reaction_group, take_up_answer,
-  reach_holders, keeper_guard, event_motion; Combat.visible, legal, warn,
-  shot, reveal; line_of_sight; clock.now_local. The combat, sight and clock
-  probes are labelled `npc:` inside the NPC tick and `other:` outside it;
-- spawning: spawners.location and world.enter during the NPC tick;
-- slow single calls: any act, evaluate, process or search call of 0.5 ms
-  or more is listed with its zone, template, state and target kind (never
-  a player's name or ID), so a one-tick spike shows who caused it.
+Pass 1 (s277-diag-1) wrapped the inner calls too (move, visible, legal,
+line_of_sight, now_local, event_motion and others) and shadowed methods
+with instance attributes. Its Npcs segment ran about 6 ms above the
+unprobed baseline against about 1 ms of reported overhead (technical lead,
+2026-11-26). Pass 2 keeps the top level only and wraps methods on their
+class, so call sites keep their usual method lookup:
+
+#277, the NPC tick:
+- Npcs.tick; per zone: Spawners.process, Npcs.evaluate, Npcs.act,
+  Npcs.calm_crowds; Spawners.location (the spawn walk, for the early-tick
+  spike); Npcs.hostile, labelled npc: inside the NPC tick and other:
+  outside it;
+- navigation: step_toward, route_toward, search (with hit and miss
+  counts; a miss expands the full ROUTE_NODES bound);
+- slow single calls: any act, evaluate, process, location or search call
+  of 0.5 ms or more is listed with its zone, template, state and target
+  flag (never a player's name or ID).
 
 #280, the submit side of the writes label (settle plus pump, on the loop):
-- IO.settle, each _settle_<kind>, IO.pump, mark_world, mark per record
-  kind (meta records by name), the contracts record, _batch, _submit,
-  _character, _flush_due, _refresh_due, frozen (deepcopy),
-  writer.submit and commerce.prepare;
+- IO.settle, pump, mark_world, mark per record kind (meta records by
+  name), _batch, _submit, _character, _flush_due, frozen (deepcopy), the
+  contracts record, writer.submit, commerce.prepare;
 - after the window, outside every timed tick: the JSON size of each meta
   record mark_world re-freezes.
 
-All labels are inclusive: a label's time includes the labelled calls
-inside it. Probe cost: calibrate() times the wrapper on a no-op, and each
-row carries probe_calls and probe_overhead_ms (calls times that cost).
-With these probes on, the gate figure includes their overhead, so this
-run is a diagnostic, not a gate run.
+Every label reports `wall_ms` (inclusive, as measured) and `net_ms`: wall
+minus the calibrated cost of every probe call nested inside it. Rankings
+use net_ms. Each row also carries probe_calls and probe_overhead_ms.
 """
 
 from __future__ import annotations
@@ -38,7 +40,7 @@ import time
 from typing import Any, Callable
 
 SLOW_S = 0.0005
-SLOW_PREFIXES = ('npcs.act:', 'npcs.evaluate:', 'npcs.process:', 'nav.search')
+SLOW_PREFIXES = ('npcs.act:', 'npcs.evaluate:', 'npcs.process:', 'spawn.location:', 'nav.search')
 
 
 def zone_label(name: str, index: int) -> Callable[..., str]:
@@ -53,15 +55,22 @@ def fixed(name: str) -> Callable[..., str]:
     return lambda *args, **kwargs: name
 
 
-def actor_detail(content: Any) -> Callable[..., dict[str, Any]]:
-    """Who a slow call was about: template, state, target kind. Never an ID."""
+def actor_detail(offset: int) -> Callable[..., dict[str, Any]]:
+    """Who a slow call was about: template, state, target flag. Never an ID."""
     def detail(*args: Any, **kwargs: Any) -> dict[str, Any]:
-        actor = args[0] if args else None
-        zone = args[1] if len(args) > 1 else None
+        actor = args[offset] if len(args) > offset else None
+        zone = args[offset + 1] if len(args) > offset + 1 else None
         behaviour = getattr(actor, 'behaviour', {}) or {}
         return {'zone': getattr(zone, 'id', None), 'template': behaviour.get('template'),
                 'state': behaviour.get('state'), 'has_target': bool(getattr(actor, 'target', None)),
                 'zone_actors': len(getattr(zone, 'actors', {}) or {})}
+    return detail
+
+
+def zone_detail(index: int) -> Callable[..., dict[str, Any]]:
+    def detail(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        zone = args[index] if len(args) > index else None
+        return {'zone': getattr(zone, 'id', None), 'zone_actors': len(getattr(zone, 'actors', {}) or {})}
     return detail
 
 
@@ -70,17 +79,11 @@ class Probes:
         self.service, self.current = service, current
         self.restores: list[Callable[[], None]] = []
         self.per_call_s = 0.0
+        self.calls = 0  # Every probe call so far; nested calls are the difference.
         self.in_npcs = False
-        self.record_sizes: dict[str, int] = {}
+        self.record_sizes: dict[str, Any] = {}
 
     # --- bookkeeping --------------------------------------------------------
-
-    def _add(self, row: dict[str, Any], label: str, wall: float, cpu: float) -> None:
-        slot = row['diag'].setdefault(label, [0.0, 0.0, 0])
-        slot[0] += wall
-        slot[1] += cpu
-        slot[2] += 1
-        row['probe_calls'] = row.get('probe_calls', 0) + 1
 
     def _timed(self, original: Callable[..., Any], label: Callable[..., str], context: bool = False,
                detail: Callable[..., dict[str, Any]] | None = None) -> Callable[..., Any]:
@@ -88,43 +91,72 @@ class Probes:
             row = self.current()
             if row is None:
                 return original(*args, **kwargs)
+            before = self.calls
             wall, cpu = time.perf_counter(), time.thread_time()
             try:
                 return original(*args, **kwargs)
             finally:
                 wall, cpu = time.perf_counter() - wall, time.thread_time() - cpu
+                inner = self.calls - before
+                self.calls += 1
+                net = max(0.0, wall - inner * self.per_call_s)
                 name = label(*args, **kwargs)
                 if context:
                     name = ('npc:' if self.in_npcs else 'other:') + name
-                self._add(row, name, wall, cpu)
-                if detail is not None and wall >= SLOW_S and name.startswith(SLOW_PREFIXES):
+                slot = row['diag'].setdefault(name, [0.0, 0.0, 0, 0.0])
+                slot[0] += wall
+                slot[1] += cpu
+                slot[2] += 1
+                slot[3] += net
+                row['probe_calls'] = row.get('probe_calls', 0) + 1
+                if detail is not None and net >= SLOW_S and name.startswith(SLOW_PREFIXES):
                     try:
                         extra = detail(*args, **kwargs)
                     except Exception:  # A probe never raises into the game.
                         extra = {}
-                    row['slow'].append({'label': name, 'wall_ms': wall * 1000, 'cpu_ms': cpu * 1000, **extra})
+                    row['slow'].append({'label': name, 'net_ms': net * 1000, 'wall_ms': wall * 1000,
+                                        'inner_probe_calls': inner, **extra})
         return measured
 
-    def wrap(self, target: Any, name: str, label: Callable[..., str], context: bool = False,
+    def wrap(self, owner: Any, name: str, label: Callable[..., str], context: bool = False,
              detail: Callable[..., dict[str, Any]] | None = None) -> None:
-        if target is None or not hasattr(target, name):
+        """Wrap a module function or a class's method (on the class itself)."""
+        if owner is None or not hasattr(owner, name):
             return
-        own = name in vars(target)
-        original = getattr(target, name)
-        setattr(target, name, self._timed(original, label, context, detail))
-        self.restores.append(lambda: setattr(target, name, original) if own else delattr(target, name))
+        own = name in vars(owner)
+        original = vars(owner)[name] if own else getattr(owner, name)
+        if isinstance(original, (staticmethod, classmethod)):
+            return  # Not used in pass 2.
+        setattr(owner, name, self._timed(original, label, context, detail))
+        self.restores.append(lambda: setattr(owner, name, original) if own else delattr(owner, name))
 
     def calibrate(self, n: int = 20000) -> float:
-        """Per-call probe cost, measured on a no-op wrapped the same way."""
+        """Per-call probe cost on the real call shape: a method-style call with
+        actor and zone arguments, a per-zone f-string label and the slow-call
+        check, against the same call unwrapped. Best of three rounds."""
         row: dict[str, Any] = {'diag': {}, 'slow': []}
-        saved = self.current
+        saved, self.per_call_s = self.current, 0.0
         self.current = lambda: row
-        noop = self._timed(lambda: None, fixed('calibration'), context=True)
-        began = time.perf_counter()
-        for _ in range(n):
-            noop()
-        self.per_call_s = max(0.0, (time.perf_counter() - began) / n)
-        self.current = saved
+
+        class Zone:
+            id, actors = 'calibration-zone', {}
+
+        def bare(owner: Any, actor: Any, zone: Any, tick: int) -> None:
+            return None
+        wrapped = self._timed(bare, zone_label('calibration', 2), detail=actor_detail(1))
+        zone, actor = Zone(), object()
+        costs = []
+        for _ in range(3):
+            began = time.perf_counter()
+            for tick in range(n):
+                wrapped(self, actor, zone, tick)
+            with_probe = time.perf_counter() - began
+            began = time.perf_counter()
+            for tick in range(n):
+                bare(self, actor, zone, tick)
+            costs.append(max(0.0, (with_probe - (time.perf_counter() - began)) / n))
+        self.per_call_s = min(costs)
+        self.current, self.calls = saved, 0
         return self.per_call_s
 
     # --- install ------------------------------------------------------------
@@ -134,70 +166,50 @@ class Probes:
         self._io()
 
     def _npcs(self) -> None:
-        from karst41.server.combat import engine as combat_engine
         from karst41.server.npcs import behaviours, engine
-        core = self.service.core
-        npcs = getattr(core, 'npcs', None)
-        if npcs is None:
+        from karst41.server.npcs.engine import Npcs
+        from karst41.server.npcs.spawn import Spawners
+        if getattr(self.service.core, 'npcs', None) is None:
             return
-        detail = actor_detail(core.loop.content if hasattr(core.loop, 'content') else None)
+        own = 'tick' in vars(Npcs)
+        original_tick = vars(Npcs)['tick']
 
-        # The whole NPC tick, which also sets the npc:/other: context.
-        own = 'tick' in vars(npcs)
-        original_tick = npcs.tick
-
-        def tick(ctx: Any) -> None:
+        def tick(npcs: Any, ctx: Any) -> None:
             self.in_npcs = True
             try:
-                return original_tick(ctx)
+                return original_tick(npcs, ctx)
             finally:
                 self.in_npcs = False
-        npcs.tick = self._timed(tick, fixed('npcs.tick'))
-        self.restores.append(lambda: setattr(npcs, 'tick', original_tick) if own else delattr(npcs, 'tick'))
+        Npcs.tick = self._timed(tick, fixed('npcs.tick'))
+        self.restores.append(lambda: setattr(Npcs, 'tick', original_tick) if own else delattr(Npcs, 'tick'))
 
-        spawners = npcs.spawners
-        self.wrap(spawners, 'process', zone_label('npcs.process', 0),
-                  detail=lambda zone, now: {'zone': zone.id, 'zone_actors': len(zone.actors)})
-        self.wrap(spawners, 'reserved', zone_label('npcs.reserved', 0))
-        self.wrap(spawners, 'location', zone_label('spawn.location', 0))
-        self.wrap(npcs, 'evaluate', zone_label('npcs.evaluate', 1), detail=detail)
-        self.wrap(npcs, 'act', zone_label('npcs.act', 1), detail=detail)
-        self.wrap(npcs, 'calm_crowds', zone_label('npcs.calm_crowds', 0))
-        for name in ('hostile', 'shared_crowd', 'reaction_group', 'take_up_answer', 'reach_holders',
-                     'keeper_guard', 'event_motion'):
-            self.wrap(npcs, name, fixed(f'npcs.{name}'))
+        # Class-level wrappers receive self first: the zone index shifts by one.
+        self.wrap(Spawners, 'process', zone_label('npcs.process', 1), detail=zone_detail(1))
+        self.wrap(Spawners, 'location', zone_label('spawn.location', 1), detail=zone_detail(1))
+        self.wrap(Npcs, 'evaluate', zone_label('npcs.evaluate', 2), detail=actor_detail(1))
+        self.wrap(Npcs, 'act', zone_label('npcs.act', 2), detail=actor_detail(1))
+        self.wrap(Npcs, 'calm_crowds', zone_label('npcs.calm_crowds', 1))
+        self.wrap(Npcs, 'hostile', fixed('npcs.hostile'), context=True)
 
-        # Navigation. The engine imported these by name; behaviours calls its
-        # own module globals (route_toward -> search/step_toward/move).
-        for module in (engine, behaviours):
-            for name in ('step_toward', 'route_toward', 'patrol'):
-                if module is behaviours and name == 'route_toward':
-                    continue  # Called only from the engine.
-                self.wrap(module, name, fixed(f'nav.{name}'))
-        self.wrap(behaviours, 'move', fixed('nav.move'))
-        self._search(behaviours, detail)
+        # Navigation: the engine imported these by name; behaviours calls its
+        # own module globals (route_toward -> search, step_toward).
+        self.wrap(engine, 'step_toward', fixed('nav.step_toward'))
+        self.wrap(engine, 'route_toward', fixed('nav.route_toward'))
+        self.wrap(behaviours, 'step_toward', fixed('nav.step_toward'))
+        self._search(behaviours)
 
-        combat = npcs.combat
-        for name in ('visible', 'legal', 'warn', 'shot', 'reveal'):
-            self.wrap(combat, name, fixed(f'combat.{name}'), context=True)
-        self.wrap(combat_engine, 'line_of_sight', fixed('sight.line_of_sight'), context=True)
-        self.wrap(getattr(combat, 'clock', None), 'now_local', fixed('clock.now_local'), context=True)
-        self.wrap(npcs.world, 'enter', fixed('world.enter'), context=True)
-
-    def _search(self, behaviours: Any, detail: Callable[..., dict[str, Any]]) -> None:
+    def _search(self, behaviours: Any) -> None:
         """search with hit/miss counts: a miss expands the whole node bound."""
         original = behaviours.search
 
         def search(actor: Any, zone: Any, goal: Any, avoid: Any, blocked: Any) -> Any:
-            row = self.current()
             path = original(actor, zone, goal, avoid, blocked)
+            row = self.current()
             if row is not None:
-                outcome = 'hit' if path else 'miss'
-                slot = row['diag'].setdefault(f'nav.search.{outcome}', [0.0, 0.0, 0])
+                slot = row['diag'].setdefault('nav.search.hit' if path else 'nav.search.miss', [0.0, 0.0, 0, 0.0])
                 slot[2] += 1
             return path
-        timed = self._timed(search, fixed('nav.search'), detail=detail)
-        behaviours.search = timed
+        behaviours.search = self._timed(search, fixed('nav.search'), detail=actor_detail(0))
         self.restores.append(lambda: setattr(behaviours, 'search', original))
 
     def _io(self) -> None:
@@ -205,21 +217,22 @@ class Probes:
         io = getattr(self.service, 'io', None)
         if io is None:
             return
-        self.wrap(io, 'settle', fixed('io.settle'))
-        self.wrap(io, 'pump', fixed('io.pump'))
-        for name in [n for n in dir(type(io)) if n.startswith('_settle_')]:
-            self.wrap(io, name, fixed('io.settle.' + name[len('_settle_'):]))
+        cls = type(io)
+        self.wrap(cls, 'settle', fixed('io.settle'))
+        self.wrap(cls, 'pump', fixed('io.pump'))
 
-        def mark_label(kind: str, record_id: str, value: Any = None) -> str:
+        def mark_label(io: Any, kind: str, record_id: str, value: Any = None) -> str:
             return f'io.mark:{kind}:{record_id}' if kind == 'meta' else f'io.mark:{kind}'
-        self.wrap(io, 'mark', mark_label)
-        for name in ('mark_world', '_batch', '_submit', '_character', '_flush_due', '_refresh_due'):
-            self.wrap(io, name, fixed('io.' + name.lstrip('_')))
+        self.wrap(cls, 'mark', mark_label)
+        for name in ('mark_world', '_batch', '_submit', '_character', '_flush_due'):
+            self.wrap(cls, name, fixed('io.' + name.lstrip('_')))
         self.wrap(io_module, 'frozen', fixed('io.frozen'))
-        self.wrap(getattr(io, 'writer', None), 'submit', fixed('io.writer_submit'))
+        writer = getattr(io, 'writer', None)
+        self.wrap(type(writer) if writer is not None else None, 'submit', fixed('io.writer_submit'))
         core = self.service.core
-        self.wrap(getattr(core, 'contracts', None), 'record', fixed('io.record:contracts'))
-        self.wrap(getattr(core, 'commerce', None), 'prepare', fixed('io.commerce_prepare'))
+        contracts, commerce = getattr(core, 'contracts', None), getattr(core, 'commerce', None)
+        self.wrap(type(contracts) if contracts is not None else None, 'record', fixed('io.record:contracts'))
+        self.wrap(type(commerce) if commerce is not None else None, 'prepare', fixed('io.commerce_prepare'))
 
     def restore(self) -> None:
         for undo in reversed(self.restores):
@@ -236,8 +249,7 @@ class Probes:
             try:
                 self.record_sizes[name] = len(json.dumps(record(), ensure_ascii=False, sort_keys=True))
             except Exception as exc:  # Diagnostic only.
-                self.record_sizes[name] = -1
-                self.record_sizes[name + ':error'] = type(exc).__name__  # type: ignore[assignment]
+                self.record_sizes[name] = f'error: {type(exc).__name__}'
 
     # --- per tick -----------------------------------------------------------
 
@@ -246,8 +258,8 @@ class Probes:
 
     def close_row(self, row: dict[str, Any]) -> None:
         row['probe_overhead_ms'] = row.get('probe_calls', 0) * self.per_call_s * 1000
-        row['diag'] = {label: {'wall_ms': w * 1000, 'cpu_ms': c * 1000, 'calls': n}
-                       for label, (w, c, n) in row['diag'].items()}
+        row['diag'] = {label: {'wall_ms': w * 1000, 'net_ms': net * 1000, 'cpu_ms': c * 1000, 'calls': n}
+                       for label, (w, c, n, net) in row['diag'].items()}
 
 
 def quantile(values: list[float], q: float) -> float:
@@ -258,30 +270,31 @@ def quantile(values: list[float], q: float) -> float:
 
 
 def summary(rows: list[dict[str, Any]], top: int = 5) -> dict[str, Any]:
-    """p99 and max per label over the window, plus the slowest NPC ticks."""
-    labels: dict[str, list[float]] = {}
-    calls: dict[str, list[int]] = {}
+    """p99 and max per label (net and wall), plus the slowest NPC ticks by net time."""
+    n = len(rows)
+    net: dict[str, list[float]] = {}
+    wall: dict[str, list[float]] = {}
+    calls: dict[str, list[float]] = {}
     for row in rows:
         for label, figure in row.get('diag', {}).items():
-            labels.setdefault(label, []).append(figure['wall_ms'])
-            calls.setdefault(label, []).append(figure['calls'])
-    n = len(rows)
-    per_label = {}
-    for label, values in labels.items():
-        padded = values + [0.0] * (n - len(values))  # Ticks without the call count as 0.
-        per_label[label] = {'p99': round(quantile(padded, 0.99), 3), 'max': round(max(padded), 3),
-                            'calls_p99': quantile([float(c) for c in calls[label]] + [0.0] * (n - len(values)), 0.99)}
-    worst = sorted(rows, key=lambda r: -r.get('diag', {}).get('npcs.tick', {}).get('wall_ms', 0))[:top]
+            net.setdefault(label, []).append(figure['net_ms'])
+            wall.setdefault(label, []).append(figure['wall_ms'])
+            calls.setdefault(label, []).append(float(figure['calls']))
+    pad = lambda values: values + [0.0] * (n - len(values))  # A tick without the call counts as 0.
+    per_label = {label: {'net_p99': round(quantile(pad(net[label]), 0.99), 3), 'net_max': round(max(pad(net[label])), 3),
+                         'wall_p99': round(quantile(pad(wall[label]), 0.99), 3),
+                         'calls_p99': quantile(pad(calls[label]), 0.99)} for label in net}
+    key = lambda row: -row.get('diag', {}).get('npcs.tick', {}).get('net_ms', 0)
     slowest = []
-    for row in worst:
+    for row in sorted(rows, key=key)[:top]:
         diag = row.get('diag', {})
-        parts = sorted(((label, f['wall_ms']) for label, f in diag.items() if label != 'npcs.tick'),
+        parts = sorted(((label, f['net_ms']) for label, f in diag.items() if label != 'npcs.tick'),
                        key=lambda item: -item[1])[:8]
-        slowest.append({'tick': row.get('tick'), 'npcs_ms': round(diag.get('npcs.tick', {}).get('wall_ms', 0), 3),
+        slowest.append({'tick': row.get('tick'), 'npcs_net_ms': round(diag.get('npcs.tick', {}).get('net_ms', 0), 3),
                         'total_ms': round(row.get('total_wall_ms', 0), 3),
                         'top': [[label, round(ms, 3)] for label, ms in parts],
-                        'slow_calls': sorted(row.get('slow', []), key=lambda s: -s['wall_ms'])[:5]})
+                        'slow_calls': sorted(row.get('slow', []), key=lambda s: -s['net_ms'])[:5]})
     overhead = [row.get('probe_overhead_ms', 0.0) for row in rows]
-    return {'ticks': n, 'labels': dict(sorted(per_label.items(), key=lambda item: -item[1]['p99'])),
+    return {'ticks': n, 'labels': dict(sorted(per_label.items(), key=lambda item: -item[1]['net_p99'])),
             'slowest_npc_ticks': slowest,
             'probe_overhead_ms': {'p99': round(quantile(overhead, 0.99), 3), 'max': round(max(overhead, default=0), 3)}}
