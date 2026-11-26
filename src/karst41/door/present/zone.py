@@ -480,6 +480,9 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
     # fitted together once all are known, so a short form never collides.
     names: list[tuple[int, int, str, int, Style, str]] = []  # x, y, name, budget, style, kind
     hand = at_hand(body)
+    # #211: a focus may author its own panel form, used when its label doesn't fit.
+    shorts = {clean_text(str(focus['label'])): clean_text(str(focus['short']))
+              for focus in (body.get('focus'), body.get('jack_focus')) if focus and focus.get('short')}
     if hand:
         section("HERE")
         for entry in hand:
@@ -487,6 +490,8 @@ def panel(buffer: CellBuffer, body: dict[str, Any], layout: Layout, paint: Paint
                 shape, _, label = clean_text(entry).partition(' ')
                 buffer.put(x + 1, y, shape + ' ', paint("panel_text"))  # The space styled as before.
                 left = 1 + display_width(shape) + 1
+                if label in shorts and display_width(label) > w - left - 1:
+                    label = shorts[label]
                 names.append((x + left, y, label, w - left - 1, paint("panel_text"), "here"))  # One cell of margin.
                 y += 1
     limit += target_reserve

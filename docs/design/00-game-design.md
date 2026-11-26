@@ -614,11 +614,11 @@ An interactive physical prop underfoot takes precedence over a nearby
 public terminal for fallback Interact. Passive light, camera and salvage
 field markers do not intercept that network action. `J` remains the explicit network action.
 An exit or door on the caller's own tile takes precedence over an
-adjacent talker or vendor for Interact: what you stand on beats what stands beside
-you. One tile away, the talker or vendor wins. This applies to a talker's
+adjacent talker, vendor or salvage node for Interact: what you stand on beats what stands beside
+you. One tile away, the talker, vendor or salvage node wins. This applies to a talker's
 dialogue, including a contract giver's dialogue, whichever subsystem
 delivers it. Contract mission actions, boards and already open screens
-keep their precedence. A vendor or interactive prop underfoot also keeps
+keep their precedence. A vendor, interactive prop or salvage node underfoot also keeps
 its precedence. Explicit targeted talk and `J` keep their existing order.
 Credential refusals name the missing credential; a disabled control
 reports that the machinery is locked. Every destination retains
@@ -1448,6 +1448,9 @@ Downtime earns no replacements. Positions, remaining units, elapsed
 uptime and each ring's salvage RNG survive restart. Crash Relay may
 raise Ring Three grades by one step, capped at compute, never intact.
 Harvesting repeats 2 s channels until the node empties or is interrupted.
+Interact names a node in reach by its grade and remaining units, read
+live (`harvest Hull salvage (3 left)`). An empty node is not an Interact
+target: E passes to whatever else is in reach.
 Fabrication grants 15 XP times output tier and one eligible Fabrication
 use per completed input-consuming craft (subject to the daily use cap).
 Ammo recipes create one full pack without scaling its count. Program

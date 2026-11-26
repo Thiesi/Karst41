@@ -165,7 +165,9 @@ class ZoneSimulation:
             focus = Focus(ex.id, destination.template.meta.name, 'go to') if destination else None
             return Interaction(focus, ex, ex.tile)
         if not street:
-            objects = sorted((obj for obj in zone.objects.values() if adjacent(obj.spec.tile)),
+            # #211: an empty salvage node is not an E target here either.
+            objects = sorted((obj for obj in zone.objects.values() if adjacent(obj.spec.tile)
+                              and not (obj.spec.kind == 'salvage_node' and obj.state.get('units', 0) < 1)),
                              key=lambda obj: (obj.spec.tile != actor.position, obj.spec.id))
             if objects:
                 obj = objects[0]

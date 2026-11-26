@@ -1,6 +1,6 @@
 """Game 8.4: physical workshop/harvest channels and atomic craft receipts."""
 
-from karst41.server.interaction import Interaction, interact, object_interaction
+from karst41.server.interaction import Focus, Interaction, interact, object_interaction
 from copy import deepcopy
 from typing import Any
 from collections.abc import Callable
@@ -28,6 +28,8 @@ class Fabrication:
         self.progression, self.salvage = progression, salvage
         self.commerce, self.game, self.clock = progression.commerce, progression.game, progression.clock
         self.sim, self.content = self.commerce.sim, progression.content
+        # #211: each salvage grade's item name, for the harvest focus (one item per grade, validated).
+        self.grade_names = {item.salvage.grade: item.name for item in self.content.items.values() if item.salvage}
         self.channels: dict[str, PhysicalChannel] = {}
         self.menus: dict[str, tuple[str, int, int]] = {}
         self.requests: dict[str, list[str]] = {}
@@ -217,12 +219,24 @@ class Fabrication:
                 or session.pending_prompts or not interact(frame)):
             return None
         actor = self.sim.avatars[session.user_id].actor
+        # #211: an empty node is not an E target; E passes to whatever else is in reach.
         nearby = sorted((obj for obj in self.game.world.zones[actor.zone].objects.values()
-            if obj.spec.kind != 'salvage_field' and max(abs(obj.spec.tile[0]-actor.x), abs(obj.spec.tile[1]-actor.y)) <= 1),
+            if obj.spec.kind != 'salvage_field' and max(abs(obj.spec.tile[0]-actor.x), abs(obj.spec.tile[1]-actor.y)) <= 1
+            and not (obj.spec.kind == 'salvage_node' and obj.state.get('units', 0) < 1)),
             key=lambda obj: (obj.spec.tile != actor.position, obj.spec.id))
-        if nearby and nearby[0].spec.kind in ('salvage_node', 'workshop'):
-            return object_interaction(nearby[0], 'harvest' if nearby[0].spec.kind == 'salvage_node' else 'open')
+        if nearby and nearby[0].spec.kind == 'salvage_node':
+            return self.harvest_interaction(nearby[0])
+        if nearby and nearby[0].spec.kind == 'workshop':
+            return object_interaction(nearby[0], 'open')
         return None
+
+    def harvest_interaction(self, obj: Any) -> Interaction:
+        """#211: a node's focus, built live from its grade item name and units."""
+        name, units = self.grade_names.get(obj.state.get('grade')), obj.state.get('units', 0)
+        # The panel form keeps the grade, which the hint's UI 11 short form drops.
+        focus = Focus(obj.spec.id, f"{name} ({units} left)", 'harvest',
+                      f"{name.removesuffix(' salvage')} ({units} left)") if name else None
+        return Interaction(focus, obj, obj.spec.tile, kind='salvage')
 
     def input(self, session: Session, frame: Frame, tick: int, *, interaction: Interaction | None = None) -> bool:
         name = frame.data.get("name", "") if frame.type == "intent" else ""
