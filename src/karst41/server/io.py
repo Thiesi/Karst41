@@ -48,6 +48,11 @@ class StorageFailure(RuntimeError):
 
 
 class IO:
+    # #277 (C1): inside one outbox drain, a plain save whose records a later
+    # plain save in the same drain marks again is not marked itself. Tests
+    # turn it off to run the uncoalesced reference path.
+    COALESCE_PLAIN_SAVES = True
+
     def __init__(self, clock: Clock, logs: Any, writer: Any) -> None:
         self.clock, self.logs, self.writer = clock, logs, writer
         writer.on_exit = self._writer_exit
@@ -379,11 +384,14 @@ class IO:
         if game is None:
             return
         # The character outbox before commerce, as before S47.
+        superseded = self._superseded(game.outbox) if self.barrier is None else set()
+        drained = 0
         while game.outbox and self.barrier is None:
             effect = game.outbox[0]
-            if not self._character(effect):
+            if not self._character(effect, mark=drained not in superseded):
                 return
             game.outbox.pop(0)
+            drained += 1
         commerce = core.commerce
         while commerce and commerce.outbox and self.barrier is None:
             effect = commerce.outbox[0]
@@ -400,14 +408,51 @@ class IO:
         if self.barrier is None:
             self._flush_due()
 
-    def _character(self, effect: dict[str, Any]) -> bool:
-        """One character effect. False: the writer has no room; try next pump."""
+    @staticmethod
+    def _plain(effect: dict[str, Any]) -> bool:
+        """A plain save: it only marks its records, and never submits or waits."""
         action = effect["action"]
-        if action != "delete" and not (action in ("create", "identity") or effect.get("immediate")):
-            # A plain save only marks, as character_write did.
-            self._mark_effect(effect)
+        return action != "delete" and not (action in ("create", "identity") or effect.get("immediate"))
+
+    def _superseded(self, outbox: list[dict[str, Any]]) -> set[int]:
+        """#277 (C1): the outbox positions this drain need not mark.
+
+        This drain processes the outbox's leading run of plain saves (they
+        never fail) and stops at the first other effect, which submits and
+        sets the barrier. Within that run, a plain save whose every record a
+        later save in the run marks again is superseded: the later mark
+        replaces the value, first-mark ticks are this same tick, and no
+        command, batch or settle reads the dirty map between the two. So the
+        dirty map after the drain, every batch frozen from it, and the rows
+        committed are unchanged. Only the generation counters advance by
+        fewer steps, and every reader compares them for equality ("marked
+        since?"): _clear, _mark_effect(covered) and the batches' generations.
+        Nothing is carried across drains.
+        """
+        if not self.COALESCE_PLAIN_SAVES:
+            return set()
+        run = 0
+        while run < len(outbox) and self._plain(outbox[run]):
+            run += 1
+        later: set[tuple[str, str]] = set()
+        superseded: set[int] = set()
+        for index in range(run - 1, -1, -1):
+            keys = {key for key, _ in self._effect_records(outbox[index])}
+            if keys <= later:
+                superseded.add(index)
+            later |= keys
+        return superseded
+
+    def _character(self, effect: dict[str, Any], mark: bool = True) -> bool:
+        """One character effect. False: the writer has no room; try next pump."""
+        if self._plain(effect):
+            # A plain save only marks, as character_write did; a superseded one
+            # (#277, C1) leaves the marking to the later save in this drain.
+            if mark:
+                self._mark_effect(effect)
             self.core.characters.committed(effect)
             return True
+        action = effect["action"]
         payload: dict[str, Any] = {"effect": frozen(effect), "batch": {}}
         generations: dict[tuple[str, str], int] = {}
         if action != "delete":
