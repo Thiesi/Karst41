@@ -4,12 +4,13 @@ Callers supply completed action receipts and eligibility facts, never
 client claims. Day/encounter caps are separate from grade-point spending.
 """
 
-from copy import copy, deepcopy
+from copy import copy
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from math import ceil
 from types import MappingProxyType
 
+from karst41.server.copying import fastcopy
 from karst41.content.schema import SkillDefinition
 from karst41.server.players import Player
 from karst41.server.rules.character import SKILL_GROUPS, attributes
@@ -76,7 +77,7 @@ def proposal(player: Player) -> Player:
     """
     draft = copy(player)
     for name in GAIN_FIELDS:
-        setattr(draft, name, deepcopy(getattr(player, name)))
+        setattr(draft, name, fastcopy(getattr(player, name)))  # #277 (D5a): deepcopy, faster.
     return draft
 
 

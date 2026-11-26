@@ -38,7 +38,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--spawn-zone", help="preview a supplied zone before character entry")
     parser.add_argument("--log-level", choices=("DEBUG", "INFO", "WARNING", "ERROR"), default="INFO")
     args = parser.parse_args(argv)
-    server = Server(args.install_dir, args.tcp, args.log_level, spawn_zone=args.spawn_zone)
+    # #277 (D5-GC): the production start-up path freezes the start-up heap (server/heap.py).
+    server = Server(args.install_dir, args.tcp, args.log_level, spawn_zone=args.spawn_zone, freeze_heap=True)
     code = 0
     try:
         asyncio.run(run(args, server))

@@ -203,13 +203,21 @@ async def _profile(probe: NativeProbe, width: int, height: int,
             gc.callbacks.remove(gc_trace)
         for zone in probe.service.world.zones.values():
             zone.deactivate("s11-profiling",probe.service.clock.now_tick())
+        # #277 (D5-GC): one forced full collection after the window (never inside it), so the
+        # size of a generation-2 pause on this heap is measured directly, frozen or not.
+        forced_wall = time.perf_counter()
+        gc.collect()
+        forced_gc = {'collect_ms': (time.perf_counter()-forced_wall)*1000, 'frozen': gc.get_freeze_count(),
+                     'tracked': len(gc.get_objects()), 'freeze_heap': bool(getattr(probe.service, 'freeze_heap', False))}
+        probe.report(f"S11 GC {width}x{height}: " + json.dumps({key: round(value, 3) if isinstance(value, float) else value
+                                                               for key, value in forced_gc.items()}))
         writer_figures = writer_window(io, marks if sampling_tick >= 0 else {}, counters if sampling_tick >= 0 else {})
         probe.report(f"S47 WRITER {width}x{height}: " + json.dumps(writer_figures['summary']))
         number = len(list(probe.root.glob(f'npc-profile-{width}x{height}-*.json')))+1
         (probe.root/f'npc-profile-{width}x{height}-{number}.json').write_text(json.dumps({
             'status': status, 'sampling_started_tick': sampling_tick,
             'instrumentation': 'wall/thread CPU and GC probes; writes = settle + submit per tick (S47); S11 gate including overhead: p99 at or above 20 ms blocks, at or above 10 ms warns (2026-11-12)',
-            'gc_pauses': gc_pauses, 'writer': writer_figures,
+            'gc_pauses': gc_pauses, 'forced_gc': forced_gc, 'writer': writer_figures,
             'ticks': rows, 'write_probe': writes_profile.metadata(),
             'commerce_commits': minimal.export(),
             'canonical_observer': {
