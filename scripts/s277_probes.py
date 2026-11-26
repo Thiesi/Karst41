@@ -1,4 +1,9 @@
-"""Diagnostic S11 probes for #277 phase 2 and #286 (branch diag/s277-npcs), pass 3.
+"""Diagnostic S11 probes for #277 phase 2 and #286 (branch diag/s277-npcs), pass 4.
+
+Pass 4 (s277-diag-4, NPC_CPROFILE): the NPC side is one cProfile per
+Npcs.tick instead of the child probes below, so the slow canonical ticks
+(the Sable enforcer's act self time and the tick body, unexplained in
+s277-diag-3) get a full breakdown. The publisher probes stay as in pass 3.
 
 Harness only: every probe wraps a live function or method for the
 profiling window and is put back afterwards. Nothing in src/ changes.
@@ -42,6 +47,8 @@ import time
 from typing import Any, Callable
 
 SLOW_S = 0.0005
+NPC_CPROFILE = True  # Pass 4 (s277-diag-4): cProfile per Npcs.tick instead of the NPC child probes.
+KEEP = 8  # Slowest Npcs ticks per profile window kept with a full breakdown.
 SLOW_PREFIXES = ('npcs.act:', 'npcs.evaluate:', 'npcs.process:', 'pub.')
 
 
@@ -197,9 +204,68 @@ class Probes:
     # --- install ------------------------------------------------------------
 
     def install(self) -> None:
-        self._npcs()
-        self._sight()
+        if NPC_CPROFILE:
+            self._npcs_cprofile()
+        else:
+            self._npcs()
+            self._sight()
         self._publishers()
+
+    # --- pass 4: a per-tick cProfile of Npcs.tick -----------------------------
+
+    def _npcs_cprofile(self) -> None:
+        """Pass 4 (s277-diag-4): no NPC child probes. Each Npcs.tick runs under its
+        own cProfile.Profile; the KEEP slowest ticks keep a full breakdown (the
+        tick's own time, every function by own time, and the callees of
+        Npcs.tick and Npcs.act), and the window keeps an aggregate. cProfile
+        inflates call-heavy code: figures rank, they don't price."""
+        import cProfile
+        import heapq
+        import pstats
+        from karst41.server.npcs.engine import Npcs
+        if getattr(self.service.core, 'npcs', None) is None:
+            return
+        original_tick = vars(Npcs)['tick']
+        self.kept: list[tuple[float, int, dict[str, Any]]] = []
+        self.window: dict[str, list[float]] = {}
+        self.profiled = 0
+
+        def tick(npcs: Any, ctx: Any) -> None:
+            if self.current() is None:
+                return original_tick(npcs, ctx)
+            profile = cProfile.Profile()
+            self.in_npcs = True
+            began = time.perf_counter()
+            profile.enable()
+            try:
+                return original_tick(npcs, ctx)
+            finally:
+                profile.disable()
+                wall = (time.perf_counter() - began) * 1000
+                self.in_npcs = False
+                try:
+                    stats = pstats.Stats(profile).stats
+                    self.profiled += 1
+                    for func, (_, calls, own, cumulative, _) in stats.items():
+                        slot = self.window.setdefault(_name(func), [0, 0.0, 0.0])
+                        slot[0] += calls
+                        slot[1] += own * 1000
+                        slot[2] += cumulative * 1000
+                    if len(self.kept) < KEEP or wall > self.kept[0][0]:
+                        entry = (wall, self.profiled, _breakdown(stats, wall, getattr(ctx, 'tick', -1)))
+                        (heapq.heappush if len(self.kept) < KEEP else heapq.heapreplace)(self.kept, entry)
+                except Exception as exc:  # A probe never raises into the game.
+                    self.window.setdefault(f'probe.error:{type(exc).__name__}', [0, 0.0, 0.0])[0] += 1
+        Npcs.tick = self._timed(tick, fixed('npcs.tick'))
+        self.restores.append(lambda: setattr(Npcs, 'tick', original_tick))
+
+    def cprofile_report(self) -> dict[str, Any]:
+        if not NPC_CPROFILE or not hasattr(self, 'kept'):
+            return {}
+        top = sorted(self.window.items(), key=lambda item: -item[1][1])[:40]
+        return {'profiled_ticks': self.profiled,
+                'slowest_ticks': [entry for _, _, entry in sorted(self.kept, key=lambda e: -e[0])],
+                'window_by_own_ms': [[name, calls, round(own, 3), round(cum, 3)] for name, (calls, own, cum) in top]}
 
     def _npcs(self) -> None:
         from karst41.server.npcs import behaviours, engine
@@ -357,6 +423,37 @@ class Probes:
         row['diag'] = {label: {'wall_ms': w * 1000, 'net_ms': net * 1000, 'self_ms': own * 1000,
                                'cpu_ms': c * 1000, 'calls': n}
                        for label, (w, c, n, net, own) in row['diag'].items()}
+
+
+def _name(func: tuple[str, int, str]) -> str:
+    path, line, name = func
+    path = path.replace('\\', '/')
+    short = path.split('/karst41/', 1)[-1] if '/karst41/' in path else path.rsplit('/', 1)[-1]
+    return f'{short}:{line}({name})'
+
+
+def _breakdown(stats: dict[Any, Any], wall: float, tick: int) -> dict[str, Any]:
+    """One profiled tick: own time by function, and the callees of Npcs.tick and Npcs.act."""
+    def callees(match: Callable[[tuple[str, int, str]], bool]) -> list[list[Any]]:
+        keys = [func for func in stats if match(func)]
+        found: dict[str, list[float]] = {}
+        for func, (_, _, _, _, callers) in stats.items():
+            for key in keys:
+                if key in callers:
+                    _, calls, own, cumulative = callers[key]
+                    slot = found.setdefault(_name(func), [0, 0.0, 0.0])
+                    slot[0] += calls
+                    slot[1] += own * 1000
+                    slot[2] += cumulative * 1000
+        return [[name, calls, round(own, 3), round(cum, 3)]
+                for name, (calls, own, cum) in sorted(found.items(), key=lambda item: -item[1][2])[:25]]
+    engine = lambda name: (lambda func: func[2] == name and func[0].replace('\\', '/').endswith('npcs/engine.py'))
+    tick_own = sum(own for func, (_, _, own, _, _) in stats.items() if engine('tick')(func)) * 1000
+    by_own = sorted(stats.items(), key=lambda item: -item[1][2])[:30]
+    return {'tick': tick, 'npcs_wall_ms_profiled': round(wall, 3), 'tick_own_ms': round(tick_own, 3),
+            'by_own': [[_name(func), calls, round(own * 1000, 3), round(cum * 1000, 3)]
+                       for func, (_, calls, own, cum, _) in by_own],
+            'tick_callees': callees(engine('tick')), 'act_callees': callees(engine('act'))}
 
 
 def quantile(values: list[float], q: float) -> float:
