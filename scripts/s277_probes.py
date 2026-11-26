@@ -1,46 +1,48 @@
-"""Diagnostic S11 probes for #277 and #280 (branch diag/s277-npcs), pass 2.
+"""Diagnostic S11 probes for #277 phase 2 and #286 (branch diag/s277-npcs), pass 3.
 
 Harness only: every probe wraps a live function or method for the
 profiling window and is put back afterwards. Nothing in src/ changes.
 
-Pass 1 (s277-diag-1) wrapped the inner calls too (move, visible, legal,
-line_of_sight, now_local, event_motion and others) and shadowed methods
-with instance attributes. Its Npcs segment ran about 6 ms above the
-unprobed baseline against about 1 ms of reported overhead (technical lead,
-2026-11-26). Pass 2 keeps the top level only and wraps methods on their
-class, so call sites keep their usual method lookup:
+Pass 2 (s277-diag-2) attributed phase 1. Pass 3 drops its IO, hostile and
+search probes and keeps only what the technical lead asked for
+(2026-11-26):
 
-#277, the NPC tick:
-- Npcs.tick; per zone: Spawners.process, Npcs.evaluate, Npcs.act,
-  Npcs.calm_crowds; Spawners.location (the spawn walk, for the early-tick
-  spike); Npcs.hostile, labelled npc: inside the NPC tick and other:
-  outside it;
-- navigation: step_toward, route_toward, search (with hit and miss
-  counts; a miss expands the full ROUTE_NODES bound);
-- slow single calls: any act, evaluate, process, location or search call
-  of 0.5 ms or more is listed with its zone, template, state and target
-  flag (never a player's name or ID).
+#277 phase 2, the four candidates:
+- nav.step_toward: its steady cost (engine and behaviours call sites);
+- npcs.process:<zone>:idle|spawned: Spawners.process per zone, split by
+  whether the call spawned anything, so the cost with nothing due shows;
+- npcs.tick's body outside its children: every label carries self_ms
+  (wall minus its directly nested probed calls), and the tick's direct
+  children (process, reserved, evaluate, act, calm_crowds) are probed so
+  the body is what remains;
+- light.radius:<phase>:in_visible|outside: lighting_radius, split by
+  whether Combat.visible is on the stack; combat.visible itself is probed.
 
-#280, the submit side of the writes label (settle plus pump, on the loop):
-- IO.settle, pump, mark_world, mark per record kind (meta records by
-  name), _batch, _submit, _character, _flush_due, frozen (deepcopy), the
-  contracts record, writer.submit, commerce.prepare;
-- after the window, outside every timed tick: the JSON size of each meta
-  record mark_world re-freezes.
+#286, the publishers (a 58 ms spike at an early tick in s285-1):
+- pub.loop:<owner>: each loop publisher, pub.total their sum per tick;
+  pub.sim: the zone views (nested inside Characters' publisher);
+- pub.build:<zone>: the zone view body per session;
+- pub.frames:<kind>: full frame and delta diff and size measure;
+- pub.view:<session>:<kind>:<zone>:<full|delta|skip|same>: one session's
+  ViewStore.publish, by what was sent;
+- pub.send:<full|delta|skip>: Session.publish_view, the queue side.
+  Sessions are opaque ordinals (s1, s2, ...) in first-seen order, never
+  IDs or names. Slow publisher calls (0.5 ms or more) list the zone, kind,
+  choice, whether a full view was pending and the session's age in ticks.
 
-Every label reports `wall_ms` (inclusive, as measured) and `net_ms`: wall
-minus the calibrated cost of every probe call nested inside it. Rankings
-use net_ms. Each row also carries probe_calls and probe_overhead_ms.
+Every label reports wall_ms (inclusive), net_ms (wall minus the calibrated
+cost of every probe call nested inside it) and self_ms (net minus the wall
+of its directly nested probed calls). Rankings use net_ms; the tick body
+uses self_ms. Each row also carries probe_calls and probe_overhead_ms.
 """
 
 from __future__ import annotations
 
-import json
 import time
 from typing import Any, Callable
 
 SLOW_S = 0.0005
-SLOW_PREFIXES = ('npcs.act:', 'npcs.evaluate:', 'npcs.process:', 'spawn.location:', 'nav.search')
+SLOW_PREFIXES = ('npcs.act:', 'npcs.evaluate:', 'npcs.process:', 'pub.')
 
 
 def zone_label(name: str, index: int) -> Callable[..., str]:
@@ -74,60 +76,93 @@ def zone_detail(index: int) -> Callable[..., dict[str, Any]]:
     return detail
 
 
+def body_zone(body: Any) -> str:
+    if not isinstance(body, dict):
+        return '-'
+    me = body.get('me') if isinstance(body.get('me'), dict) else {}
+    return str(body.get('zone') or me.get('zone') or '-')
+
+
 class Probes:
     def __init__(self, service: Any, current: Callable[[], dict[str, Any] | None]) -> None:
         self.service, self.current = service, current
         self.restores: list[Callable[[], None]] = []
         self.per_call_s = 0.0
         self.calls = 0  # Every probe call so far; nested calls are the difference.
+        self.stack: list[list[float]] = []  # Per open probe call: [direct children's wall].
         self.in_npcs = False
-        self.record_sizes: dict[str, Any] = {}
+        self.in_publish = False
+        self.visible_depth = 0
+        self.sessions: dict[str, str] = {}
+        self.sent: list[str] = []  # publish_view choices, read by the enclosing ViewStore.publish label.
+        self.record_sizes: dict[str, Any] = {}  # Pass 2's field, kept for the report shape.
 
     # --- bookkeeping --------------------------------------------------------
 
     def _timed(self, original: Callable[..., Any], label: Callable[..., str], context: bool = False,
-               detail: Callable[..., dict[str, Any]] | None = None) -> Callable[..., Any]:
+               detail: Callable[..., dict[str, Any]] | None = None,
+               before: Callable[..., Any] | None = None) -> Callable[..., Any]:
+        """before(*args) runs ahead of the call; its result is passed to label and
+        detail as the keyword `state` (both then take it)."""
         def measured(*args: Any, **kwargs: Any) -> Any:
             row = self.current()
             if row is None:
                 return original(*args, **kwargs)
-            before = self.calls
+            state = None
+            if before is not None:
+                try:
+                    state = before(*args, **kwargs)
+                except Exception:  # A probe never raises into the game.
+                    state = None
+            calls_before = self.calls
+            self.stack.append([0.0])
             wall, cpu = time.perf_counter(), time.thread_time()
             try:
                 return original(*args, **kwargs)
             finally:
                 wall, cpu = time.perf_counter() - wall, time.thread_time() - cpu
-                inner = self.calls - before
+                children = self.stack.pop()[0]
+                if self.stack:
+                    self.stack[-1][0] += wall
+                inner = self.calls - calls_before
                 self.calls += 1
                 net = max(0.0, wall - inner * self.per_call_s)
-                name = label(*args, **kwargs)
+                own = max(0.0, wall - children)  # Children's wall carries their own probe cost.
+                try:
+                    name = label(*args, state=state, **kwargs) if before is not None else label(*args, **kwargs)
+                except Exception:
+                    name = 'probe.label_error'
                 if context:
-                    name = ('npc:' if self.in_npcs else 'other:') + name
-                slot = row['diag'].setdefault(name, [0.0, 0.0, 0, 0.0])
+                    name = ('npc:' if self.in_npcs else 'pub:' if self.in_publish else 'other:') + name
+                slot = row['diag'].setdefault(name, [0.0, 0.0, 0, 0.0, 0.0])
                 slot[0] += wall
                 slot[1] += cpu
                 slot[2] += 1
                 slot[3] += net
+                slot[4] += own
                 row['probe_calls'] = row.get('probe_calls', 0) + 1
                 if detail is not None and net >= SLOW_S and name.startswith(SLOW_PREFIXES):
                     try:
-                        extra = detail(*args, **kwargs)
-                    except Exception:  # A probe never raises into the game.
+                        extra = detail(*args, state=state, **kwargs) if before is not None else detail(*args, **kwargs)
+                    except Exception:
                         extra = {}
                     row['slow'].append({'label': name, 'net_ms': net * 1000, 'wall_ms': wall * 1000,
-                                        'inner_probe_calls': inner, **extra})
+                                        'self_ms': own * 1000, 'inner_probe_calls': inner, **extra})
         return measured
 
     def wrap(self, owner: Any, name: str, label: Callable[..., str], context: bool = False,
-             detail: Callable[..., dict[str, Any]] | None = None) -> None:
-        """Wrap a module function or a class's method (on the class itself)."""
+             detail: Callable[..., dict[str, Any]] | None = None, before: Callable[..., Any] | None = None) -> None:
+        """Wrap a module function, or a method or staticmethod on its class."""
         if owner is None or not hasattr(owner, name):
             return
         own = name in vars(owner)
         original = vars(owner)[name] if own else getattr(owner, name)
-        if isinstance(original, (staticmethod, classmethod)):
-            return  # Not used in pass 2.
-        setattr(owner, name, self._timed(original, label, context, detail))
+        if isinstance(original, classmethod):
+            return
+        if isinstance(original, staticmethod):
+            setattr(owner, name, staticmethod(self._timed(original.__func__, label, context, detail, before)))
+        else:
+            setattr(owner, name, self._timed(original, label, context, detail, before))
         self.restores.append(lambda: setattr(owner, name, original) if own else delattr(owner, name))
 
     def calibrate(self, n: int = 20000) -> float:
@@ -163,7 +198,8 @@ class Probes:
 
     def install(self) -> None:
         self._npcs()
-        self._io()
+        self._sight()
+        self._publishers()
 
     def _npcs(self) -> None:
         from karst41.server.npcs import behaviours, engine
@@ -183,83 +219,144 @@ class Probes:
         Npcs.tick = self._timed(tick, fixed('npcs.tick'))
         self.restores.append(lambda: setattr(Npcs, 'tick', original_tick) if own else delattr(Npcs, 'tick'))
 
-        # Class-level wrappers receive self first: the zone index shifts by one.
-        self.wrap(Spawners, 'process', zone_label('npcs.process', 1), detail=zone_detail(1))
-        self.wrap(Spawners, 'location', zone_label('spawn.location', 1), detail=zone_detail(1))
+        # The tick's direct children. Class-level wrappers receive self first.
+        def spawned(spawners: Any, zone: Any, now: Any) -> int:
+            return len(getattr(zone, 'actors', {}) or {})
+
+        def process_label(spawners: Any, zone: Any, now: Any, state: Any = None) -> str:
+            grew = state is not None and len(getattr(zone, 'actors', {}) or {}) != state
+            return f'npcs.process:{getattr(zone, "id", "?")}:{"spawned" if grew else "idle"}'
+
+        def process_detail(spawners: Any, zone: Any, now: Any, state: Any = None) -> dict[str, Any]:
+            return {'zone': getattr(zone, 'id', None), 'zone_actors': len(getattr(zone, 'actors', {}) or {}),
+                    'actors_before': state}
+        self.wrap(Spawners, 'process', process_label, detail=process_detail, before=spawned)
+        self.wrap(Spawners, 'reserved', zone_label('npcs.reserved', 0))  # A staticmethod: no self.
         self.wrap(Npcs, 'evaluate', zone_label('npcs.evaluate', 2), detail=actor_detail(1))
         self.wrap(Npcs, 'act', zone_label('npcs.act', 2), detail=actor_detail(1))
         self.wrap(Npcs, 'calm_crowds', zone_label('npcs.calm_crowds', 1))
-        self.wrap(Npcs, 'hostile', fixed('npcs.hostile'), context=True)
 
-        # Navigation: the engine imported these by name; behaviours calls its
-        # own module globals (route_toward -> search, step_toward).
-        self.wrap(engine, 'step_toward', fixed('nav.step_toward'))
-        self.wrap(engine, 'route_toward', fixed('nav.route_toward'))
-        self.wrap(behaviours, 'step_toward', fixed('nav.step_toward'))
-        self._search(behaviours)
+        # step_toward: the engine imported it by name; behaviours calls its own global.
+        self.wrap(engine, 'step_toward', fixed('nav.step_toward'), context=True)
+        self.wrap(behaviours, 'step_toward', fixed('nav.step_toward'), context=True)
 
-    def _search(self, behaviours: Any) -> None:
-        """search with hit/miss counts: a miss expands the whole node bound."""
-        original = behaviours.search
+    def _sight(self) -> None:
+        from karst41.server.combat.engine import Combat
+        from karst41.server.world import sight
 
-        def search(actor: Any, zone: Any, goal: Any, avoid: Any, blocked: Any) -> Any:
-            path = original(actor, zone, goal, avoid, blocked)
-            row = self.current()
-            if row is not None:
-                slot = row['diag'].setdefault('nav.search.hit' if path else 'nav.search.miss', [0.0, 0.0, 0, 0.0])
-                slot[2] += 1
-            return path
-        behaviours.search = self._timed(search, fixed('nav.search'), detail=actor_detail(0))
-        self.restores.append(lambda: setattr(behaviours, 'search', original))
+        def visible(*args: Any, **kwargs: Any) -> str:
+            return 'combat.visible'
+        original = vars(Combat)['visible']
 
-    def _io(self) -> None:
-        from karst41.server import io as io_module
-        io = getattr(self.service, 'io', None)
-        if io is None:
-            return
-        cls = type(io)
-        self.wrap(cls, 'settle', fixed('io.settle'))
-        self.wrap(cls, 'pump', fixed('io.pump'))
+        def counted(*args: Any, **kwargs: Any) -> Any:
+            self.visible_depth += 1
+            try:
+                return original(*args, **kwargs)
+            finally:
+                self.visible_depth -= 1
+        Combat.visible = self._timed(counted, visible, context=True)
+        self.restores.append(lambda: setattr(Combat, 'visible', original))
+        # sight_radius calls its module's lighting_radius global (the only caller).
+        self.wrap(sight, 'lighting_radius',
+                  lambda *a, **k: 'light.radius:' + ('in_visible' if self.visible_depth else 'outside'), context=True)
 
-        def mark_label(io: Any, kind: str, record_id: str, value: Any = None) -> str:
-            return f'io.mark:{kind}:{record_id}' if kind == 'meta' else f'io.mark:{kind}'
-        self.wrap(cls, 'mark', mark_label)
-        for name in ('mark_world', '_batch', '_submit', '_character', '_flush_due'):
-            self.wrap(cls, name, fixed('io.' + name.lstrip('_')))
-        self.wrap(io_module, 'frozen', fixed('io.frozen'))
-        writer = getattr(io, 'writer', None)
-        self.wrap(type(writer) if writer is not None else None, 'submit', fixed('io.writer_submit'))
+    def _publishers(self) -> None:
+        from karst41.server import sessions as sessions_module
+        from karst41.server.sessions import Session
+        from karst41.server.views.delta import ViewStore
+        from karst41.server.world import simulation
         core = self.service.core
-        contracts, commerce = getattr(core, 'contracts', None), getattr(core, 'commerce', None)
-        self.wrap(type(contracts) if contracts is not None else None, 'record', fixed('io.record:contracts'))
-        self.wrap(type(commerce) if commerce is not None else None, 'prepare', fixed('io.commerce_prepare'))
+        # The loop holds publishers as methods bound at start-up, so a class-level
+        # wrap would miss them: wrap the list entries (pub.loop:<owner>) and,
+        # for the nested call Characters.publish makes, ZoneSimulation.publish.
+        loop = getattr(core, 'loop', None)
+        if loop is not None:
+            saved = list(loop.publishers)
+
+            def entry(original: Any) -> Any:
+                owner = type(getattr(original, '__self__', None)).__name__
+
+                def publishing(ctx: Any) -> Any:
+                    self.in_publish = True
+                    try:
+                        return original(ctx)
+                    finally:
+                        self.in_publish = False
+                return self._timed(publishing, fixed(f'pub.loop:{owner}'))
+            loop.publishers[:] = [entry(original) for original in saved]
+            self.restores.append(lambda: loop.publishers.__setitem__(slice(None), saved))
+        self.wrap(simulation.ZoneSimulation, 'publish', fixed('pub.sim'))
+        # pub.sim's own time: its providers (instance attributes already, so no lookup
+        # changes) and its helper methods.
+        sim = getattr(getattr(core, 'characters', None), 'sim', None) or getattr(core, 'simulation', None)
+        for name in ('interaction_provider', 'scout_provider', 'me_provider', 'target_provider'):
+            original = getattr(sim, name, None)
+            if callable(original) and name in vars(sim):
+                setattr(sim, name, self._timed(original, fixed(f'pub.part:{name}')))
+                self.restores.append(lambda name=name, original=original: setattr(sim, name, original))
+        for name in ('crew_view', 'place_context'):
+            self.wrap(simulation.ZoneSimulation, name, fixed(f'pub.part:{name}'))
+        self.wrap(simulation, 'build', zone_label('pub.build', 1), detail=zone_detail(1))
+        self.wrap(ViewStore, 'frames', lambda store, session, body, kind='zone', **k: f'pub.frames:{kind}')
+
+        def ordinal(session: Any) -> str:
+            return self.sessions.setdefault(getattr(session, 'id', '?'), f's{len(self.sessions) + 1}')
+
+        def choice(session: Any, full: Any, delta: Any, tick: int) -> str:
+            if session.closed or session.last_view_tick == tick:
+                return 'skip'
+            lag = session.view_revision - session.ack_revision
+            return 'full' if delta is None or session.needs_full_view or lag > sessions_module.MAX_REVISION_LAG else 'delta'
+
+        def send_before(session: Any, full: Any, delta: Any, tick: int) -> str:
+            decided = choice(session, full, delta, tick)
+            self.sent.append(decided)
+            return decided
+        self.wrap(Session, 'publish_view', lambda *a, state=None, **k: f'pub.send:{state}', before=send_before)
+
+        def view_before(store: Any, session: Any, body: Any, tick: int, kind: str = 'zone') -> dict[str, Any]:
+            return {'mark': len(self.sent), 'full_pending': bool(session.needs_full_view),
+                    'age_ticks': tick - (getattr(session, 'connected_tick', None) or tick)}
+
+        def view_choice(state: Any) -> str:
+            if not state:
+                return '?'
+            sent = self.sent[state['mark']:]
+            del self.sent[state['mark']:]
+            return sent[-1] if sent else 'same'
+
+        def view_label(store: Any, session: Any, body: Any, tick: int, kind: str = 'zone', state: Any = None) -> str:
+            picked = view_choice(state)
+            if state is not None:
+                state['choice'] = picked
+            return f'pub.view:{ordinal(session)}:{kind}:{body_zone(body)}:{picked}'
+
+        def view_detail(store: Any, session: Any, body: Any, tick: int, kind: str = 'zone', state: Any = None) -> dict[str, Any]:
+            state = state or {}
+            return {'session': ordinal(session), 'kind': kind, 'zone': body_zone(body), 'choice': state.get('choice'),
+                    'full_pending': state.get('full_pending'), 'session_age_ticks': state.get('age_ticks'),
+                    'first_view': getattr(store, 'previous', None) is None}
+        self.wrap(ViewStore, 'publish', view_label, detail=view_detail, before=view_before)
 
     def restore(self) -> None:
         for undo in reversed(self.restores):
             undo()
         self.restores.clear()
-        self._record_sizes()
-
-    def _record_sizes(self) -> None:
-        """The JSON size of each re-frozen meta record, after the window."""
-        io = getattr(self.service, 'io', None)
-        if io is None or not hasattr(io, '_recorders'):
-            return
-        for name, record in io._recorders().items():
-            try:
-                self.record_sizes[name] = len(json.dumps(record(), ensure_ascii=False, sort_keys=True))
-            except Exception as exc:  # Diagnostic only.
-                self.record_sizes[name] = f'error: {type(exc).__name__}'
 
     # --- per tick -----------------------------------------------------------
 
     def open_row(self, row: dict[str, Any]) -> None:
         row['diag'], row['slow'] = {}, []
+        self.sent.clear()
 
     def close_row(self, row: dict[str, Any]) -> None:
         row['probe_overhead_ms'] = row.get('probe_calls', 0) * self.per_call_s * 1000
-        row['diag'] = {label: {'wall_ms': w * 1000, 'net_ms': net * 1000, 'cpu_ms': c * 1000, 'calls': n}
-                       for label, (w, c, n, net) in row['diag'].items()}
+        loops = [slot for label, slot in row['diag'].items() if label.startswith('pub.loop:')]
+        if loops:
+            row['diag']['pub.total'] = [sum(slot[i] for slot in loops) for i in range(5)]
+        row['diag'] = {label: {'wall_ms': w * 1000, 'net_ms': net * 1000, 'self_ms': own * 1000,
+                               'cpu_ms': c * 1000, 'calls': n}
+                       for label, (w, c, n, net, own) in row['diag'].items()}
 
 
 def quantile(values: list[float], q: float) -> float:
@@ -269,32 +366,44 @@ def quantile(values: list[float], q: float) -> float:
     return ordered[min(len(ordered) - 1, max(0, int(round(q * (len(ordered) - 1)))))]
 
 
-def summary(rows: list[dict[str, Any]], top: int = 5) -> dict[str, Any]:
-    """p99 and max per label (net and wall), plus the slowest NPC ticks by net time."""
-    n = len(rows)
-    net: dict[str, list[float]] = {}
-    wall: dict[str, list[float]] = {}
-    calls: dict[str, list[float]] = {}
-    for row in rows:
-        for label, figure in row.get('diag', {}).items():
-            net.setdefault(label, []).append(figure['net_ms'])
-            wall.setdefault(label, []).append(figure['wall_ms'])
-            calls.setdefault(label, []).append(float(figure['calls']))
-    pad = lambda values: values + [0.0] * (n - len(values))  # A tick without the call counts as 0.
-    per_label = {label: {'net_p99': round(quantile(pad(net[label]), 0.99), 3), 'net_max': round(max(pad(net[label])), 3),
-                         'wall_p99': round(quantile(pad(wall[label]), 0.99), 3),
-                         'calls_p99': quantile(pad(calls[label]), 0.99)} for label in net}
-    key = lambda row: -row.get('diag', {}).get('npcs.tick', {}).get('net_ms', 0)
-    slowest = []
+def _slowest(rows: list[dict[str, Any]], label: str, prefix: str, top: int, exclude: str | None = None) -> list[dict[str, Any]]:
+    key = lambda row: -row.get('diag', {}).get(label, {}).get('net_ms', 0)
+    found = []
     for row in sorted(rows, key=key)[:top]:
         diag = row.get('diag', {})
-        parts = sorted(((label, f['net_ms']) for label, f in diag.items() if label != 'npcs.tick'),
-                       key=lambda item: -item[1])[:8]
-        slowest.append({'tick': row.get('tick'), 'npcs_net_ms': round(diag.get('npcs.tick', {}).get('net_ms', 0), 3),
-                        'total_ms': round(row.get('total_wall_ms', 0), 3),
-                        'top': [[label, round(ms, 3)] for label, ms in parts],
-                        'slow_calls': sorted(row.get('slow', []), key=lambda s: -s['net_ms'])[:5]})
+        if label not in diag:
+            continue
+        parts = sorted(((name, f['net_ms'], f['self_ms']) for name, f in diag.items()
+                        if name != label and prefix in name and not (exclude and exclude in name)), key=lambda item: -item[1])[:10]
+        found.append({'tick': row.get('tick'), 'net_ms': round(diag[label]['net_ms'], 3),
+                      'self_ms': round(diag[label]['self_ms'], 3), 'total_ms': round(row.get('total_wall_ms', 0), 3),
+                      'top': [[name, round(net, 3), round(own, 3)] for name, net, own in parts],
+                      'slow_calls': sorted((s for s in row.get('slow', []) if s['label'].startswith(prefix)),
+                                           key=lambda s: -s['net_ms'])[:6]})
+    return found
+
+
+def summary(rows: list[dict[str, Any]], top: int = 5) -> dict[str, Any]:
+    """p99 and max per label (net, self and wall), the slowest NPC and publisher ticks."""
+    n = len(rows)
+    figures: dict[str, dict[str, list[float]]] = {}
+    for row in rows:
+        for label, figure in row.get('diag', {}).items():
+            slot = figures.setdefault(label, {'net': [], 'self': [], 'wall': [], 'calls': []})
+            slot['net'].append(figure['net_ms'])
+            slot['self'].append(figure['self_ms'])
+            slot['wall'].append(figure['wall_ms'])
+            slot['calls'].append(float(figure['calls']))
+    pad = lambda values: values + [0.0] * (n - len(values))  # A tick without the call counts as 0.
+    per_label = {}
+    for label, slot in figures.items():
+        net, own = pad(slot['net']), pad(slot['self'])
+        per_label[label] = {'net_p50': round(quantile(net, 0.5), 3), 'net_p99': round(quantile(net, 0.99), 3),
+                            'net_max': round(max(net), 3), 'self_p99': round(quantile(own, 0.99), 3),
+                            'self_max': round(max(own), 3), 'wall_p99': round(quantile(pad(slot['wall']), 0.99), 3),
+                            'calls_p99': quantile(pad(slot['calls']), 0.99), 'ticks_with': len(slot['net'])}
     overhead = [row.get('probe_overhead_ms', 0.0) for row in rows]
     return {'ticks': n, 'labels': dict(sorted(per_label.items(), key=lambda item: -item[1]['net_p99'])),
-            'slowest_npc_ticks': slowest,
+            'slowest_npc_ticks': _slowest(rows, 'npcs.tick', '', top, exclude='pub'),
+            'slowest_publisher_ticks': _slowest(rows, 'pub.total', 'pub.', top),
             'probe_overhead_ms': {'p99': round(quantile(overhead, 0.99), 3), 'max': round(max(overhead, default=0), 3)}}

@@ -213,8 +213,9 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         probes.restore()
         diag = diag_summary(rows)
         probe.report(f"S277 DIAG {width}x{height}: " + json.dumps({
-            'probe_overhead_ms': diag['probe_overhead_ms'], 'record_sizes': probes.record_sizes,
-            'labels': dict(list(diag['labels'].items())[:45]), 'slowest_npc_ticks': diag['slowest_npc_ticks'][:3]}))
+            'probe_overhead_ms': diag['probe_overhead_ms'], 'per_call_us': round(probes.per_call_s*1e6, 3),
+            'labels': dict(list(diag['labels'].items())[:60]), 'slowest_npc_ticks': diag['slowest_npc_ticks'][:3],
+            'slowest_publisher_ticks': diag['slowest_publisher_ticks'][:3]}))
         probe.service._character_writes = original_writes
         if gc_trace in gc.callbacks:
             gc.callbacks.remove(gc_trace)
@@ -228,7 +229,7 @@ async def _profile(probe: NativeProbe, width: int, height: int,
             'instrumentation': 'wall/thread CPU and GC probes; writes = settle + submit per tick (S47); S11 gate including overhead: p99 at or above 20 ms blocks, at or above 10 ms warns (2026-11-12)',
             'gc_pauses': gc_pauses, 'writer': writer_figures,
             'ticks': rows, 'write_probe': writes_profile.metadata(),
-            'diag_probes': {'branch': 'diag/s277-npcs', 'per_call_us': probes.per_call_s*1e6,
+            'diag_probes': {'branch': 'diag/s277-npcs', 'pass': 3, 'per_call_us': probes.per_call_s*1e6,
                             'record_sizes': probes.record_sizes, 'summary': diag,
                             'note': 'probes on: the gate includes their overhead; probe_overhead_ms per row bounds it'},
             'commerce_commits': minimal.export(),
