@@ -175,6 +175,12 @@ Deterministic, with manual completion gates and no sleeps:
 - A test that fails if any SQLite call runs on the loop thread after
   admission.
 
+## Edge cases the PR must cover
+
+From the technical lead's rulings during the build. Each needs a test or a stated reason:
+
+- pending combat during a held commit (ruling (b)): a source's attack is refused while that source has one queued from an earlier tick; the follow-ups of one attack (a cone's targets, a second hit, an area cast's recipients) queue in the same tick and all land; damage-over-time keeps every tick, delivered on release.
+
 ## Definition of done
 
 Roadmap §7, plus:

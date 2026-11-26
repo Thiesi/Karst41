@@ -1,10 +1,14 @@
-"""Service lifecycle and asyncio I/O. Game state lives in the pure core."""
+"""Service lifecycle and asyncio I/O. Game state lives in the pure core.
+
+S47: no SQLite call runs on this loop. The writer thread owns the live
+connection; the I/O layer (`server/io.py`) freezes writes, submits them and
+applies their results between steps (architecture §6.2).
+"""
 
 import asyncio
 import os
 import random
 import shutil
-import sqlite3
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -16,16 +20,19 @@ from karst41.content.validate import validate
 from karst41.server.auth import Authenticator, load_secret
 from karst41.server.clock import Clock, RealClock, TICK_HZ
 from karst41.server.core import Core
+from karst41.server.io import IO, StorageFailure
 from karst41.server.logging import Logs
 from karst41.server.protocol import Frame, ProtocolError, encode, read_frame
 from karst41.server.sessions import Session
 from karst41.server.world.registry import World
-from karst41.server.storage.db import Storage
 from karst41.server.storage.lease import Lease
+from karst41.server.storage.writer import Writer
 from karst41.server.transport import Listener
 from karst41.version import PACKAGE_VERSION
 
 STOP_SECONDS = 10  # Architecture §3.4.
+DEADLINE_EXIT = 3  # Architecture §3.4: a live writer hit the stop deadline; the unit doesn't restart it.
+WRITER_LOST_EXIT = 1  # Architecture §3.4: the writer thread is gone; an ordinary, restartable failure.
 HELLO_SECONDS = 5  # Local transport policy, not a gameplay timer.
 
 
@@ -37,7 +44,7 @@ class Server:
         self.log_level = log_level
         self.lease = Lease(self.install_dir / "world.db.sessions")
         self.listener = Listener(self.install_dir / "run", tcp)
-        self.storage: Storage | None = None
+        self.io: IO | None = None
         self.logs: Logs | None = None
         self.core: Core | None = None
         self.tasks: set[asyncio.Task[None]] = set()
@@ -49,13 +56,12 @@ class Server:
         self.characters = characters
         self.world: World | None = None
         self.failure: BaseException | None = None
-        self.npc_revision = -1
-        self.lattice_stamp: tuple[int, int] | None = None
+        self.exit_code = 0
 
     def _content(self) -> ContentTree:
-        assert self.storage is not None
+        assert self.io is not None
         target = self.install_dir / "content"
-        if not target.is_dir() or self.storage.meta("content_package_version") != PACKAGE_VERSION:
+        if not target.is_dir() or self.io.meta.get("content_package_version") != PACKAGE_VERSION:
             source = Path(content_package.__file__).parent
             staging = self.install_dir / "content.next"
             if staging.exists():
@@ -87,8 +93,8 @@ class Server:
                 raise
             if previous.exists():
                 shutil.rmtree(previous)
-            self.storage.mark_dirty("meta", "content_package_version", PACKAGE_VERSION)
-            self.storage.flush_now()
+            self.io.mark("meta", "content_package_version", PACKAGE_VERSION)  # start() flushes it.
+            self.io.meta["content_package_version"] = PACKAGE_VERSION
             # The atomic rename publishes the exact tree already parsed
             # and validated above. Reuse its data with the final root;
             # loading and validating the full city twice delays startup.
@@ -102,8 +108,8 @@ class Server:
 
     def rebuild(self, content: ContentTree) -> None:
         """Build pure zone state from content and durable per-zone seeds."""
-        assert self.storage is not None
-        seeds = self.storage.meta("rng_seeds")
+        assert self.io is not None
+        seeds = self.io.meta.get("rng_seeds")
         if not isinstance(seeds, dict):
             raise ValueError("invalid stored zone seeds")
         changed = False
@@ -114,8 +120,7 @@ class Server:
             if type(seeds[zone_id]) is not int:
                 raise ValueError("invalid stored zone seed")
         if changed:
-            self.storage.mark_dirty("meta", "rng_seeds", seeds)
-            self.storage.flush_now()
+            self.io.mark("meta", "rng_seeds", seeds)  # start() flushes it.
         self.world = World(content, seeds)
 
     async def start(self) -> None:
@@ -128,110 +133,59 @@ class Server:
                 if os.name != "nt" and name in {"run", "secrets"}:
                     path.chmod(0o700)
             self.logs = Logs(self.install_dir / "logs", self.clock, self.log_level)
-            self.storage = Storage(self.install_dir / "world.db", self.clock)
+            self.io = IO(self.clock, self.logs, Writer(self.install_dir / "world.db", self.logs))
+            # The writer opens world.db, migrates and returns the startup snapshot (§3.3).
+            snapshot = await self.io.bootstrap(self.characters and not self.spawn_zone,
+                                               ("content_package_version", "rng_seeds", "season"))
             content = self._content()
+            if self.io.dirty:
+                await self.io.flush_all()
             self.rebuild(content)
+            if self.io.dirty:
+                await self.io.flush_all()
             auth = Authenticator(load_secret(self.install_dir / "secrets" / "door.secret"),
-                                 load_secret(self.install_dir / "secrets" / "admin.secret"), self.storage.banned)
+                                 load_secret(self.install_dir / "secrets" / "admin.secret"), self.io.banned)
             motd = content.text.get("motd")
             lines = motd.body.splitlines() if motd else []
-            self.core = Core(self.clock, self.storage.origin, auth,
+            self.core = Core(self.clock, self.io.origin, auth,
                 asdict(content.keymaps) if content.keymaps else {},
                 asdict(content.palette) if content.palette else {},
                 random.SystemRandom().choice(lines) if lines else "", content,
                 world=self.world if self.spawn_zone or self.characters else None, spawn_zone=self.spawn_zone,
-                character_state=self.storage.character_state() if self.characters and not self.spawn_zone else None)
-            self._character_writes()
-            self.core.audit = self._audit
+                character_state=snapshot["character_state"])
+            self.io.attach(self.core)
+            # Startup reconciliation commits before anyone is admitted.
+            await self.io.drain()
+            self.io.settle()
+            self.core.audited = self.io.audit
             self.core.status_provider = self.status
             if self.stop_requested:
                 self.core.request_stop()
                 return
             await self.listener.start(self._connected)
+            self.io.log_event("world open", content_hash=content.hash, season=self.io.season)
+            await self.io.drain()  # "world open" is on disk when start() returns.
             self._task(self._ticks())
-            self._task(self._writer())
-            self.logs.event("world open", content_hash=content.hash, season=self.storage.meta("season"))
         except BaseException:
             await self.stop()
             raise
 
     def _character_writes(self) -> None:
-        if self.core and self.core.chat and self.storage and self.logs:
-            chat = self.core.chat
-            while chat.outbox:
-                effect = chat.outbox.pop(0)
-                try:
-                    self.storage.report(effect["row"])
-                    self.logs.audit(effect["row"])
-                except (OSError, sqlite3.Error):
-                    chat.committed(effect, False)
-                    self.logs.event("report commit failed", level="ERROR")
-                else:
-                    chat.committed(effect, True)
-        if self.core is None or self.core.characters is None or self.storage is None:
+        """Apply the results that have arrived, then freeze and submit (S47: never waits)."""
+        if self.io is None:
             return
-        if self.core.events and self.logs:
-            while self.core.events.diagnostics:
-                self.logs.event('event source unavailable', level='WARNING',
-                    **self.core.events.diagnostics.pop(0))
-        game = self.core.characters
-        if self.core.contracts:
-            self.storage.mark_dirty('meta', 'contracts_state', self.core.contracts.record())
-        if self.core.salvage:
-            # mark_dirty freezes synchronously through JSON. Copying the
-            # four fields' RNG arrays first only repeats that snapshot work.
-            self.storage.mark_dirty("meta", "salvage_state", {
-                **self.core.salvage.state, "uptime": self.core.salvage.uptime})
-        if self.core.lattice:
-            sources = self.core.lattice.sources
-            tick = self.clock.now_tick()
-            stamp = sources.revision, tick // (30 * TICK_HZ)
-            if stamp != self.lattice_stamp:
-                self.storage.mark_dirty("meta", "lattice_state", sources.record(tick))
-                self.lattice_stamp = stamp
-        if self.core.npcs and self.npc_revision != self.core.npcs.spawners.revision:
-            self.storage.mark_dirty("meta", "npc_state", self.core.npcs.spawners.record())
-            self.npc_revision = self.core.npcs.spawners.revision
-        while game.outbox:
-            effect = game.outbox.pop(0)
-            try:
-                self.storage.character_write(effect)
-            except Exception:
-                if effect["action"] not in ("create", "delete"):
-                    raise
-                game.committed(effect, error=True)
-                if self.logs:
-                    self.logs.event("character commit failed", level="ERROR", action=effect["action"])
-            else:
-                game.committed(effect)
-        commerce = self.core.commerce
-        if commerce:
-            while commerce.outbox:
-                effect = commerce.outbox.pop(0)
-                if not commerce.can_commit(effect):
-                    commerce.committed(effect, False)
-                    continue
-                try:
-                    self.storage.commerce_write(commerce.prepare(effect))
-                except (OSError, sqlite3.Error):
-                    commerce.committed(effect, False)
-                    if self.logs: self.logs.event("item transfer commit failed", level="ERROR")
-                else:
-                    commerce.committed(effect, True)
+        self.io.settle()
+        self.io.pump()
 
     def status(self) -> dict[str, Any]:
-        assert self.core is not None and self.storage is not None
+        assert self.core is not None and self.io is not None
         result = self.core.status()
-        result["persistence_lag"] = self.storage.persistence_lag()
+        result["persistence_lag"] = self.io.persistence_lag()
+        result["paused_ticks"] = self.io.stats["paused_ticks"]  # S47: simulation paused, writer behind.
         result.update(uptime_s=result["uptime"], tick_p50_ms=result["tick"]["p50_ms"],
                       tick_p99_ms=result["tick"]["p99_ms"], persist_lag_s=result["persistence_lag"],
-                      content_hash=self.core.loop.content.hash, season=self.storage.meta("season"))
+                      content_hash=self.core.loop.content.hash, season=self.io.season)
         return result
-
-    def _audit(self, row: dict[str, Any]) -> None:
-        assert self.storage is not None and self.logs is not None
-        self.storage.audit(row)
-        self.logs.audit(row)
 
     def _task(self, coroutine: Any, connections: bool = False) -> None:
         task = asyncio.create_task(coroutine)
@@ -241,8 +195,9 @@ class Server:
         def done(finished: asyncio.Task[None]) -> None:
             group.discard(finished)
             if not finished.cancelled() and finished.exception() is not None:
-                if self.logs:
-                    self.logs.event("task failed", level="ERROR", error=type(finished.exception()).__name__)
+                if self.io:  # The fatal path writes directly: it must never wait on a writer.
+                    self.io.log_event("task failed", level="ERROR", direct=True,
+                                      error=type(finished.exception()).__name__)
                 if not connections and self.core:
                     self.failure = finished.exception()
                     self.core.request_stop()
@@ -329,20 +284,32 @@ class Server:
                     pass
 
     async def _ticks(self) -> None:
-        assert self.core is not None
+        assert self.core is not None and self.io is not None
+        io = self.io
         while not self.core.stop_requested:
-            if self.clock.now_tick() > self.core.loop.last_tick:
-                began = time.perf_counter()
-                self.core.loop.step()
+            if io.completed:
+                # Results apply between steps, as soon as they arrive (S47).
                 self._character_writes()
-                self.core.loop.record_timing(time.perf_counter() - began)
-            await asyncio.sleep(1 / TICK_HZ / 2)
-
-    async def _writer(self) -> None:
-        assert self.storage is not None
-        while True:
-            await asyncio.sleep(1 / TICK_HZ)
-            self.storage.flush_due()
+            if self.clock.now_tick() > self.core.loop.last_tick:
+                if io.step_allowed():
+                    began = time.perf_counter()
+                    io.stepped()
+                    self.core.loop.step()
+                    self._character_writes()
+                    self.core.loop.record_timing(time.perf_counter() - began)
+                elif io.paused_tick(self.clock.now_tick()):
+                    # Paused (the writer is far behind): no simulation step, but results
+                    # settle, writes go out and views publish. When steps resume, step()
+                    # jumps to the current tick (loop.py: last_tick = now), as after a freeze.
+                    self.core.loop.publish()
+                    self._character_writes()
+            io.wake.clear()
+            if io.completed:
+                continue
+            try:
+                await asyncio.wait_for(io.wake.wait(), 1 / TICK_HZ / 2)
+            except asyncio.TimeoutError:
+                pass
 
     async def run(self) -> None:
         await self.start()
@@ -362,39 +329,74 @@ class Server:
             self.core.request_stop()
 
     async def stop(self) -> None:
+        """Architecture §3.4, in this order, inside one 10 s deadline:
+
+        1. admissions: stop accepting connections;
+        2. shutdown: bye to every client, the sleeper rule for everyone;
+        3. pump: hand the writer every pending save, receipt, report, audit;
+        4. settle: apply every in-flight receipt's result on the loop;
+        5. Close: the writer flushes what is dirty and closes, on its thread;
+        6. lease: release it, remove run/ files, exit 0.
+        Deadline: the 10 s run out while the writer is still alive (typically
+        inside an fsync): skip the rest, log what is queued or in flight, keep
+        the connection and the lease untouched, exit with code 3, which the
+        unit doesn't restart (a restart would only stall again).
+        Writer lost: the writer thread has died. Skip the drain at once, log
+        what was queued or in flight, leave the connection and the lease
+        alone, and exit 1, which the unit restarts.
+        """
         if self.stopping:
             await self.stopped.wait()
             return
         self.stopping = True
+        io = self.io
+        close_error: BaseException | None = None
         try:
-            async with asyncio.timeout(STOP_SECONDS):
-                await self.listener.stop_accepting()
-                if self.core:
-                    self.core.shutdown()
-                    self._character_writes()
-                for task in self.tasks:
-                    task.cancel()
-                await asyncio.gather(*self.tasks, return_exceptions=True)
-                if self.connections:
-                    _, pending = await asyncio.wait(tuple(self.connections), timeout=2)
-                    for task in pending:
-                        task.cancel()
-                    await asyncio.gather(*pending, return_exceptions=True)
-                await self.listener.wait_closed()
-        finally:
             try:
-                if self.storage:
-                    self.storage.close()
-                    self.storage = None
-            finally:
-                try:
-                    self.listener.cleanup()
-                    if self.logs:
+                async with asyncio.timeout(STOP_SECONDS):
+                    await self.listener.stop_accepting()  # 1. Admissions.
+                    if self.core:
+                        self.core.shutdown()  # 2. Shutdown and sleepers.
+                    for task in self.tasks:
+                        task.cancel()
+                    await asyncio.gather(*self.tasks, return_exceptions=True)
+                    if self.connections:
+                        _, pending = await asyncio.wait(tuple(self.connections), timeout=2)
+                        for task in pending:
+                            task.cancel()
+                        await asyncio.gather(*pending, return_exceptions=True)
+                    await self.listener.wait_closed()
+                    if io is not None and io.alive:
                         try:
-                            self.logs.event("world closed")
-                        finally:
-                            self.logs.close()
-                            self.logs = None
-                finally:
-                    self.lease.release()
-                    self.stopped.set()
+                            await io.drain()  # 3. Pump, and 4. settle.
+                        except StorageFailure:
+                            pass  # Logged where it happened; the final flush still runs.
+                        if io.alive:
+                            try:
+                                await io.close()  # 5. Close.
+                            except Exception as exc:  # The connection is closed either way.
+                                close_error = exc
+            except TimeoutError:
+                pass
+            self.listener.cleanup()
+            if io is not None and not io.writer.closed:
+                # Keep the connection and the lease untouched either way.
+                lost = io.writer.crash is not None or not io.writer.thread.is_alive()
+                io.log_event("writer lost" if lost else "stop deadline", level="ERROR", direct=True,
+                             stuck=io.stuck(), queued_lines=len(io.backlog))
+                # Exit 3 only for a live writer at the deadline; a lost writer is restartable (exit 1).
+                self.exit_code = WRITER_LOST_EXIT if lost else DEADLINE_EXIT
+            else:
+                if self.logs:
+                    try:
+                        if close_error is not None:
+                            self.logs.event("final flush failed", level="ERROR", error=type(close_error).__name__)
+                        self.logs.event("world closed")
+                    finally:
+                        self.logs.close()
+                        self.logs = None
+                self.lease.release()  # 6. Lease.
+        finally:
+            self.stopped.set()
+        if close_error is not None:
+            raise close_error

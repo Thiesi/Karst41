@@ -173,7 +173,7 @@ class Passages:
                 owner.log(session.player_id, str(exc))
                 return False
         if owner.commerce.pending:
-            owner.commerce.enqueue_system(execute)
+            owner.commerce.enqueue_player(execute)
             return True
         return execute()
 

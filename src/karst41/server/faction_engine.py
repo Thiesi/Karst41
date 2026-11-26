@@ -217,7 +217,7 @@ class Factions:
     def service(self, session: Session, target: str, faction: str, action: str) -> None:
         player = self.ready(session)
         if self.commerce.pending:
-            self.commerce.enqueue_system(lambda: self.service(session, target, faction, action)
+            self.commerce.enqueue_player(lambda: self.service(session, target, faction, action)
                 if self.game.sessions.active.get(session.id) is session and not session.closed else None)
             return
         if faction not in self.station(session, target) or player.faction != faction:
@@ -292,7 +292,7 @@ class Factions:
                         self.propose(session, target, action, faction)
                     except ValueError as exc:
                         self.log(player, str(exc))
-            self.commerce.enqueue_system(later)
+            self.commerce.enqueue_player(later)
             return
         if faction not in self.station(session, target):
             raise ValueError("Choose a faction represented by this contact.")

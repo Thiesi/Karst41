@@ -2,6 +2,7 @@
 
 from karst41.server.app import Server
 from karst41.server.storage.db import Storage
+from tests.server.manual_writer import attach, run_writes
 from tests.server.test_drone_ownership import operator
 from tests.server.test_substances import give
 
@@ -28,8 +29,8 @@ def test_entity_2_2_delete_wins_over_pending_drone_and_periodic_save(operator,tm
         game.clock.advance(50-game.clock.now_tick()%50)
         engine.tick(game.clock.now_tick())  # The same tick reaches a periodic-save boundary.
         server = Server(tmp_path,clock=game.clock)
-        server.core,server.storage = game.core,store
-        server._character_writes()  # Production ordering: character deletes, then commerce.
+        attach(server, store, game.core)
+        run_writes(server.io)  # Production ordering: character deletes, then commerce (S47: off the loop).
         store.flush_now()
         assert player.id not in characters.players
         assert all(row["id"] != player.id for row in store.character_state()["players"])

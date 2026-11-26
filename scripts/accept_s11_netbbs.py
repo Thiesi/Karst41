@@ -16,6 +16,7 @@ import threading
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from tests import storage_reader
 from acceptance_hall import crossed_quietly
 from karst41.admin.client import request
 from karst41.server.loop import TickContext
@@ -65,6 +66,30 @@ async def approach(probe: NativeProbe, caller: Connection, target: Actor,
 
 
 
+def percentiles(values: list[float]) -> dict[str, float | int]:
+    if not values:
+        return {'count': 0}
+    ordered = sorted(values)
+    pick = lambda q: ordered[min(len(ordered)-1, int(q*len(ordered)))]
+    return {'count': len(ordered), 'p50_ms': pick(.5)*1000, 'p99_ms': pick(.99)*1000, 'max_ms': ordered[-1]*1000}
+
+
+def writer_window(io: Any, marks: dict[str, int], counters: dict[str, int]) -> dict[str, Any]:
+    """S47 figures over the sampling window (technical lead's ruling (e))."""
+    window = {key: io.samples(key, marks.get('sample', 0)) for key in ('commit_seconds', 'latency_seconds', 'apply_seconds')}
+    summary = {'commit': percentiles(window['commit_seconds']),
+               'submit_to_settle': percentiles(window['latency_seconds']),
+               'max_queue_depth': io.stats['max_depth'],
+               'ticks_with_receipt_in_flight_across_step':
+                   io.stats['ticks_in_flight_across_step']-counters.get('ticks_in_flight_across_step', 0),
+               'steps': io.stats['steps']-counters.get('steps', 0),
+               'paused_ticks': io.stats['paused_ticks']-counters.get('paused_ticks', 0)}
+    return {'summary': summary,
+            'guard': 'armed for the whole run: GuardedConnection on the live connection (any other thread raises '
+                     'LoopThreadSQLite) and storage_reader.loop_guard: no connection to this world.db opens on the loop thread',
+            'commit_seconds': window['commit_seconds'], 'latency_seconds': window['latency_seconds']}
+
+
 async def profile(probe: NativeProbe, width: int, height: int,
                   title: str = 'S11 tick budget') -> float:
     # Only status, sparse commit exits and two loop boundaries are added.
@@ -80,13 +105,15 @@ async def _profile(probe: NativeProbe, width: int, height: int,
     loop = probe.service.core.loop
     original_subsystems, original_step = loop.subsystems, loop.step
     original_writes = probe.service._character_writes
-    original_flush = probe.service.storage._flush
+    io = probe.service.io
+    carry = {'wall': 0.0, 'cpu': 0.0, 'calls': 0}  # S47: settles between steps, for the next tick's row.
     gc_starts: dict[tuple[int, int], tuple[float, float, int]] = {}
     gc_pauses: list[dict[str, Any]] = []
-    flushes: list[dict[str, Any]] = []
     rows: list[dict[str, Any]] = []
     current: dict[str, Any] | None = None
     sampling_tick, status = -1, {}
+    marks: dict[str, int] = {}
+    counters: dict[str, int] = {}
 
     def gc_trace(phase: str, info: dict[str, int]) -> None:
         identity = threading.get_ident(), info['generation']
@@ -98,16 +125,6 @@ async def _profile(probe: NativeProbe, width: int, height: int,
                 gc_pauses.append({'tick': began[2], 'thread': identity[0], 'generation': identity[1],
                     'wall_ms': (time.perf_counter()-began[0])*1000,
                     'cpu_ms': (time.thread_time()-began[1])*1000})
-
-    def flush(*args: Any, **kwargs: Any) -> Any:
-        wall, cpu, tick = time.perf_counter(), time.thread_time(), probe.service.clock.now_tick()
-        pending = len(probe.service.storage.dirty)
-        try:
-            return original_flush(*args, **kwargs)
-        finally:
-            flushes.append({'tick': tick, 'thread': threading.get_ident(), 'pending_rows': pending,
-                'wall_ms': (time.perf_counter()-wall)*1000,
-                'cpu_ms': (time.thread_time()-cpu)*1000})
 
     class TimedSubsystem:
         def __init__(self, subsystem: Any, label: str) -> None:
@@ -143,9 +160,16 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         try:
             original_writes()
         finally:
-            if current is not None:
-                current['writes_wall_ms'] = (time.perf_counter()-wall)*1000
-                current['writes_cpu_ms'] = (time.thread_time()-cpu)*1000
+            if current is None:
+                # S47: results settle as they arrive, between steps; the next tick's row carries them.
+                carry['wall'] += time.perf_counter()-wall
+                carry['cpu'] += time.thread_time()-cpu
+                carry['calls'] += 1
+            else:
+                current['writes_wall_ms'] = (time.perf_counter()-wall+carry['wall'])*1000
+                current['writes_cpu_ms'] = (time.thread_time()-cpu+carry['cpu'])*1000
+                current['settles_between_steps'] = carry['calls']
+                carry.update(wall=0.0, cpu=0.0, calls=0)
                 current['total_wall_ms'] = (time.perf_counter()-current.pop('_wall'))*1000
                 current['total_cpu_ms'] = (time.thread_time()-current.pop('_cpu'))*1000
                 rows.append(current)
@@ -155,7 +179,6 @@ async def _profile(probe: NativeProbe, width: int, height: int,
                        for index, system in enumerate(original_subsystems)]
     loop.step = step
     probe.service._character_writes = writes
-    probe.service.storage._flush = flush
     gc.callbacks.append(gc_trace)
     for zone in probe.service.world.zones.values():
         zone.activate("s11-profiling",probe.service.clock.now_tick())
@@ -163,6 +186,9 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         await asyncio.sleep(2)
         sampling_tick = probe.service.clock.now_tick()
         loop.timings.clear()
+        marks = {'sample': io.sample}
+        counters = {key: io.stats[key] for key in ('ticks_in_flight_across_step', 'steps', 'paused_ticks')}
+        io.stats['max_depth'] = 0
         await asyncio.sleep(10)
         status=await request(probe.service.install_dir,"status")
         count = len(probe.service.world.zones)
@@ -173,16 +199,17 @@ async def _profile(probe: NativeProbe, width: int, height: int,
     finally:
         loop.subsystems, loop.step = original_subsystems, original_step
         probe.service._character_writes = original_writes
-        probe.service.storage._flush = original_flush
         if gc_trace in gc.callbacks:
             gc.callbacks.remove(gc_trace)
         for zone in probe.service.world.zones.values():
             zone.deactivate("s11-profiling",probe.service.clock.now_tick())
+        writer_figures = writer_window(io, marks if sampling_tick >= 0 else {}, counters if sampling_tick >= 0 else {})
+        probe.report(f"S47 WRITER {width}x{height}: " + json.dumps(writer_figures['summary']))
         number = len(list(probe.root.glob(f'npc-profile-{width}x{height}-*.json')))+1
         (probe.root/f'npc-profile-{width}x{height}-{number}.json').write_text(json.dumps({
             'status': status, 'sampling_started_tick': sampling_tick,
-            'instrumentation': 'wall/thread CPU, GC and storage flush probes; S11 gate including overhead: p99 at or above 20 ms blocks, at or above 10 ms warns (2026-11-12)',
-            'gc_pauses': gc_pauses, 'storage_flushes': flushes,
+            'instrumentation': 'wall/thread CPU and GC probes; writes = settle + submit per tick (S47); S11 gate including overhead: p99 at or above 20 ms blocks, at or above 10 ms warns (2026-11-12)',
+            'gc_pauses': gc_pauses, 'writer': writer_figures,
             'ticks': rows, 'write_probe': writes_profile.metadata(),
             'commerce_commits': minimal.export(),
             'canonical_observer': {
@@ -267,6 +294,9 @@ async def accept(root: Path, door_python: Path, show: bool,
     probe=NativeProbe(root,door_python,show)
     await probe.start()
     results=[]
+    # S47: no SQLite connection to this install's world.db opens on the loop thread for the whole run.
+    guard=storage_reader.loop_guard(threading.get_ident(),database=probe.service.install_dir/"world.db")
+    guard.__enter__()
     try:
         for width,height in sizes:
             caller=await probe.open(width,height,"NpcRunner",0,True)
@@ -348,8 +378,10 @@ async def accept(root: Path, door_python: Path, show: bool,
                 "safe_damage":False,"local_guards":True,"all_hub_p99_ms":p99})
         assert not probe.errors,probe.errors
         (probe.root/"result.json").write_text(json.dumps({"passed":True,"transport":"NetBBS Telnet native stdio",
-            "teleports":False,"human_playtest":False,"runs":results},indent=2),encoding="utf-8")
+            "teleports":False,"human_playtest":False,"loop_thread_guard":"armed for the whole run (S47)",
+            "runs":results},indent=2),encoding="utf-8")
     finally:
+        guard.__exit__(None,None,None)
         await probe.close()
 
 

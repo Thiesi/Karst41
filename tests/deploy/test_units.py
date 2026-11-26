@@ -23,6 +23,9 @@ def test_systemd_unit_parses(repo_root: Path) -> None:
     service = unit["Service"]
     assert service["Type"] == "simple" and service["User"] == "netbbs"
     assert service["Restart"] == "on-failure" and service["TimeoutStopSec"] == "15"
+    # S47: exit 3 is a stop that hit the 10 s deadline (app.DEADLINE_EXIT); never restarted.
+    from karst41.server.app import DEADLINE_EXIT
+    assert service["RestartPreventExitStatus"] == str(DEADLINE_EXIT) == "3"
     assert "-m karst41.server" in service["ExecStart"]
     assert "-m karst41.admin" in service["ExecStop"]
     assert service["ExecStop"].startswith("-/"), "a completed admin stop must not fail the unit"

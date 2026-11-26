@@ -46,6 +46,8 @@ class Core:
         self.stop_requested = False
         self.status_provider: Callable[[], dict[str, Any]] = self.status
         self.audit: Callable[[dict[str, Any]], None] = lambda row: None
+        # S47: the live server's audit commits off the loop; `then` runs on its durable result.
+        self.audited: Callable[[dict[str, Any], Callable[[], None]], None] = lambda row, then: (self.audit(row), then())
         self.bus.subscribe("input", self._echo)
         self.world = world
         self.housing_geometry = HousingGeometry(world, clock, character_state.get("interlock", {})) if world and character_state is not None else None
@@ -337,7 +339,7 @@ class Core:
         frame = event.data["frame"]
         if frame.type.startswith("admin."):
             admin_endpoint.dispatch(session, frame, self.sessions, self.status_provider,
-                                    self.request_stop, self.audit,
+                                    self.request_stop, self.audited,
                                     self.lattice.who if self.lattice else lambda: [],
                                     self.lattice.debug_reveal if self.lattice else lambda p, s, c: {"ok": False},
                                     self.relays.admin if self.relays else None,

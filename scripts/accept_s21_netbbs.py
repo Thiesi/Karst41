@@ -21,6 +21,7 @@ from accept_s19_netbbs import encounter_row
 from accept_s16_netbbs import key, commit_key, select
 from karst41 import content as content_package
 from karst41.admin.client import request
+from tests import storage_reader
 
 
 async def card(probe: NativeProbe, connection: Connection) -> None:
@@ -108,7 +109,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await wait(lambda:not probe.commerce.pending)
     assert elapsed>=180
     assert [probe.game.players[conn.session.player_id].xp-before[conn.session.player_id] for conn in callers]==[100,100,0]
-    saved=probe.service.storage.character_state()
+    saved=(await storage_reader.committed_state(probe.service))
     fact=saved['relays']['captures'][-1]
     assert fact['relay']=='cold-chain' and len(fact['participants'])==2
     assert saved['interlock']['cores']['lat-relay-cold-chain']['owner_faction']=='halvard'

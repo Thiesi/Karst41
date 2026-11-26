@@ -294,7 +294,7 @@ class Apartments:
                         self.propose(session, action, saved)
                     except (ValueError, KeyError) as exc:
                         self.log(player, str(exc) if isinstance(exc, ValueError) else "That tenancy has ended.")
-            self.commerce.enqueue_system(later)
+            self.commerce.enqueue_player(later)
             return
         if not self.ensure_rent(player.id):
             if self.commerce.pending:

@@ -18,7 +18,7 @@ from tests.harness import HeadlessServer
 
 G1 = "guard 1: Characters.queue drops save and delete for an unread body"
 G2 = "guard 2: Commerce.settle refuses an unread body, and can_commit refuses any effect naming one"
-G2_OUTBOX = "commerce outbox: every effect passes Commerce.can_commit before storage (app.Server._character_writes)"
+G2_OUTBOX = "commerce outbox: every effect passes Commerce.can_commit before storage (io.IO.pump, S47)"
 
 SAVES = {
     "apartments.py::Apartments.__init__.on_attached",
@@ -100,7 +100,9 @@ WAKE_RECORD = "the identity's wake record, the one thing an unread body keeps (S
 OTHER = {
     # Character storage itself.
     "characters.py::Characters.queue::outbox": "guard 1 itself",
-    "app.py::Server._character_writes::outbox": "drains the outboxes; commerce effects pass can_commit first",
+    "io.py::IO.pump::outbox": "drains the outboxes on the loop (S47); commerce effects pass can_commit first",
+    "io.py::IO._refreeze::identities-held": ("re-freezes only records already in the dirty map, from settled "
+                                             "live state (S47); guard 1 keeps an unread body out of that map"),
     "characters.py::Characters.create::queue:create": "the record is read: the creation commit (S48c1a)",
     "characters.py::Characters.create::identity()": "creation: card, receipts and debt go with the create effect",
     "characters.py::Characters.create::clone_debt": "creation copies the identity's debt onto the new character",

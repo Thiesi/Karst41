@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from tests import storage_reader
 from karst41.server.app import Server
 from karst41.content.loader import content_hash
 from karst41.server.auth import load_secret
@@ -65,7 +66,7 @@ def test_content_copied_on_first_start(scratch_dir: Path) -> None:
         try:
             assert (scratch_dir / "content" / "tiles.json").is_file()
             assert not list((scratch_dir / "content").rglob("*.py"))
-            assert server.storage.meta("content_package_version") == PACKAGE_VERSION
+            assert storage_reader.meta(scratch_dir / "world.db", "content_package_version") == PACKAGE_VERSION
             content = server.core.loop.content
             assert content.root == scratch_dir / 'content' and content.root.is_dir()
             assert content.hash == content_hash(content.root)
@@ -107,14 +108,18 @@ def test_operator_stop_and_audit(scratch_dir: Path) -> None:
             await writer.drain()
             assert (await asyncio.wait_for(read_frame(reader), 2)).type == "view"
             assert server.core.stop_requested
-            rows = (scratch_dir / "logs" / "audit.log").read_text(encoding="utf-8").splitlines()
-            assert json.loads(rows[0])["command"] == "admin.stop"
-            assert server.storage.db.execute("SELECT count(*) FROM audit").fetchone()[0] == 1
+            # S47: the reply came after the audit's commit; the stop drains the log line.
+            assert storage_reader.count(scratch_dir / "world.db", "SELECT count(*) FROM audit") == 1
         finally:
             await server.stop()
             writer.close()
             await writer.wait_closed()
+        rows = (scratch_dir / "logs" / "audit.log").read_text(encoding="utf-8").splitlines()
+        assert json.loads(rows[0])["command"] == "admin.stop"
     asyncio.run(scenario())
+
+
+PARTIAL_HELLOS = 20
 
 
 def test_failed_start_releases_lease_and_partial_hello_stops(scratch_dir: Path) -> None:
@@ -129,12 +134,22 @@ def test_failed_start_releases_lease_and_partial_hello_stops(scratch_dir: Path) 
         # Bootstrap's failed temporary tree must not prevent a corrected retry.
         server = Server(scratch_dir, tcp=True, characters=False)
         await server.start()
-        reader, writer = await connect(scratch_dir)
-        writer.write(b"\x00")
-        await writer.drain()
+        # A server holding partial hellos stops cleanly (#257). Wait until the
+        # server has accepted every connection: a connection still in the
+        # listen backlog, or admitted after the stop began, is reset by design.
+        clients = []
+        for _ in range(PARTIAL_HELLOS):
+            reader, writer = await connect(scratch_dir)
+            writer.write(b"\x00")
+            await writer.drain()
+            clients.append(writer)
+        async with asyncio.timeout(5):
+            while len(server.connections) < PARTIAL_HELLOS:
+                await asyncio.sleep(0.01)
         await server.stop()
-        writer.close()
-        await writer.wait_closed()
+        for writer in clients:
+            writer.close()
+            await writer.wait_closed()  # A clean close, never ConnectionResetError.
         assert list((scratch_dir / "run").iterdir()) == []
     asyncio.run(scenario())
 

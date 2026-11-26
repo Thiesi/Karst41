@@ -20,6 +20,7 @@ from accept_s14_netbbs import choose, hub, menu, program, room_walk
 from karst41 import content as content_package
 from karst41.content.loader import load_content
 from karst41.server.items import make_item
+from tests import storage_reader
 
 
 def fixture(probe: NativeProbe, stage: str) -> dict[str, Any]:
@@ -128,7 +129,7 @@ async def controls(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     assert b.avatar.actor.shock == 100 and interlock.offline('lat-civic-ledger') > 598
     await wait(lambda:'The floor goes dark' in b.caller.screen.screen_text())
     probe.save(b,f's15-cut-shock-{width}x{height}')
-    saved = probe.service.storage.character_state()
+    saved = (await storage_reader.committed_state(probe.service))
     assert next(p for p in saved['players'] if p['id'] == b.session.player_id)['shock'] == 100
     assert saved['interlock']['cores']['lat-civic-ledger']['offline_until'] > interlock.now()
     await b.caller.write(b'j')
@@ -183,6 +184,8 @@ async def private(probe: NativeProbe, width: int, height: int, record: dict[str,
         item.secured = secured
         items[iid] = item
         record['storage'].append(iid)
+    # S47: a receipt can still be in flight between ticks; settle refuses while one is.
+    await wait(lambda:not probe.commerce.pending)
     assert probe.commerce.settle(None,{},items,probe.commerce.caches,serial,lambda success:None)
     await wait(lambda:not probe.commerce.pending)
     interlock.private.register(record)
@@ -230,7 +233,7 @@ async def private(probe: NativeProbe, width: int, height: int, record: dict[str,
     assert 'Someone was in your core' in a.caller.screen.screen_text()
     probe.save(a,f's15-owner-log-{width}x{height}')
     probe.save(b,f's15-unit-limit-{width}x{height}')
-    saved = probe.service.storage.character_state()
+    saved = (await storage_reader.committed_state(probe.service))
     assert len(saved['interlock']['apartments'][record['id']]['hack_log']) == 1
     await a.caller.write(b'b')
     await wait(lambda:a.session.id not in interlock.log_menus)
