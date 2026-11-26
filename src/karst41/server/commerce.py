@@ -1,5 +1,6 @@
 """S12 social-world adapter. Proposals commit in the I/O layer, then publish."""
 
+from karst41.server.copying import fastcopy
 from karst41.server.interaction import Interaction, interact, key_action, object_interaction
 from copy import deepcopy
 from collections import deque
@@ -416,14 +417,14 @@ class Commerce:
         return patch
 
     def settled_patch(self, effect: dict[str, Any]) -> dict[str, Any]:
-        patch = deepcopy(effect["patch"])
+        patch = fastcopy(effect["patch"])  # #277 (D5a): fastcopy is copy.deepcopy, faster.
         player = self.game.players.get(effect["player_id"])
         if player and "progress" in patch and "progress_base" in effect:
             base,desired = effect["progress_base"],patch["progress"]
-            current = deepcopy(player.progress)
+            current = fastcopy(player.progress)
             for key in base.keys()|desired.keys():
                 if key not in desired: current.pop(key,None)
-                elif key not in base or desired[key] != base[key]: current[key] = deepcopy(desired[key])
+                elif key not in base or desired[key] != base[key]: current[key] = fastcopy(desired[key])
             patch["progress"] = current
         return patch
 
@@ -463,11 +464,12 @@ class Commerce:
         """A server proposal; only its commit callback changes live combat."""
         if self.pending or (player is not None and self.unread(player.id)):
             return False
-        effect = {"session":"", "player_id":player.id if player else "", "patch":deepcopy(patch),
-            "progress_base":deepcopy(player.progress) if player else {},
+        # #277 (D5a): fastcopy is copy.deepcopy, faster for plain data (server/copying.py).
+        effect = {"session":"", "player_id":player.id if player else "", "patch":fastcopy(patch),
+            "progress_base":fastcopy(player.progress) if player else {},
             "items":{key:value for key,value in items.items() if value != self.items.get(key)},
-            "delete_items":sorted(set(self.items)-set(items)), "caches":deepcopy(caches),
-            "budgets":deepcopy(self.budgets), "serial":serial, "message":"", "actor_effects":None,
+            "delete_items":sorted(set(self.items)-set(items)), "caches":fastcopy(caches),
+            "budgets":fastcopy(self.budgets), "serial":serial, "message":"", "actor_effects":None,
             "callback":callback}
         if identity is not None: effect["identity"] = deepcopy(identity)
         self.outbox.append(effect)

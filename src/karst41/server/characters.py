@@ -1,5 +1,6 @@
 """Pure character/Wake lifecycle. The I/O layer executes the write outbox."""
 
+from karst41.server.copying import fastcopy
 from karst41.server.interaction import Focus, Interaction, interact, object_interaction
 from copy import deepcopy
 from collections.abc import Callable
@@ -169,7 +170,8 @@ class Characters:
             return
         if action in ("save", "delete") and player and player.id in self.unread_ids:
             return  # S48 write guard 1: an unread body is never stored.
-        effect = {"action": action, "user": user, "identity": deepcopy(self.identities[user]),
+        # #277 (D5a): fastcopy is copy.deepcopy, faster for plain data (server/copying.py).
+        effect = {"action": action, "user": user, "identity": fastcopy(self.identities[user]),
                   "player": player.record() if player else None, **extra}
         self.outbox.append(effect)
 

@@ -98,6 +98,10 @@ def _kinds(node: ast.AST) -> list[str]:
     return kinds
 
 
+# Deep copies: copy.deepcopy, and server/copying.fastcopy, which is deepcopy for plain data (#277, D5a).
+COPIES = frozenset({"deepcopy", "fastcopy"})
+
+
 def _live_read(parents: dict[ast.AST, ast.AST], node: ast.AST) -> bool:
     """A load of the live identity store that is not copied first."""
     if not (isinstance(node, ast.Attribute) and node.attr == "identities" and isinstance(node.ctx, ast.Load)
@@ -109,7 +113,7 @@ def _live_read(parents: dict[ast.AST, ast.AST], node: ast.AST) -> bool:
         if isinstance(parent, ast.Attribute):
             parent = parents[parent]
         child, parent = parent, parents.get(parent)
-    if isinstance(parent, ast.Call) and ast.unparse(parent.func) == "deepcopy":
+    if isinstance(parent, ast.Call) and ast.unparse(parent.func) in COPIES:
         return False  # A copy; writes to it reach storage only through an effect.
     if isinstance(parent, ast.Compare) or isinstance(parent, ast.Attribute) and parent.attr in ("get", "items", "keys", "values"):
         return False  # Compared or iterated, not held.
@@ -122,7 +126,7 @@ def _only_read(parents: dict[ast.AST, ast.AST], node: ast.AST) -> bool:
     if isinstance(parent, ast.Attribute) and parent.attr == "get":
         return True
     while isinstance(parent, ast.expr):
-        if isinstance(parent, ast.Call) and ast.unparse(parent.func) == "deepcopy":
+        if isinstance(parent, ast.Call) and ast.unparse(parent.func) in COPIES:
             return True
         child, parent = parent, parents.get(parent)
     return False
