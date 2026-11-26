@@ -85,6 +85,15 @@ def view_equivalence() -> object:
 
 
 @pytest.fixture(autouse=True, scope="session")
+def spawn_reuse_checks() -> object:
+    """#277 (C4): every spawn-ground cache hit and candidate reuse is recomputed and compared."""
+    from karst41.server.npcs import spawn
+    previous, spawn.CHECK_REUSE = spawn.CHECK_REUSE, True
+    yield None
+    spawn.CHECK_REUSE = previous
+
+
+@pytest.fixture(autouse=True, scope="session")
 def view_reuse_checks() -> object:
     """#194: the whole suite checks that a view grid reused by identity was never edited in place."""
     from karst41.server.views import delta

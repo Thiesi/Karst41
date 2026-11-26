@@ -20,7 +20,7 @@ from karst41.server.protocol import Frame
 from karst41.server.rules import character
 from karst41.server.commerce import SYSTEM_LIMIT
 from karst41.server.sessions import Session
-from karst41.server.skills import ENCOUNTER_IDLE_SECONDS, LINE_GROUP, Use, gain, spend
+from karst41.server.skills import ENCOUNTER_IDLE_SECONDS, LINE_GROUP, Use, gain, proposal, spend
 from karst41.server.world.actors import Actor
 
 if TYPE_CHECKING:
@@ -159,7 +159,7 @@ class ProgressionEngine:
             player = self.game.players.get(pid)
             if player is None or pid in self.game.deleting:
                 return
-            draft = deepcopy(player)
+            draft = proposal(player)  # #277 (C3): deep copies of only the fields gain() writes.
             amount = gain(draft, use, occurred, self.content.skills.get(use.line))
             if not amount:
                 return
