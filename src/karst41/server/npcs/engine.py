@@ -64,6 +64,10 @@ class Npcs:
         self.event_motion: Callable[[Actor, ZoneInstance, int, set[tuple[int, int]]], bool] = lambda actor, zone, tick, avoid: False
         self.reward_permit: Callable[[Actor, Actor], bool] = lambda source, target: not any(
             target.behaviour.get(key) for key in ("nonlethal", "willing", "escort"))
+        # #277 (C5): static facts, checked by identity on every lookup (see _facts, _posed).
+        self.template_facts: dict[Any, tuple[Any, bool, bool]] = {}
+        self.posed_spawners: dict[tuple[str, str], tuple[Any, ...]] = {}
+        self.posed_crowds: dict[tuple[str, str], tuple[Any, ...]] = {}
         combat.refused_hook = self.refused
         combat.hostile_hook = self.provoked
         combat.npc_death_hook = self.died
@@ -192,6 +196,31 @@ class Npcs:
             return "neutral"
         return {"H": "hostile", "N": "neutral", "A": "allied"}[relation(self.content, source.faction, target.faction)]
 
+    def _facts(self, template_id: Any) -> tuple[Any, bool, bool]:
+        """(template, covered_unarmed, hostile_all) for an NPC template (#277, C5).
+
+        Content is loaded once at start (Server._content) and the records are
+        frozen. At runtime only content.cores changes (private cores); nothing
+        assigns content.npcs or content.items entries, so the weapon item a
+        template names is fixed for the server's life. The entry is still used
+        only while content.npcs holds the same template object it came from.
+        """
+        template = self.content.npcs.get(template_id)
+        cached = self.template_facts.get(template_id)
+        if cached is not None and cached[0] is template:
+            return cached
+        if template is None:
+            return None, False, False
+        facts = (template, bool(template.presents and weapon(self.content, template) is None),
+                 any(b.params.get("hostile_all") for b in template.behaviours))
+        self.template_facts[template_id] = facts
+        return facts
+
+    def _group(self, actor: Actor, covered: bool) -> str:
+        """reaction_group, given covered_unarmed already known."""
+        posed = self._posed(actor) if covered else None
+        return posed.id if posed else str(actor.behaviour.get('spawner'))
+
     def hostile(self, actor: Actor, other: Actor) -> bool:
         if actor is other or actor.kind == "player" or actor.zone != other.zone:
             return False
@@ -200,13 +229,13 @@ class Npcs:
         group = actor.behaviour.get("spawner")
         if group and group == other.behaviour.get("spawner"):
             return False  # Game 5.5: packs and cohorts do not hunt siblings.
-        template = self.content.npcs.get(actor.behaviour.get("template"))
+        template, covered, explicit = self._facts(actor.behaviour.get("template"))
         if template is None:
             return False
         now = self.combat.now()
-        if self.provocations.get((actor.zone, self.reaction_group(actor), other.id), 0) > now:
+        if self.provocations.get((actor.zone, self._group(actor, covered), other.id), 0) > now:
             return True
-        if self.covered_unarmed(actor):
+        if covered:
             return False  # Game 5.5: the cover enforces nothing while unarmed.
         player = self.game.players.get(other.id)
         if actor.faction == "wardens" and player:
@@ -214,7 +243,6 @@ class Npcs:
                 return True
         if self.world.zones[actor.zone].template.meta.truce:
             return False  # Game 5.5: only provocation/heat breaks the truce.
-        explicit = any(b.params.get("hostile_all") for b in template.behaviours)
         return explicit or relation(self.content, actor.faction, other.faction) == "H"
 
     def armour(self, actor: Actor, kind: str) -> int:
@@ -223,19 +251,28 @@ class Npcs:
         return int(getattr(item.armour.armour, kind)) if item and item.armour else 0
 
     def covered_unarmed(self, actor: Actor) -> bool:
-        template = self.content.npcs.get(actor.behaviour.get('template'))
-        return bool(template and template.presents and weapon(self.content, template) is None)
+        return self._facts(actor.behaviour.get('template'))[1]
 
     def posed_spawner(self, actor: Actor) -> Spawner | None:
-        if not self.covered_unarmed(actor):
-            return None
-        spawners = self.world.zones[actor.zone].template.meta.spawners
+        return self._posed(actor) if self.covered_unarmed(actor) else None
+
+    def _posed(self, actor: Actor) -> Spawner | None:
+        """The crowd a covered actor's spawner poses as (#277, C5): per (zone, own
+        spawner), valid while the zone's template is the same object (housing
+        replaces it at runtime, with new pockets)."""
+        template = self.world.zones[actor.zone].template
+        key = actor.zone, actor.behaviour.get('spawner')
+        cached = self.posed_spawners.get(key)
+        if cached is not None and cached[0] is template:
+            return cached[1]
+        spawners = template.meta.spawners
         own = next((sp for sp in spawners if sp.id == actor.behaviour.get('spawner')), None)
-        return next((sp for sp in spawners if own and sp.id == own.poses_as), None)
+        posed = next((sp for sp in spawners if own and sp.id == own.poses_as), None)
+        self.posed_spawners[key] = (template, posed)
+        return posed
 
     def reaction_group(self, actor: Actor) -> str:
-        posed = self.posed_spawner(actor)
-        return posed.id if posed else str(actor.behaviour.get('spawner'))
+        return self._group(actor, self.covered_unarmed(actor))
 
     def public_relation(self, viewer: Actor, actor: Actor, nearby: bool) -> str | None:
         """S42/#182 ruling: show the declared crowd's public reaction only."""
@@ -250,7 +287,14 @@ class Npcs:
 
     def shared_crowd(self, actor: Actor) -> bool:
         group = self.reaction_group(actor)
-        return any(sp.poses_as == group for sp in self.world.zones[actor.zone].template.meta.spawners)
+        template = self.world.zones[actor.zone].template
+        key = actor.zone, group
+        cached = self.posed_crowds.get(key)  # #277 (C5): valid while the zone's template is the same object.
+        if cached is not None and cached[0] is template:
+            return cached[1]
+        shared = any(sp.poses_as == group for sp in template.meta.spawners)
+        self.posed_crowds[key] = (template, shared)
+        return shared
 
     def reach_holders(self, actor: Actor, zone: ZoneInstance, tick: int) -> list[tuple[int, int]]:
         """Game 5.5: only active, talk-capable callers constrain wandering."""
