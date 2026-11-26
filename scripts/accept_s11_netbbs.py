@@ -22,6 +22,7 @@ from karst41.admin.client import request
 from karst41.server.loop import TickContext
 from karst41.server.world.actors import Actor
 from karst41.server.world.sight import line_of_sight
+from s277_probes import Probes, summary as diag_summary
 from write_profile import WriteProfile
 from minimal_s40_profile import MinimalProfile
 from tick_budget import enforce
@@ -140,10 +141,14 @@ async def _profile(probe: NativeProbe, width: int, height: int,
                         'wall_ms': (time.perf_counter()-wall)*1000,
                         'cpu_ms': (time.thread_time()-cpu)*1000}
 
+    probes = Probes(probe.service, lambda: current)
+    probes.calibrate()
+
     def step() -> None:
         nonlocal current
         current = {'tick': probe.service.clock.now_tick(), 'segments': {},
                    '_wall': time.perf_counter(), '_cpu': time.thread_time()}
+        probes.open_row(current)
         wall, cpu = time.perf_counter_ns(), time.thread_time()
         try:
             original_step()
@@ -172,6 +177,7 @@ async def _profile(probe: NativeProbe, width: int, height: int,
                 carry.update(wall=0.0, cpu=0.0, calls=0)
                 current['total_wall_ms'] = (time.perf_counter()-current.pop('_wall'))*1000
                 current['total_cpu_ms'] = (time.thread_time()-current.pop('_cpu'))*1000
+                probes.close_row(current)
                 rows.append(current)
                 current = None
 
@@ -179,6 +185,7 @@ async def _profile(probe: NativeProbe, width: int, height: int,
                        for index, system in enumerate(original_subsystems)]
     loop.step = step
     probe.service._character_writes = writes
+    probes.install()
     gc.callbacks.append(gc_trace)
     for zone in probe.service.world.zones.values():
         zone.activate("s11-profiling",probe.service.clock.now_tick())
@@ -198,6 +205,11 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         return status["tick_p99_ms"]
     finally:
         loop.subsystems, loop.step = original_subsystems, original_step
+        probes.restore()
+        diag = diag_summary(rows)
+        probe.report(f"S277 DIAG {width}x{height}: " + json.dumps({
+            'probe_overhead_ms': diag['probe_overhead_ms'], 'record_sizes': probes.record_sizes,
+            'labels': dict(list(diag['labels'].items())[:40])}))
         probe.service._character_writes = original_writes
         if gc_trace in gc.callbacks:
             gc.callbacks.remove(gc_trace)
@@ -211,6 +223,9 @@ async def _profile(probe: NativeProbe, width: int, height: int,
             'instrumentation': 'wall/thread CPU and GC probes; writes = settle + submit per tick (S47); S11 gate including overhead: p99 at or above 20 ms blocks, at or above 10 ms warns (2026-11-12)',
             'gc_pauses': gc_pauses, 'writer': writer_figures,
             'ticks': rows, 'write_probe': writes_profile.metadata(),
+            'diag_probes': {'branch': 'diag/s277-npcs', 'per_call_us': probes.per_call_s*1e6,
+                            'record_sizes': probes.record_sizes, 'summary': diag,
+                            'note': 'probes on: the gate includes their overhead; probe_overhead_ms per row bounds it'},
             'commerce_commits': minimal.export(),
             'canonical_observer': {
                 'commit': 'Two perf_counter_ns reads around existing SQLite context exit; wall only',
