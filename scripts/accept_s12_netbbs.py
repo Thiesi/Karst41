@@ -18,6 +18,7 @@ from accept_s04_netbbs import Database, DatabaseLane, DoorProfile, REPO, TelnetS
 from accept_s06_netbbs import ZoneCaller
 from acceptance_hall import create
 from karst41.server.app import Server
+from tests import storage_reader
 
 
 async def wait(condition: Any, timeout: float = 10) -> None:
@@ -220,7 +221,7 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
                 await wait(lambda:game.screens[a[3].id][1]!=old)
             await wait(lambda:"Bank chits" in a[0].screen.screen_text())
             await a[0].write(b"\x1b"); await wait(lambda:a[3].id not in game.screens)
-            persisted=next(p for p in service.storage.character_state()["players"] if p["id"]==player.id)
+            persisted=next(p for p in (await storage_reader.committed_state(service))["players"] if p["id"]==player.id)
             assert persisted["chits_bank"]==100 and persisted["chits_hand"]==19
             assert persisted["equipment"]["weapon_main"]==pistol and patch not in persisted["inventory"]
             await leave(a,f"commerce-a-{width}x{height}"); await leave(b,f"commerce-b-{width}x{height}")

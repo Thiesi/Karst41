@@ -7,7 +7,8 @@ from typing import Any
 
 class MinimalProfile:
     def __init__(self, server: Any) -> None:
-        self.storage = server.storage
+        # S47: the live Storage belongs to the writer thread; the observer runs there.
+        self.storage = getattr(server, 'storage', None) or server.io.writer.executor.storage
         self.loop = server.core.loop
         self.commits: deque[tuple[int, int, int, bool]] = deque(
             maxlen=self.loop.timings.maxlen)

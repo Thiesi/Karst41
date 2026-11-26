@@ -3,6 +3,7 @@
 import pytest
 
 from karst41.content.schema import WeaponBlock, DamageOverTime
+from karst41.server.commerce import PlayerJob
 from karst41.server.sessions import QUEUE_LIMIT
 from karst41.server.items import make_item
 from karst41.server.protocol import Frame
@@ -28,19 +29,23 @@ def test_game_3_5_full_transfer_queue_never_aborts_combat_or_its_dot(repo_root,m
     source,target = body(game,a),body(game,b)
     before = target.health
     # A committing transfer can still have a full waiting queue while its
-    # combat callback starts the first new skill write.
+    # combat callback starts the first new skill write. S47 (technical lead's
+    # ruling on the queue bound): a full *player* queue never refuses a combat
+    # outcome; system jobs have their own bound (commerce.SYSTEM_LIMIT).
     commerce.pending = pending
-    commerce.waiting.extend([lambda:None]*QUEUE_LIMIT)
+    commerce.waiting.extend(PlayerJob(lambda:None) for _ in range(QUEUE_LIMIT))
+    commerce.player_jobs = QUEUE_LIMIT
     monkeypatch.setattr(rules,"to_hit",lambda *args:100)
     weapon = WeaponBlock(damage=12,cooldown=1,accuracy=75,damage_type="kinetic",range=6,
                          dot=DamageOverTime(1,3))
     combat.shot(source,target,weapon)
     if pending:
         assert target.health == before and not target.effects
+        assert commerce.system_queued() == 1  # The shot waits behind the commit; it isn't declined.
     else:
         assert target.health < before
         assert any(effect.get("kind") == "dot" for effect in target.effects)
-    assert len(commerce.waiting) == QUEUE_LIMIT
+    assert commerce.player_queued() == QUEUE_LIMIT
 
 
 def test_game_8_5_armour_accuracy_and_rangefinder_affect_actual_shot(repo_root, monkeypatch):

@@ -413,7 +413,7 @@ class Events:
                     raise ValueError('The city is busy. Try again.')
             except ValueError as exc:
                 reply({'ok': False, 'error': str(exc)})
-        self.commerce.enqueue_system(execute)
+        self.commerce.enqueue_player(execute)
 
     def tick(self, ctx: TickContext) -> None:
         if ctx.tick-self.last_tick >= TICK_HZ:

@@ -13,6 +13,9 @@ ExecStart=/opt/karst41/venv/bin/python -m karst41.server --install-dir /var/db/k
 ExecStop=-/opt/karst41/venv/bin/python -m karst41.admin --install-dir /var/db/karst41 stop
 TimeoutStopSec=15
 Restart=on-failure
+# Exit 3: stopped at the 10 s deadline (architecture section 3.4). An operator was
+# stopping it; never bring it straight back.
+RestartPreventExitStatus=3
 RestartSec=2
 UMask=0077
 

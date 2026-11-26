@@ -18,7 +18,8 @@ from karst41.server.progression import Award, Grant, award
 from karst41.server.progression_views import character_sheet, skill_menu
 from karst41.server.protocol import Frame
 from karst41.server.rules import character
-from karst41.server.sessions import QUEUE_LIMIT, Session
+from karst41.server.commerce import SYSTEM_LIMIT
+from karst41.server.sessions import Session
 from karst41.server.skills import ENCOUNTER_IDLE_SECONDS, LINE_GROUP, Use, gain, spend
 from karst41.server.world.actors import Actor
 
@@ -170,7 +171,7 @@ class ProgressionEngine:
             self.commerce.settle(player, {"skills": draft.skills, "attributes": draft.attributes,
                 "progress": draft.progress}, self.commerce.items, self.commerce.caches,
                 self.commerce.serial, committed)
-        if self.commerce.pending and len(self.commerce.waiting) >= QUEUE_LIMIT:
+        if self.commerce.pending and self.commerce.system_queued() >= SYSTEM_LIMIT:
             return  # A saturated skill queue must never abort its owning action.
         self.commerce.enqueue_system(propose)
 
@@ -382,7 +383,7 @@ class ProgressionEngine:
 
     def tick(self, ctx: TickContext) -> None:
         for request in sorted(self.retry_discoveries):
-            if self.commerce.pending and len(self.commerce.waiting) >= QUEUE_LIMIT:
+            if self.commerce.pending and self.commerce.system_queued() >= SYSTEM_LIMIT:
                 break
             self.retry_discoveries.discard(request)
             self.record_discovery(*request)

@@ -25,7 +25,7 @@ def test_who_lists_sessions_and_connected_time() -> None:
     server.frames_for(operator)
     server.clock.advance(35)
     dispatch(operator.session, Frame("admin.who"), server.core.sessions,
-             server.core.status, server.core.request_stop, lambda row: None)
+             server.core.status, server.core.request_stop, lambda row, then: then())
     rows = json.loads(server.frames_for(operator)[0].data["body"]["lines"][0])
     assert rows == [{"handle": caller.session.door_info["handle"], "player_name": None,
                      "zone": None, "connected_s": 3.5}]

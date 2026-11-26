@@ -213,16 +213,24 @@ class WriteProfile:
 
         try:
             self.replace(self.server, "status", status)
-            storage, core = self.server.storage, self.server.core
+            storage, core = getattr(self.server, "storage", None), self.server.core
             # Server.start binds this callback before the probe is installed.
             self.replace(core, "status_provider", status)
             if not self.trace_writes:
                 return self
             self.replace(self.server, "_character_writes", writes)
-            self.wrap(storage, "mark_dirty", dirty_label)
-            for name in ("_json", "_flush", "character_write", "commerce_write", "report", "meta"):
-                self.wrap(storage, name, "storage." + name)
-            self.replace(storage, "db", ConnectionProbe(storage.db, self))
+            io = getattr(self.server, "io", None)
+            if io is not None:
+                # S47: no SQLite on the loop; what the loop does for writes is freeze, submit, settle.
+                self.wrap(io, "mark", lambda kind, record_id, *a, **k: "io.mark:" + kind + (
+                    ":" + record_id if kind == "meta" else ""))
+                for name in ("pump", "settle"):
+                    self.wrap(io, name, "io." + name)
+            if storage is not None:
+                self.wrap(storage, "mark_dirty", dirty_label)
+                for name in ("_json", "_flush", "character_write", "commerce_write", "report", "meta"):
+                    self.wrap(storage, name, "storage." + name)
+                self.replace(storage, "db", ConnectionProbe(storage.db, self))
             self.wrap(getattr(core, "contracts", None), "record", "contracts.record")
             self.wrap(getattr(core, "characters", None), "committed", "characters.committed")
             for name in ("can_commit", "prepare", "committed"):

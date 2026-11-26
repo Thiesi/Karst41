@@ -22,6 +22,7 @@ from accept_s13_netbbs import lat_walk
 from karst41.server.lattice.silt import generate
 from karst41 import content as content_package
 from karst41.server.rules import character
+from tests import storage_reader
 
 
 async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, changes: bool = True) -> None:
@@ -125,7 +126,7 @@ async def training(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     await connection.caller.write(b'b')
     await wait(lambda: player.id not in lattice.presences and body.stance == 'normal')
     await wait(lambda: 'Wake Hall' in connection.caller.screen.screen_text().splitlines()[0])
-    saved = probe.service.storage.character_state()
+    saved = (await storage_reader.committed_state(probe.service))
     durable = next(p for p in saved['players'] if p['id'] == player.id)
     assert 'lattice-training-record' in durable['progress']['lattice_records']
     result = {'stage': 'training', 'width': width, 'height': height,
@@ -507,7 +508,7 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False) -
     after = sum(probe.game.players[c.session.player_id].chits_hand for c in connections)
     assert after-before == 120
     receipt_seconds = {pid:round(time.monotonic()-started,2) for pid,started in entered_times.items()}
-    saved = probe.service.storage.character_state()
+    saved = (await storage_reader.committed_state(probe.service))
     assert saved['lattice']['sources'][key]['generation'] == generation+1
     for connection in connections:
         presence = lattice.presences[connection.session.player_id]

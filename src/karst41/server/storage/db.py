@@ -1,8 +1,9 @@
-"""Single event-loop owner, transactional write-behind and durable flush.
+"""Transactional write-behind and durable flush, on one connection.
 
-Only the I/O layer calls this module. No awaits occur inside a transaction.
-The server's writer task owns periodic flushes; flush_now is synchronous
-so later actions can commit before publishing success (architecture §15.2).
+In the live server only the writer thread (storage/writer.py, S47) creates
+and calls a Storage; the event loop never does (architecture §6.2). The
+offline CLI and tests use it synchronously in their own process. No awaits
+occur inside a transaction.
 """
 
 import json
@@ -26,9 +27,9 @@ IMMEDIATE_REASONS = frozenset({
 
 
 class Storage:
-    def __init__(self, path: Path, clock: Clock) -> None:
+    def __init__(self, path: Path, clock: Clock, factory: type[sqlite3.Connection] = sqlite3.Connection) -> None:
         self.clock = clock
-        self.db = sqlite3.connect(path, timeout=1.0)
+        self.db = sqlite3.connect(path, timeout=1.0, factory=factory)
         self.db.row_factory = sqlite3.Row
         self.dirty: dict[tuple[str, str], dict[str, Any] | Any] = {}
         self.dirty_since: dict[tuple[str, str], int] = {}
@@ -278,6 +279,10 @@ class Storage:
             if action == "create":
                 self.dirty, self.dirty_since = previous, ages
             raise
+
+    def bans(self) -> dict[str, str | None]:
+        """Every ban, for the live server's loop-side cache (S47)."""
+        return {row[0]: row[1] for row in self.db.execute("SELECT bbs_user_id, expires_at FROM bans")}
 
     def banned(self, user_id: str) -> bool:
         row = self.db.execute("SELECT expires_at FROM bans WHERE bbs_user_id=?", (user_id,)).fetchone()
