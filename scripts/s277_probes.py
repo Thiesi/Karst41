@@ -47,7 +47,8 @@ import time
 from typing import Any, Callable
 
 SLOW_S = 0.0005
-NPC_CPROFILE = True  # Pass 4 (s277-diag-4): cProfile per Npcs.tick instead of the NPC child probes.
+NPC_CPROFILE = False  # Pass 4 (s277-diag-4): cProfile per Npcs.tick instead of the NPC child probes.
+COPIES_ONLY = True  # Pass 5 (s277-diag-5): only the deepcopy sizes and times at the shot sites; every other probe off.
 KEEP = 8  # Slowest Npcs ticks per profile window kept with a full breakdown.
 SLOW_PREFIXES = ('npcs.act:', 'npcs.evaluate:', 'npcs.process:', 'pub.')
 
@@ -204,6 +205,9 @@ class Probes:
     # --- install ------------------------------------------------------------
 
     def install(self) -> None:
+        if COPIES_ONLY:
+            self._copies()
+            return
         if NPC_CPROFILE:
             self._npcs_cprofile()
         else:
@@ -258,6 +262,60 @@ class Probes:
                     self.window.setdefault(f'probe.error:{type(exc).__name__}', [0, 0.0, 0.0])[0] += 1
         Npcs.tick = self._timed(tick, fixed('npcs.tick'))
         self.restores.append(lambda: setattr(Npcs, 'tick', original_tick))
+
+    # --- pass 5: the deepcopies on the shot path ---------------------------------
+
+    def _copies(self) -> None:
+        """Pass 5 (s277-diag-5): wrap the module-level `deepcopy` name in characters,
+        commerce and skills (each imports it by name). Each copy in the window records
+        its call site (function, line and source text), the value's JSON size and the
+        copy's own time. The JSON size is measured after the timed copy."""
+        import json
+        import linecache
+        import sys
+        from karst41.server import characters, commerce, skills
+        self.copies: dict[str, dict[str, list[float]]] = {}
+        self.copy_ticks: dict[int, float] = {}
+        for module in (characters, commerce, skills):
+            original = module.deepcopy
+
+            def measured(value: Any, memo: Any = None, _original: Any = original, _module: Any = module) -> Any:
+                row = self.current()
+                if row is None or memo is not None:
+                    return _original(value, memo)
+                began = time.perf_counter()
+                result = _original(value)
+                took = (time.perf_counter() - began) * 1e6
+                try:
+                    frame = sys._getframe(1)
+                    code = frame.f_code
+                    source = linecache.getline(code.co_filename, frame.f_lineno).strip()[:90]
+                    site = f'{_module.__name__.rsplit(".", 1)[-1]}.{code.co_name}:{frame.f_lineno} {source}'
+                    size = len(json.dumps(value, default=str))
+                    slot = self.copies.setdefault(site, {'us': [], 'bytes': []})
+                    slot['us'].append(took)
+                    slot['bytes'].append(size)
+                    tick = row.get('tick', -1)
+                    self.copy_ticks[tick] = self.copy_ticks.get(tick, 0.0) + took
+                except Exception:  # A probe never raises into the game.
+                    pass
+                return result
+            module.deepcopy = measured
+            self.restores.append(lambda module=module, original=original: setattr(module, 'deepcopy', original))
+
+    def copies_report(self) -> dict[str, Any]:
+        if not COPIES_ONLY or not hasattr(self, 'copies'):
+            return {}
+        sites = {}
+        for site, slot in sorted(self.copies.items(), key=lambda item: -sum(item[1]['us'])):
+            sites[site] = {'calls': len(slot['us']), 'us_p50': round(quantile(slot['us'], .5), 2),
+                           'us_p99': round(quantile(slot['us'], .99), 2), 'us_max': round(max(slot['us']), 2),
+                           'us_total': round(sum(slot['us']), 1), 'bytes_p50': quantile(slot['bytes'], .5),
+                           'bytes_max': max(slot['bytes'])}
+        per_tick = sorted(self.copy_ticks.values())
+        return {'sites': sites, 'ticks_with_copies': len(per_tick),
+                'copy_ms_per_tick': {'p50': round(quantile(per_tick, .5) / 1000, 3), 'p99': round(quantile(per_tick, .99) / 1000, 3),
+                                     'max': round(max(per_tick, default=0) / 1000, 3)}}
 
     def cprofile_report(self) -> dict[str, Any]:
         if not NPC_CPROFILE or not hasattr(self, 'kept'):
