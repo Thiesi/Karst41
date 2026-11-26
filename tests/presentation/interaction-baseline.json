@@ -41,7 +41,7 @@
     {
       "sha256_from": "0d32be6dd128dc527471d719045676a8a6dd089f8f69e80996caca71a5a7315b",
       "reason": "#211: generated salvage nodes walked after the authored tiles in fx-open (one beside an exit, one alone, one empty beside the other exit); 216 added cases (zone fx-open+salvage), the 10800 earlier rows byte-identical (their digest is still 0d32be6d); E beside a node with units harvests (fabrication 34), an exit underfoot beside a node and every E around the empty node pass to characters (20), which neither inspects the empty node nor names its id",
-      "approval": "pending: owner approval on the #211 PR"
+      "approval": "https://github.com/Thiesi/Karst41/pull/283#issuecomment-7192782536"
     }
   ]
 }
