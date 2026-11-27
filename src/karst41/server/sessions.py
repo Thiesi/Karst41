@@ -38,6 +38,15 @@ CHOICE_COUNTDOWNS = tuple(re.compile(pattern, re.MULTILINE) for pattern in (
     r'Reservation: \d+ s',                 # Service node under repair.
     r'Expiry: \d+ s',                      # Allocated service node.
     r'^HP [\d.]+/[\d.]+  INT \S+  TRACE \S+(  SHIELD \S+)?(  DECOY \S+)?$',  # Lattice menus' caller status.
+    # #246: a flipped control's reset, "on / 42s remaining". Only the seconds:
+    # the state stays a term. A flip re-reads the control's revision, layout
+    # and current state when it completes (Interlock.complete_flip).
+    r'(?<= / )\d+s remaining$',
+    # #246: a crew data offer's turn, "Crew turn: Noor (12s).". The holder is
+    # kept (`keep`), only the seconds go: whose turn it is is re-checked by
+    # LootOffer.permits when the lift starts and when it completes
+    # (Encounters.start_lift and Encounters.lift, via Crews.check_data).
+    r'^Crew turn: (?P<keep>.+) \(\d+s\)\.$',
 ))
 
 
@@ -57,11 +66,18 @@ def choice_state(frame: Frame) -> str | None:
     return blake2b(text.encode('utf-8'), digest_size=16).hexdigest()
 
 
+def _blank(countdown: re.Pattern[str]) -> Callable[[re.Match[str]], str]:
+    if 'keep' not in countdown.groupindex:
+        return lambda match: countdown.pattern
+    return lambda match: f"{countdown.pattern}[{match.group('keep')}]"
+
+
 def _without_countdowns(value: Any) -> Any:
-    """Every string in a menu document with its named countdowns blanked."""
+    """Every string in a menu document with its named countdowns blanked.
+    A countdown's `keep` group, when it has one, stays a term (#246)."""
     if isinstance(value, str):
         for countdown in CHOICE_COUNTDOWNS:
-            value = countdown.sub(lambda match, name=countdown.pattern: name, value)
+            value = countdown.sub(_blank(countdown), value)
         return value
     if isinstance(value, dict):
         return {key: _without_countdowns(item) for key, item in value.items()}
