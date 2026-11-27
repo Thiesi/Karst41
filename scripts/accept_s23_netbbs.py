@@ -18,6 +18,7 @@ from accept_s19_netbbs import ContractProbe
 from karst41.admin.client import request
 from karst41.server.quality import damage_multiplier
 from karst41.server.rules import combat as combat_rules
+from karst41.server.views import presentation
 from karst41.server.rules.character import grade_threshold
 
 
@@ -145,16 +146,19 @@ def bounty_fight_health(probe: ContractProbe, hunter: Any) -> int:
     """#279: health that two of the hunter's hits can never take: twice an upper
     bound on one hit (armour 0, kinetic skill 20 points above today's), plus one."""
     item, weapon = probe.combat.weapon(hunter)
-    skill = hunter.skills.get('melee' if weapon.melee else 'energy' if weapon.damage_type == 'energy' else 'kinetic', 0)
+    # The bound covers direct hits only: a damage-over-time weapon could kill
+    # in fewer than three hits, so refuse it here rather than fail obscurely.
+    assert weapon.dot is None, f'#279 fixture assumes a weapon without DoT, not {item.template}'
+    skill =hunter.skills.get('melee' if weapon.melee else 'energy' if weapon.damage_type == 'energy' else 'kinetic', 0)
     largest = combat_rules.damage(weapon.damage*damage_multiplier(probe.game.content.items[item.template], item.quality),
                                   skill+20, 0, weapon.melee)
     return 2*largest*weapon.hits+1
 
 
-def shots(caller: Connection, seen: set[Any]) -> tuple[int, int]:
-    """The hunter's own Hit/Miss lines since the fight began."""
+def shots(caller: Connection, label: str, seen: set[Any]) -> tuple[int, int]:
+    """The hunter's own Hit/Miss lines on the buyer (shown as `label`) since the fight began."""
     lines = [line.get('text', '') for line in caller.session.log_ring if line.get('id') not in seen]
-    return sum(text.startswith('Hit: ') for text in lines), sum(text.startswith('Miss: ') for text in lines)
+    return lines.count(f'Hit: {label}.'), lines.count(f'Miss: {label}.')
 
 
 def bounty_fight_problem(probe: ContractProbe, hunter: Connection, buyer: Connection, zone: str) -> str | None:
@@ -171,14 +175,14 @@ def bounty_fight_problem(probe: ContractProbe, hunter: Connection, buyer: Connec
 
 
 def bounty_fight_report(probe: ContractProbe, hunter: Connection, buyer: Connection, zone: str,
-                        problem: str, presses: int, seen: set[Any]) -> str:
+                        problem: str, presses: int, label: str, seen: set[Any]) -> str:
     def body(name: str, caller: Connection) -> str:
         actor = caller.avatar.actor
         return (f'{name}: {actor.health}/{actor.health_max} HP, {actor.stance}, {caller.avatar.zone} {actor.position}, '
                 f'marked {actor.marked}, target {actor.target}')
     wardens = [f'{a.id} {a.position} target {a.target} state {a.behaviour.get("state")}'
                for a in probe.service.world.zones[zone].actors.values() if a.faction == 'wardens']
-    hits, misses = shots(hunter, seen)
+    hits, misses = shots(hunter, label, seen)
     lines = [f'S23 bounty fight: {problem} before the bounty was claimed (#279).',
              f'  after {presses} F presses: {hits} hits, {misses} misses',
              '  '+body('hunter', hunter), '  '+body('buyer', buyer),
@@ -293,17 +297,19 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     probe.report(f'FIXTURE S23 {width}x{height}: buyer health {target_health} of '
                  f'{buyer.avatar.actor.health_max} for the bounty fight (#279; at least three hits)')
     seen = {line.get('id') for line in hunter.session.log_ring}
+    # How the hunter's log names the buyer, taken while both stand in the fight.
+    label = presentation.name(buyer.avatar.actor, hunter.avatar.actor, probe.game.content)
     presses, started = 0, asyncio.get_running_loop().time()
     async with asyncio.timeout(100):
         while owner.bounties.rows[bounty.id].status == 'active':
             if problem := bounty_fight_problem(probe, hunter, buyer, zone.id):
-                raise AssertionError(bounty_fight_report(probe, hunter, buyer, zone.id, problem, presses, seen))
+                raise AssertionError(bounty_fight_report(probe, hunter, buyer, zone.id, problem, presses, label, seen))
             # F attacks using the normal carried-ammo rules. R opens rigs.
             await key(hunter, b'f')
             presses += 1
             await asyncio.sleep(.2)
     fight_seconds = asyncio.get_running_loop().time()-started
-    hits, misses = shots(hunter, seen)
+    hits, misses = shots(hunter, label, seen)
     assert hits >= 3, (hits, target_health)
     probe.report(f'S23 FIGHT {width}x{height}: {presses} F presses, {hits} hits, {misses} misses, '
                  f'{fight_seconds:.1f}s, buyer health {target_health}')
