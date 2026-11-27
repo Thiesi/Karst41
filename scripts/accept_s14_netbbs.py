@@ -546,8 +546,9 @@ async def refused(probe: NativeProbe, victim: Connection, hitter: Connection, ho
     """#301 captures: a real Enter refused as stale in a Lattice room, and the
     toast that says so. The victim opens the room menu and presses Enter on
     the Hornets row. The probe holds that Enter in flight (a slow link) while
-    the hitter's real program hits the Hornets, so the row's integrity, a
-    real term of the choice, changes. Then the Enter arrives, carrying the
+    the hitter's real program hits the Hornets, until a real term of the
+    choice changes: the row's integrity, or the Hornets' own phase if that
+    turns first (warning to attacking). Then the Enter arrives, carrying the
     revision it was made on: the guard refuses it, the menu stays open on the
     new terms, and the toast is on the hint row. The capture is taken there."""
     core = probe.service.core
@@ -580,6 +581,15 @@ async def refused(probe: NativeProbe, victim: Connection, hitter: Connection, ho
     assert refusal['toast'], refusal
     assert encounters.menus.get(session.id) is screen, 'The refused Enter left the room menu open'
     await wait(lambda: STALE_CHOICE_TOAST in victim.caller.screen.screen_text())
+
+    def flashed() -> bool:
+        # The door's damage flash (chrome.render_effects) redraws the frame
+        # edge as "-" and "|" while the Hornets hit this caller.
+        return victim.caller.screen.screen_text().startswith('-')
+    try:  # Prefer a frame between hits, while the 4 s toast still shows.
+        await wait(lambda: not flashed() and STALE_CHOICE_TOAST in victim.caller.screen.screen_text(), 3)
+    except TimeoutError:
+        pass
     await settle(session, victim.caller)
     label = f's301-refused-{session.user_id}-{width}x{height}-{tier}'
     probe.save(victim, label)
@@ -587,12 +597,14 @@ async def refused(probe: NativeProbe, victim: Connection, hitter: Connection, ho
                                                        indent=2)+'\n', encoding='utf-8')
     rows = victim.caller.screen.screen_text().splitlines()
     hint = next((row for row in rows if STALE_CHOICE_TOAST in row), '')
+    assert hint, 'The toast was gone before the capture'
+    flash = bool(rows) and rows[0].startswith('-')  # As captured.
     probe.report(f'  {label}')
     await victim.caller.write(b'b')
     await wait(lambda: session.id not in encounters.menus)
     return {'capture': label, 'tier': tier, 'sent': sent, 'current': refusal['current'],
             'hornets_integrity': [before, hornets.integrity], 'differs': refusal['differs'],
-            'toast_row': hint.strip('║│ '), 'menu_stayed_open': True}
+            'toast_row': hint, 'damage_flash': flash, 'menu_stayed_open': True}
 
 
 async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
