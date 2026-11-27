@@ -6,6 +6,7 @@ on:
       - 'src/karst41/**'
       - 'tests/**'
       - 'scripts/accept_s38_netbbs.py'
+      - 'scripts/acceptance_settle.py'
       - 'scripts/accept_p4_netbbs.py'
       - 'scripts/accept_s10_netbbs.py'
       - 'scripts/accept_s16_netbbs.py'

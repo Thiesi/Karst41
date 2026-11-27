@@ -16,6 +16,7 @@ from typing import Any
 
 from accept_s04_netbbs import Database, DatabaseLane, DoorProfile, REPO, TelnetServer, browse_doors, create_door, create_user
 from accept_s06_netbbs import ZoneCaller
+from acceptance_settle import settled as settle
 from acceptance_hall import create
 from karst41.server.app import Server
 from tests import storage_reader
@@ -109,7 +110,7 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
 
     async def acknowledge(connection: tuple) -> None:
         session=connection[3]
-        await wait(lambda:session.ack_revision==session.view_revision)
+        await settle(session,connection[0])  # Acknowledged and the last frame whole (#255).
 
     async def open_menu(connection: tuple,key: bytes,kind: str) -> None:
         await connection[0].write(key)

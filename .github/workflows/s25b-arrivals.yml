@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/karst41/**'
       - 'scripts/accept_s25b_arrivals.py'
+      - 'scripts/acceptance_settle.py'
       - 'scripts/build_city_content.py'
       - 'scripts/accept_s04_netbbs.py'
       - 'scripts/accept_s06_netbbs.py'

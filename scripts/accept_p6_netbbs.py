@@ -17,6 +17,7 @@ import subprocess
 
 from accept_p5_netbbs import PresentationProbe
 from accept_s10_netbbs import wait
+from acceptance_settle import settled as settle
 from karst41.door.present.zone import origin
 from karst41.layout import compute
 from karst41.place import CHARTED_GROUND
@@ -61,7 +62,7 @@ async def accept(root: Path, python: Path, size: tuple[int, int], theme: str, sh
             connection.session.needs_full_view = True
             screen = connection.caller.screen
             await wait(lambda: 'Fixture hall' in screen.screen_text().splitlines()[0])
-            await wait(lambda: connection.session.ack_revision == connection.session.view_revision)
+            await settle(connection.session, connection.caller)
             assert connection.session.caps['tier'] == tier
             assert '(Plaza)' in screen.screen_text()
             # The Clinic fixture has an actual interaction tile as well as
@@ -82,19 +83,20 @@ async def accept(root: Path, python: Path, size: tuple[int, int], theme: str, sh
             assert screen.cell(ox+dx,oy+dy) not in ('+','≡','§')
             assert screen.renditions[ox+dx,oy+dy] != Rendition(), 'public door face rendered as void'
             captures = []
-            def save(step: str) -> None:
+            async def save(step: str) -> None:
                 name = f'{theme}-{step}-{size[0]}x{size[1]}-{tier}'
+                await settle(connection.session, connection.caller)  # #255: acknowledged and the last frame whole.
                 probe.save(connection, name)
                 captures.append(name)
-            save('charted-and-here')
+            await save('charted-and-here')
             await probe.walk(connection, (5,5))
             await wait(lambda: '▒ barrels' in screen.screen_text())
-            await wait(lambda: connection.session.ack_revision == connection.session.view_revision)
-            save('authored-cover')
+            await settle(connection.session, connection.caller)
+            await save('authored-cover')
             await probe.walk(connection, (9,5))
             await wait(lambda: '(Clinic)' in screen.screen_text())
-            await wait(lambda: connection.session.ack_revision == connection.session.view_revision)
-            save('light-region-and-here')
+            await settle(connection.session, connection.caller)
+            await save('light-region-and-here')
             # Existing server notice path, without a client text/handle override.
             now = probe.service.clock.now_utc().isoformat()
             connection.session.emit('Fixture warning.', kind='danger', channel='zone', role='log_danger', at=now)
@@ -102,7 +104,7 @@ async def accept(root: Path, python: Path, size: tuple[int, int], theme: str, sh
             connection.session.emit('Fixture notice: you hear the fan.', kind='notice', channel='system', role='log_system', at=now)
             await wait(lambda: 'Fixture notice' in screen.screen_text())
             assert 'Fixture hall' in screen.screen_text().splitlines()[0] and 'Fixture notice' in screen.screen_text().splitlines()[0]
-            save('notice')
+            await save('notice')
             cases.append({'size':list(size),'tier':tier,'theme':theme,'captures':captures,
                           'initial_fixture_position':[4,5], 'walk_end':[9,5],
                           'public_door_face':[20,5], 'door_face_ground_only':True,

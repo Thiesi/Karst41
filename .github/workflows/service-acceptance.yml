@@ -15,6 +15,7 @@ on:
       - 'src/karst41/**'
       - 'tests/**'
       - 'scripts/presentation*'
+      - 'scripts/acceptance_settle.py'
       - 'deploy/**'
       - 'scripts/accept_s05_systemd.py'
       - 'scripts/accept_s06_netbbs.py'

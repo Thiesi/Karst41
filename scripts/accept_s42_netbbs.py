@@ -16,6 +16,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_settle import settled as settle
 from accept_s38_netbbs import enter_row
 from karst41.layout import compute
 from tests.presentation.snapshots import snapshot
@@ -41,10 +42,11 @@ async def accept(root: Path, python: Path, size: tuple[int, int], tier: str, sho
         rows: list[dict[str, Any]] = []
 
         async def delivered() -> None:
-            await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
+            await settle(caller.session, caller.caller)  # Acknowledged and the last frame whole (#255).
 
-        def save(scenario: str) -> None:
+        async def save(scenario: str) -> None:
             label = f's42-{scenario}-{width}x{height}-{tier}'
+            await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
             probe.save(caller, label)
             (root/(label+'.json')).write_text(json.dumps(snapshot(caller.caller.screen),
                 ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
@@ -63,12 +65,12 @@ async def accept(root: Path, python: Path, size: tuple[int, int], tier: str, sho
         await talk()
         hint = caller.caller.screen.screen_text().splitlines()[compute(width, height).hint.y]
         assert 'Choose an action; move or Esc/B leaves' in hint, hint
-        save('talk-hint')
+        await save('talk-hint')
         await caller.caller.write(b'\x1b[D')
         await wait(lambda: caller.avatar.actor.position == (4, 5))
         assert caller.session.id not in core.dialogue.menus
         await delivered()
-        save('one-press-walk-away')
+        await save('one-press-walk-away')
         await probe.walk(caller, (5, 5))
         await probe.target(caller, regular.id)
         source = caller.avatar.actor
@@ -88,7 +90,7 @@ async def accept(root: Path, python: Path, size: tuple[int, int], tier: str, sho
         assert source.position == before and caller.session.id not in core.dialogue.menus
         assert regular.behaviour['state'] == 'flee'
         await delivered()
-        save('shot-flee-walks-off')
+        await save('shot-flee-walks-off')
 
         # Audit the actual combat log too: suppressing the old reveal must
         # not leave the true template name in Hit/Miss feedback.
@@ -122,7 +124,7 @@ async def accept(root: Path, python: Path, size: tuple[int, int], tier: str, sho
                    and f'\x1b[{height};1H'.encode() in caller.caller.output[output_mark:])
         await wait(lambda: covered_line in caller.caller.screen.screen_text())
         assert 'Plainclothes Warden' not in caller.caller.screen.screen_text()
-        save('covered-shot-label')
+        await save('covered-shot-label')
         await probe.leave(caller, f's42-left-{width}x{height}-{tier}')
         assert not probe.errors and probe.service.failure is None
         (root/'s42-results.json').write_text(json.dumps({'passed': True, 'head': head,

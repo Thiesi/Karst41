@@ -13,6 +13,7 @@ import subprocess
 from typing import Any
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_settle import settled as settle, settled_now
 from acceptance_hall import crossed_quietly
 from karst41.layout import compute
 from tests.presentation.snapshots import snapshot
@@ -48,12 +49,13 @@ async def accept(root: Path, door_python: Path, show: bool,
                         key = ('E/J' if focus and jack and focus['id'] == jack['id']
                                and focus['verb'] == jack['verb'] else 'E')
                         return bool(focus and focus['id'] == target
-                            and caller.session.ack_revision == caller.session.view_revision
+                            and settled_now(caller.session, caller.caller)
                             and f"{key} {focus['verb']} {focus['label']}" in screen.screen_text().splitlines()[layout.hint.y])
                     await wait(ready)
                     return dict(zone_body()['focus'])
 
-                def save(label: str) -> None:
+                async def save(label: str) -> None:
+                    await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
                     probe.save(caller, label)
                     (root/(label+'.json')).write_text(json.dumps(snapshot(screen), ensure_ascii=False,
                         indent=2)+'\n', encoding='utf-8', newline='\n')
@@ -66,13 +68,13 @@ async def accept(root: Path, door_python: Path, show: bool,
                 outfitter = await predicted('wake-outfitter')
                 jack = dict(zone_body()['jack_focus'])
                 assert jack['id'] == 'wake-terminal'
-                save(f'outfitter-before-e-{width}x{height}-{tier}')
+                await save(f'outfitter-before-e-{width}x{height}-{tier}')
                 await caller.caller.write(b'e')
                 await wait(lambda: caller.session.id in probe.commerce.menus
                     and probe.commerce.menus[caller.session.id].target == outfitter['id']
-                    and caller.session.ack_revision == caller.session.view_revision
+                    and settled_now(caller.session, caller.caller)
                     and 'Sablier Wake Outfitter' in screen.screen_text())
-                save(f'outfitter-after-e-{width}x{height}-{tier}')
+                await save(f'outfitter-after-e-{width}x{height}-{tier}')
                 await caller.caller.write(b'\x1b')
                 await predicted('wake-outfitter')
                 # On this same tile E opens the counter, while J explicitly
@@ -89,14 +91,14 @@ async def accept(root: Path, door_python: Path, show: bool,
                 terminal_hint = screen.screen_text().splitlines()[layout.hint.y].strip()
                 assert terminal_hint.count('E/J jack in at Hall terminal') == 1
                 assert 'E act' not in terminal_hint and '  J jack in at' not in terminal_hint
-                save(f'terminal-before-e-{width}x{height}-{tier}')
+                await save(f'terminal-before-e-{width}x{height}-{tier}')
                 await caller.caller.write(b'e')
                 await wait(lambda: caller.session.player_id in lat.presences and 'INTEGRITY' in screen.screen_text()
-                    and caller.session.ack_revision == caller.session.view_revision)
+                    and settled_now(caller.session, caller.caller))
                 kind, body = sim.overlays[caller.session.id]
                 assert kind == 'lattice' and 'focus' in body and 'jack_focus' in body
                 assert body['jack_focus']['verb'] == 'jack out' and body['jack_focus']['label'] == ''
-                save(f'terminal-after-e-{width}x{height}-{tier}')
+                await save(f'terminal-after-e-{width}x{height}-{tier}')
                 await caller.caller.write(b'j')
                 await wait(lambda: caller.avatar.actor.stance == 'normal')
                 await predicted('wake-terminal')

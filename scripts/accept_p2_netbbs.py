@@ -13,10 +13,12 @@ import subprocess
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_settle import settled as settle, settled_now
 from tests.presentation.snapshots import snapshot
 
 
-def save(probe: NativeProbe, caller: Connection, label: str) -> None:
+async def save(probe: NativeProbe, caller: Connection, label: str) -> None:
+    await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
     probe.save(caller, label)
     (probe.root/(label+'.json')).write_text(json.dumps(snapshot(caller.caller.screen),
         ensure_ascii=False, indent=2)+'\n', encoding='utf-8', newline='\n')
@@ -35,20 +37,20 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
             screen = caller.caller.screen
             name = f'P2界{width}'
             await wait(lambda: name in screen.screen_text()
-                       and caller.session.ack_revision == caller.session.view_revision)
+                       and settled_now(caller.session, caller.caller))
             assert (caller.session.caps['width'], caller.session.caps['height'], caller.session.caps['tier']) == (width, height, '16')
             labels = [f'wake-{width}x{height}']
-            save(probe, caller, labels[-1])
+            await save(probe, caller, labels[-1])
             await caller.caller.write(b'i')
             await wait(lambda: 'INVENTORY' in screen.screen_text()
-                       and caller.session.ack_revision == caller.session.view_revision)
+                       and settled_now(caller.session, caller.caller))
             for key in (b'\x1b[6~', b'\x1b[5~'):
                 revision = caller.session.view_revision
                 await caller.caller.write(key)
                 await wait(lambda: caller.session.view_revision > revision
-                           and caller.session.ack_revision == caller.session.view_revision)
+                           and settled_now(caller.session, caller.caller))
             labels.append(f'inventory-{width}x{height}')
-            save(probe, caller, labels[-1])
+            await save(probe, caller, labels[-1])
             await caller.caller.write(b'\x1b')
             await wait(lambda: 'Wake Hall' in screen.screen_text().splitlines()[0])
             await caller.caller.write(b'?')
@@ -56,13 +58,13 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
             await caller.caller.write(b'\x1b[6~')
             await wait(lambda: 'Page 2/' in screen.screen_text())
             labels.append(f'help-{width}x{height}')
-            save(probe, caller, labels[-1])
+            await save(probe, caller, labels[-1])
             await caller.caller.write(b'\x1b')
             await wait(lambda: 'Wake Hall' in screen.screen_text().splitlines()[0])
             await caller.caller.write(b'\x10')
             await wait(lambda: 'SCROLLBACK' in screen.screen_text())
             labels.append(f'scrollback-{width}x{height}')
-            save(probe, caller, labels[-1])
+            await save(probe, caller, labels[-1])
             await caller.caller.write(b'\x1b')
             await wait(lambda: 'Wake Hall' in screen.screen_text().splitlines()[0])
             await probe.leave(caller, f'finished-{width}x{height}')

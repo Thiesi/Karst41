@@ -14,6 +14,7 @@ from collections.abc import Callable
 
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_settle import settled as settle
 from acceptance_hall import crossed_quietly
 from accept_p4_netbbs import navigate
 from accept_s16_netbbs import commit_key, key, loan
@@ -67,6 +68,7 @@ async def drone_warning(probe: NativeProbe, caller: Connection, victim: Connecti
                         for row in screen.grid[detail.y:detail.bottom])
         return "order marks you for 15 minutes." in " ".join(text.split())
     await wait(warning_visible)
+    await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
     probe.save(caller, f"truce-drone-order-warning-{width}x{height}-{tier}")
     # Recall before player combat so this probe does not add pet damage.
     await commit_key(probe, caller, b"r", lambda: iid not in drones.actors)
@@ -100,13 +102,14 @@ async def accept(root: Path, door_python: Path, width: int, height: int,
             await drone_warning(probe, first, second, width, height, tier)
             await probe.target(first, victim.id)
             await wait(lambda: "Firing marks you" in first.caller.screen.screen_text())
+            await settle(first.session, first.caller)  # #255: acknowledged and the last frame whole.
             probe.save(first, f"truce-player-warning-{width}x{height}-{tier}")
             await shoot_until(probe, first, victim, lambda: source.marked)
             await wait(lambda: any(line["text"] == "Sable is coming for you." for line in first.session.log_ring))
             lines = [line["text"] for line in first.session.log_ring]
             mark = "You break Sodium Row's truce. You are Marked for 15 min."
             assert lines.index(mark) < lines.index("Sable is coming for you.")
-            await wait(lambda: first.session.ack_revision == first.session.view_revision)
+            await settle(first.session, first.caller)
             probe.save(first, f"truce-marked-{width}x{height}-{tier}")
             await probe.leave(first, f"finished-player-a-{width}x{height}-{tier}")
             await probe.leave(second, f"finished-player-b-{width}x{height}-{tier}")
@@ -120,6 +123,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int,
             await navigate(probe, caller, regular)
             await probe.target(caller, regular.id)
             await wait(lambda: "Truce: Sable answers" in caller.caller.screen.screen_text())
+            await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
             probe.save(caller, f"truce-regular-warning-{width}x{height}-{tier}")
             await shoot_until(probe, caller, regular, lambda: any(g.target == caller.avatar.actor.id for g in guards))
             await wait(lambda: any(line["text"] == "Sable is coming for you." for line in caller.session.log_ring))
@@ -136,6 +140,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int,
                         and any("HP " in line and f' {target["hp_percent"]}%' in line for line in text.splitlines())
                         and "Truce: Sable answers" not in text)
             await wait(response_visible)
+            await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
             probe.save(caller, f"truce-keeper-response-{width}x{height}-{tier}")
             assert not caller.avatar.actor.marked
             cases.append({"size": [width, height], "tier": tier, "presentation": modern,
