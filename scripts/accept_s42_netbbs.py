@@ -69,6 +69,11 @@ async def accept(root: Path, python: Path, size: tuple[int, int], tier: str, sho
         await caller.caller.write(b'\x1b[D')
         await wait(lambda: caller.avatar.actor.position == (4, 5))
         assert caller.session.id not in core.dialogue.menus
+        # #255: the settle can hold before the post-move view is sent (the old
+        # talk page is acknowledged and whole), so wait for the street frame
+        # first: its title row names the zone, the talk page's names the door.
+        # Then settle, so the capture is not a half-drawn street either.
+        await wait(lambda: zone.template.meta.name in caller.caller.screen.screen_text().splitlines()[0])
         await delivered()
         await save('one-press-walk-away')
         await probe.walk(caller, (5, 5))
