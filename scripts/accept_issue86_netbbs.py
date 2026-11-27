@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_settle import settled_now
 from acceptance_hall import crossed_quietly
 
 
@@ -42,7 +43,7 @@ async def accept(root: Path, door_python: Path, tier: str) -> None:
                 caller.session.needs_full_view = True
                 heading = sector.district.upper()+' / LATTICE'
                 await wait(lambda: heading in caller.caller.screen.screen_text().splitlines()[0]
-                    and caller.session.ack_revision == caller.session.view_revision)
+                    and settled_now(caller.session, caller.caller))
                 body = lattice.view(caller.session, presence)
                 cells = {c['id']: c for c in body['cells']}
                 vertical = any(edge['kind'] == 'hidden' and cells[edge['a']]['x'] == cells[edge['b']]['x']

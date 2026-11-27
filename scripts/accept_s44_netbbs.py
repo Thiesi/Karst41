@@ -43,6 +43,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_settle import settled as settle
 from acceptance_hall import crossed_quietly
 from accept_p4_netbbs import navigate
 from karst41 import truce_text
@@ -122,10 +123,11 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 return caller.caller.screen.screen_text()
 
             async def delivered(who: Connection = caller) -> None:
-                await wait(lambda: who.session.ack_revision == who.session.view_revision)
+                await settle(who.session, who.caller)  # Acknowledged and the last frame whole (#255).
 
-            def save(who: Connection, scenario: str, facts: dict[str, Any]) -> None:
+            async def save(who: Connection, scenario: str, facts: dict[str, Any]) -> None:
                 label = f's44-{scenario}-{width}x{height}-{tier}-{renderer}'
+                await settle(who.session, who.caller)  # #255: acknowledged and the last frame whole.
                 probe.save(who, label)
                 (root/(label+'.json')).write_text(json.dumps(snapshot(who.caller.screen),
                     ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
@@ -138,7 +140,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             await enter_row(probe, caller)
             arrival = truce_text.arrival('Sable')
             await wait(lambda: arrival in screen())
-            save(caller, 'price-arrival', {'notice': arrival})
+            await save(caller, 'price-arrival', {'notice': arrival})
             guards = [a for a in zone.actors.values() if a.behaviour.get('template') == 'npc-sable-enforcer']
             assert guards
             regular = next(a for a in zone.actors.values() if a.behaviour.get('template') == 'npc-sodium-regular')
@@ -154,7 +156,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             at_npc = truce_text.at_npc('Sable')
             try:
                 await wait(lambda: 'Truce: Sable answers' in screen() and at_npc in screen())
-                save(caller, 'price-target', {'notice': at_npc, 'warning': 'Truce: Sable answers',
+                await save(caller, 'price-target', {'notice': at_npc, 'warning': 'Truce: Sable answers',
                                               'fixture': 'regular held still (#225)'})
             finally:
                 regular.behaviour['pause'] = pause
@@ -182,7 +184,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             await wait(lambda: any(g.behaviour.get('state') == 'hunt' and (g.x-me.x)**2+(g.y-me.y)**2 <= 100
                                    for g in guards), 60)
             await delivered()
-            save(caller, 'hunted-pursuit', {'hunted': True, 'guards': [list(g.position) for g in guards]})
+            await save(caller, 'hunted-pursuit', {'hunted': True, 'guards': [list(g.position) for g in guards]})
 
             # 3. Into the bar; a guard follows in. Then out; it follows out.
             # Declared: one pursuer for this scene. Holding fire, a guard that
@@ -225,7 +227,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             await wait(lambda: any(in_bar(g) and g.target == me.id for g in guards), 60)
             await delivered()
             follower = next(g for g in guards if in_bar(g))
-            save(caller, 'bar-pursuit-in', {'fixture_walls': len(walls), 'guard': list(follower.position),
+            await save(caller, 'bar-pursuit-in', {'fixture_walls': len(walls), 'guard': list(follower.position),
                                             'fixture': f'pursuer placed at {list(PURSUER_AT)}, south of the doorway, '
                                                        f'after the caller walks to {list(STAGE)} (#263)',
                                             'player': list(me.position)})
@@ -246,7 +248,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 recorder.cancel()
             assert DOORWAY & set(trail), trail
             await delivered()
-            save(caller, 'bar-pursuit-out', {'guard_trail': [list(t) for t in trail], 'player': list(me.position)})
+            await save(caller, 'bar-pursuit-out', {'guard_trail': [list(t) for t in trail], 'player': list(me.position)})
 
             # 4. The Halo's door refuses, with the minutes.
             door = next(ex for ex in zone.template.meta.exits if ex.target_zone == HALO)
@@ -265,7 +267,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             assert me.zone == ROW
             await wait(lambda: refusal in screen())
             line = next(ln['text'] for ln in caller.session.log_ring if refusal in ln['text'])
-            save(caller, 'halo-refused', {'line': line})
+            await save(caller, 'halo-refused', {'line': line})
 
             # 5. Death settles the debt. Fire is released, and the player goes
             # back within sight of the guards' posts (a guard that lost sight
@@ -287,7 +289,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             vat = max(i for i, text in enumerate(log) if text.startswith('You wake in the vat.'))
             assert log[vat+1] == SETTLED, log[vat:vat+2]
             await delivered()
-            save(caller, 'settled', {'line': SETTLED, 'zone': me.zone})
+            await save(caller, 'settled', {'line': SETTLED, 'zone': me.zone})
             await probe.leave(caller, f's44-left-a-{width}x{height}-{tier}-{renderer}')
 
             # 6. A fresh character opens an enforcer's page and asks.
@@ -361,14 +363,14 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                         continue
             await wait(lambda: 'Ask about the peace' in asker.caller.screen.screen_text())
             await delivered(asker)
-            save(asker, 'enforcer-talk', {'label': 'Ask about the peace'})
+            await save(asker, 'enforcer-talk', {'label': 'Ask about the peace'})
             await asker.caller.write(b'a')
             answer = 'Nobody draws. Somebody does, we come for them'
             await wait(lambda: answer in asker.caller.screen.screen_text())
             await delivered(asker)
             shipped = next(line.text for line in core.characters.content.dialogue['row-enforcer'].lines
                            if line.id == 'ask-peace')
-            save(asker, 'enforcer-ask', {'question': "What's the arrangement here?", 'answer': shipped,
+            await save(asker, 'enforcer-ask', {'question': "What's the arrangement here?", 'answer': shipped,
                                          'fixture': 'enforcers held still while the page is open (#225)',
                                          'talker': core.dialogue.menus[asker.session.id].contact.target
                                          if asker.session.id in core.dialogue.menus else None})

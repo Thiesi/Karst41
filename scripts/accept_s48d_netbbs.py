@@ -54,6 +54,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import CombatCaller, Connection, NativeProbe, wait
+from acceptance_settle import settled as settle
 from netbbs.auth.users import get_user_by_id
 from karst41.server import ambience as amb
 from karst41.server.clock import TICK_HZ
@@ -163,8 +164,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     return any(text == lines[lid].text for _, _, _, text in heard)
 
                 async def delivered() -> None:
-                    await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
-                    await wait(lambda: caller.caller.output.endswith((b'\x1b[?25l', b'\x1b[?25h')))
+                    await settle(caller.session, caller.caller)  # Acknowledged and the last frame whole (#255).
 
                 async def budget_open(zone_id: str) -> None:
                     try:
@@ -205,8 +205,9 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                             await asyncio.sleep(PACE_SECONDS)
                             await caller.caller.write(key)
 
-                def save(name: str, facts: dict[str, Any]) -> None:
+                async def save(name: str, facts: dict[str, Any]) -> None:
                     label = f's48d-{name}-{width}x{height}-{tier}-{renderer}'
+                    await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
                     probe.save(caller, label)
                     (root/(label+'.json')).write_text(json.dumps(snapshot(caller.caller.screen),
                         ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
@@ -250,7 +251,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     bark = next(x for _, k, _, x in heard[mark:] if k == 'speech')
                     await wait(lambda: shows(bark) and shows(lines['w02'].text))
                     await delivered()
-                    save('hall-wall-line', {'line': 'w02', 'text': lines['w02'].text, 'bark': bark,
+                    await save('hall-wall-line', {'line': 'w02', 'text': lines['w02'].text, 'bark': bark,
                                             'player': list(me.position), 'orderly': list(orderly.position)})
                 else:
                     await probe.travel(caller, PLAZA)
@@ -279,7 +280,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                     ambient = next(x for _, k, _, x in heard[mark:] if k == 'ambient')
                     await wait(lambda: shows(ambient) and shows(pair[0]) and shows(pair[1]))
                     await delivered()
-                    save('row-wall-pair', {'line': 'w18', 'text': pair[0], 'answer': pair[1], 'ambience': ambient,
+                    await save('row-wall-pair', {'line': 'w18', 'text': pair[0], 'answer': pair[1], 'ambience': ambient,
                                            'player': list(caller.avatar.actor.position)})
                 wall = [(r, x) for _, k, r, x in heard
                         if k == 'ambient' and any(x in (ln.text, ln.answer) for ln in lines.values())]

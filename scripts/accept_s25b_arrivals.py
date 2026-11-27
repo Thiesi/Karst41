@@ -13,6 +13,7 @@ import subprocess
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_settle import settled_now
 from acceptance_hall import crossed_quietly
 from build_city_content import build, read, write
 from karst41.content.loader import load_content
@@ -60,7 +61,7 @@ async def capture(probe: NativeProbe, caller: Connection, tier: str,
                   scenario: str, before_ids: set[str]) -> dict[str, Any]:
     zone = probe.service.world.zones[caller.avatar.zone].template
     await wait(lambda: zone.meta.name in caller.caller.screen.screen_text().splitlines()[0]
-               and caller.session.ack_revision == caller.session.view_revision)
+               and settled_now(caller.session, caller.caller))
     # Let the live door flush the log alongside the acknowledged view. This
     # is transport readiness, not a simulation-time or performance fixture.
     await asyncio.sleep(.1)

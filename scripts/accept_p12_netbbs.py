@@ -27,6 +27,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import wait
+from acceptance_settle import settled as settle
 from acceptance_hall import crossed_quietly
 from accept_s19_netbbs import ContractProbe
 from karst41.content.schema import ObjectSpec
@@ -63,13 +64,14 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             assert caller.session.caps['tier'] == tier, caller.session.caps
 
             async def delivered() -> None:
-                await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
+                await settle(caller.session, caller.caller)  # Acknowledged and the last frame whole (#255).
 
             def screen() -> list[str]:
                 return caller.caller.screen.screen_text().split('\n')
 
-            def save(scenario: str, facts: dict[str, Any]) -> None:
+            async def save(scenario: str, facts: dict[str, Any]) -> None:
                 label = f'p12-{scenario}-{width}x{height}-{tier}-{renderer}'
+                await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
                 probe.save(caller, label)
                 (root/(label+'.json')).write_text(json.dumps(snapshot(caller.caller.screen),
                     ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
@@ -114,7 +116,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 else:
                     # 4-row detail rect: rule 3's fallback ends row 4 with `...`.
                     assert not whole and shown[detail.height-1].endswith('...'), shown
-                save('vendor-detail-wraps', {'item': SIDEARM, 'description': description, 'detail_rows': shown,
+                await save('vendor-detail-wraps', {'item': SIDEARM, 'description': description, 'detail_rows': shown,
                                              'description_whole': whole, 'rule_3_fallback': not whole})
                 await caller.caller.write(b'\x1b')
                 await wait(lambda: caller.session.id not in core.commerce.menus)
@@ -172,7 +174,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 body = [row for row in shown if row and not row.startswith(('c ', 'v ', 'Esc/B'))]
                 assert ' '.join(body).split() == text.split(), (body, text)
                 assert shown.count('Esc/B  Leave') == 1 and not any('Back' in row for row in shown)
-                save(scenario, {'talker': did, 'line': text, 'line_rows': len(body), 'talk_rows': shown})
+                await save(scenario, {'talker': did, 'line': text, 'line_rows': len(body), 'talk_rows': shown})
                 await caller.caller.write(b'\x1b')
                 await wait(lambda: caller.session.id not in core.dialogue.menus)
                 return text
@@ -193,7 +195,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 await wait(lambda: speaker in '\n'.join(screen()[layout.log.y:layout.log.bottom]))
                 await delivered()
                 log_rows = [row.rstrip() for row in screen()[layout.log.y:layout.log.bottom]]
-                save('log-after-talk', {'older': halvard, 'newer': vesper, 'log_rows': log_rows})
+                await save('log-after-talk', {'older': halvard, 'newer': vesper, 'log_rows': log_rows})
                 await remove_contact()
             await probe.leave(caller, f'p12-left-{width}x{height}-{tier}-{renderer}')
         assert not probe.errors and probe.service.failure is None

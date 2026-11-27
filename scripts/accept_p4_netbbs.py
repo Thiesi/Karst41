@@ -18,6 +18,7 @@ import time
 from typing import Any
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_settle import settled as settle, settled_now
 from acceptance_hall import crossed_quietly
 from accept_s11_netbbs import approach
 from karst41.npc_presentation import channels
@@ -72,8 +73,9 @@ async def accept(root: Path, door_python: Path, show: bool,
                                           sixteen=tier == '16', truecolor=tier == 'truecolor')
                 assert caller.session.caps['tier'] == tier
                 screen = caller.caller.screen
-                await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
-                def save(label: str) -> None:
+                await settle(caller.session, caller.caller)
+                async def save(label: str) -> None:
+                    await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
                     probe.save(caller, label)
                     (root/(label+'.json')).write_text(json.dumps(snapshot(screen), ensure_ascii=False,
                         indent=2)+'\n', encoding='utf-8', newline='\n')
@@ -84,10 +86,10 @@ async def accept(root: Path, door_python: Path, show: bool,
                 assert len(place) == 1
                 assert all('kind' in line for line in caller.session.log_ring)
                 assert not any('restart' in line['text'].lower() for line in caller.session.log_ring)
-                save(f'wake-{width}x{height}-{tier}')
+                await save(f'wake-{width}x{height}-{tier}')
                 await caller.caller.write(b'\x10')
                 await wait(lambda: 'SCROLLBACK' in screen.screen_text() and place[0]['text'][:24] in screen.screen_text())
-                save(f'place-history-{width}x{height}-{tier}')
+                await save(f'place-history-{width}x{height}-{tier}')
                 await caller.caller.write(b'\x1b')
                 await wait(lambda: 'Wake Hall' in screen.screen_text().splitlines()[0])
                 # S48c1b: a character crosses the drone's ring and nothing happens.
@@ -102,7 +104,7 @@ async def accept(root: Path, door_python: Path, show: bool,
                 assert body['theme'] and all('label' in edge for edge in body['edges'])
                 assert all('owner' in cell and 'tier' in cell for cell in body['cells'] if cell['core'])
                 assert body['me']['district'] == 'Vatside' and not body['me']['pvp']
-                save(f'lattice-{width}x{height}-{tier}')
+                await save(f'lattice-{width}x{height}-{tier}')
                 await caller.caller.write(b'j')
                 await wait(lambda: caller.avatar.actor.stance == 'normal')
                 await wait(lambda: 'Wake Hall' in screen.screen_text().splitlines()[0])
@@ -128,7 +130,7 @@ async def accept(root: Path, door_python: Path, show: bool,
                 assert peer_view['target']['class'] == 'civilian'
                 assert peer_view['target']['faction'] == 'Civilian'
                 assert peer_view['target']['name_role'] == 'npc_neutral'
-                save(f'sodium-regular-{width}x{height}-{tier}')
+                await save(f'sodium-regular-{width}x{height}-{tier}')
                 await navigate(probe, caller, npc)
                 await approach(probe, caller, npc, hostile_tile=False)
                 await probe.target(caller, npc.id)
@@ -142,7 +144,7 @@ async def accept(root: Path, door_python: Path, show: bool,
                 assert npc.name not in screen.screen_text()
                 assert any(a.name == template.cover_name and a.behaviour.get('template') == 'npc-sodium-regular'
                            for a in zone.actors.values())
-                save(f'sodium-cover-{width}x{height}-{tier}')
+                await save(f'sodium-cover-{width}x{height}-{tier}')
                 # Declared inventory fixture: provision one owned attack drone
                 # through the server's normal durable commerce boundary. Keep
                 # NPC templates, positions, funds, rules and clocks untouched.
@@ -177,10 +179,10 @@ async def accept(root: Path, door_python: Path, show: bool,
                 await wait(selected_ready)
                 await caller.caller.write(b'u')
                 await wait(lambda: iid in drones.actors and 'Target '+template.cover_name in screen.screen_text()
-                           and caller.session.ack_revision == caller.session.view_revision)
+                           and settled_now(caller.session, caller.caller))
                 assert not npc.revealed_to
                 assert npc.name not in screen.screen_text()
-                save(f'drone-cover-{width}x{height}-{tier}')
+                await save(f'drone-cover-{width}x{height}-{tier}')
                 await caller.caller.write(b'\x1b')
                 await wait(lambda: caller.session.id not in drones.menus
                            and 'Sodium Row' in screen.screen_text().splitlines()[0])

@@ -30,6 +30,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_settle import settled as settle
 from accept_s44_netbbs import enter_row
 from karst41.server import ambience as amb
 from karst41.server.clock import TICK_HZ
@@ -88,10 +89,11 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 return any(text in entry for entry in entries)
 
             async def delivered(who: Connection = caller) -> None:
-                await wait(lambda: who.session.ack_revision == who.session.view_revision)
+                await settle(who.session, who.caller)  # Acknowledged and the last frame whole (#255).
 
-            def save(scenario: str, facts: dict[str, Any]) -> None:
+            async def save(scenario: str, facts: dict[str, Any]) -> None:
                 label = f'p8-{scenario}-{width}x{height}-{tier}-{renderer}'
+                await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
                 probe.save(caller, label)
                 (root/(label+'.json')).write_text(json.dumps(snapshot(caller.caller.screen),
                     ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
@@ -122,7 +124,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
             await wait(lambda: shows(tram))
             await delivered()
             bark = next(text for _, kind, text in heard if kind == 'speech' and tram in text)
-            save('bark', {'line': bark, 'regular': list(regular.position), 'player': list(me.position)})
+            await save('bark', {'line': bark, 'regular': list(regular.position), 'player': list(me.position)})
 
             # 2. A Row ambience line arrives.
             # Declared: other barks wait for this step, so a regular firing in
@@ -139,7 +141,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 assert line in look.ambient
                 await wait(lambda: shows(line))
                 await delivered()
-                save('ambience', {'line': line, 'fixture': 'other barks held for this step'})
+                await save('ambience', {'line': line, 'fixture': 'other barks held for this step'})
             finally:
                 voice.barks.next_due = barks_due
 
@@ -172,7 +174,7 @@ async def accept(root: Path, door_python: Path, width: int, height: int, modern:
                 assert not late, late
                 await wait(lambda: shows(combat))
                 await delivered()
-                save('combat-quiet', {'combat_line': combat, 'quiet_seconds': (clock.now_tick()-shot)/TICK_HZ,
+                await save('combat-quiet', {'combat_line': combat, 'quiet_seconds': (clock.now_tick()-shot)/TICK_HZ,
                                       'forced_due_every_seconds': .5, 'delivered_in_window': late})
             finally:
                 holding.cancel()

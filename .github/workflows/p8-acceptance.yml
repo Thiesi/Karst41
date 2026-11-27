@@ -7,6 +7,7 @@ on:
       - 'src/karst41/server/**'
       - 'src/karst41/content/**'
       - 'scripts/accept_p8_netbbs.py'
+      - 'scripts/acceptance_settle.py'
       - 'scripts/measure_p8_cost.py'
       - '.github/workflows/p8-acceptance.yml'
   workflow_dispatch:

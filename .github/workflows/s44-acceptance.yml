@@ -9,6 +9,7 @@ on:
       - 'src/karst41/truce_text.py'
       - 'tests/npcs/fixtures/issue187-row-demo.map'
       - 'scripts/accept_s44_netbbs.py'
+      - 'scripts/acceptance_settle.py'
       - '.github/workflows/s44-acceptance.yml'
   workflow_dispatch:
 

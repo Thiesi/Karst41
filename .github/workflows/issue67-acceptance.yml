@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/karst41/**'
       - 'scripts/accept_issue67_netbbs.py'
+      - 'scripts/acceptance_settle.py'
       - 'scripts/accept_s10_netbbs.py'
       - '.github/workflows/issue67-acceptance.yml'
 

@@ -25,6 +25,7 @@ from accept_s04_netbbs import Database, DatabaseLane, DoorProfile, REPO, TelnetS
 from accept_s06_netbbs import ZoneCaller
 from acceptance_duel import Borders, DuelLedger, border_failure, fighter
 from acceptance_hall import return_to
+from acceptance_settle import settled as settle, settled_now
 from acceptance_renderer import stamp as stamp_renderer
 import karst41
 from karst41.content.loader import ContentTree
@@ -216,10 +217,10 @@ class NativeProbe:
         # script that fights it does so first, then calls create().
         connection.avatar=self.game.sim.avatars[session.user_id]
         self.homes[session.id]=connection.avatar.actor.position
-        settled=lambda:session.ack_revision==session.view_revision
+        settled=lambda:settled_now(session,caller)  # #255: acknowledged and the last frame whole.
         if capture_cards:
             await self.walk(connection,(8,9))
-            await wait(settled);await caller.write(b"e")
+            await settle(session,caller);await caller.write(b"e")
             await wait(lambda:'Take no card' in caller.screen.screen_text() and 'Halvard-Ostrom' in caller.screen.screen_text()
                        and settled())
             self.save(connection, f'issue67-recruiters-{width}x{height}')
@@ -237,9 +238,9 @@ class NativeProbe:
         caller,session=connection.caller,connection.session
         wake=self.game.wakes[session.id]
         home=self.homes[session.id]
-        settled=lambda:session.ack_revision==session.view_revision
+        settled=lambda:settled_now(session,caller)  # #255: acknowledged and the last frame whole.
         await self.walk(connection,(37,16))
-        await wait(settled);await caller.write(b"e")
+        await settle(session,caller);await caller.write(b"e")
         await wait(lambda:wake.stage=="record" and "DECANT RECORD" in caller.screen.screen_text() and settled())
         if capture_wake:
             # Technical lead (S48c2, amendment 3): P5 pauses at the record as
@@ -260,15 +261,14 @@ class NativeProbe:
             if state and state["spoken"]:  # Log lines are not views: wait for the last one on screen.
                 needle=opening.text(opening.lines[state["spoken"][-1]][1])[:30]
                 await wait(lambda:needle in caller.screen.screen_text())
-            await wait(settled)
-            # The frame's bytes arrive after the ack: wait for the whole last
-            # frame (it ends with the cursor sequence) before the capture.
-            await wait(lambda:caller.output.endswith((b"\x1b[?25l",b"\x1b[?25h")))
+            # The frame's bytes arrive after the ack: acknowledged and the
+            # last frame whole before the capture (#252, #255).
+            await settle(session,caller)
             self.save(connection, f'wake-record-{width}x{height}-{session.caps["tier"]}')
         for index in range(archetype):
             await caller.write(b"\x1b[B")
             await wait(lambda:wake.cursor==index+1)
-        await wait(settled)
+        await settle(session,caller)
         await caller.write(b"\r");await wait(lambda:"Name (Enter keeps default):" in caller.screen.screen_text())
         await caller.write(f"{label}界{width}".encode()+b"\r")
         await wait(lambda:session.player_id in self.game.players and not self.game.unread(session.player_id))

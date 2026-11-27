@@ -36,6 +36,7 @@ import traceback
 from typing import Any
 
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_settle import settled as settle
 from karst41.door.client import presentation_on
 from karst41.server import truce
 from karst41.server.app import Server
@@ -103,7 +104,7 @@ class Evening:
     # --- keys -----------------------------------------------------------------
 
     async def settled(self, conn: Connection) -> None:
-        await wait(lambda: conn.session.ack_revision == conn.session.view_revision, 15)
+        await settle(conn.session, conn.caller, 15)  # Acknowledged and the last frame whole (#255).
 
     async def press(self, conn: Connection, data: bytes, until: Any = None, timeout: float = 15,
                     tries: int = 1) -> None:
@@ -169,8 +170,7 @@ class Evening:
 
     async def capture(self, conn: Connection, name: str, caller: str, **facts: Any) -> None:
         await self.settled(conn)
-        await wait(lambda: conn.caller.output.endswith((b'\x1b[?25l', b'\x1b[?25h')), 15)
-        label = f's48e-{caller.lower()}-{name}-{self.width}x{self.height}-{self.tier}'
+        label =f's48e-{caller.lower()}-{name}-{self.width}x{self.height}-{self.tier}'
         self.probe.save(conn, label)
         (self.root/(label+'.json')).write_text(json.dumps(snapshot(conn.caller.screen), ensure_ascii=False,
                                                           indent=2)+'\n', encoding='utf-8')

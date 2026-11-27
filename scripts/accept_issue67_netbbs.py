@@ -12,6 +12,7 @@ from math import isclose
 from pathlib import Path
 
 from accept_s10_netbbs import NativeProbe, wait
+from acceptance_settle import settled as settle, settled_now
 from acceptance_hall import crossed_quietly
 from accept_s14_netbbs import choose, program
 
@@ -43,7 +44,7 @@ async def accept(root: Path, door_python: Path, tier: str, show: bool = False) -
             defender = encounters.defenders(presence)[0]
             await wait(lambda: defender.template.name in caller.caller.screen.screen_text()
                 and '/ CORE' in caller.caller.screen.screen_text().splitlines()[0]
-                and caller.session.ack_revision == caller.session.view_revision)
+                and settled_now(caller.session, caller.caller))
             defender.integrity, defender.maximum = 30, 40
             mods = probe.game.progression.modifiers(player)
             multiplier = 1+mods.skill(player, 'programs')/200
@@ -57,6 +58,7 @@ async def accept(root: Path, door_python: Path, tier: str, show: bool = False) -
                 await wait(lambda: '19.99/40' in caller.caller.screen.screen_text()
                     and '10.01. Integrity 19.99.' in caller.caller.screen.screen_text())
                 assert isclose(defender.integrity, 19.9925)
+                await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
                 probe.save(caller, f'issue67-fractional-ice-{width}x{height}')
                 results.append({'size': [width, height], 'tier': tier, 'all_recruiters': True,
                     'ice_integrity': defender.integrity, 'display': '19.99/40', 'damage_text': '10.01'})

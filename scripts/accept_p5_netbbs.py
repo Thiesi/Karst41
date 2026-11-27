@@ -16,6 +16,7 @@ from typing import Any
 
 import accept_s10_netbbs
 from accept_s10_netbbs import Connection, NativeProbe, wait
+from acceptance_settle import settled as settle
 from karst41.door.palette import Palette
 from karst41.door.present.paint import Paint, light_distance
 from karst41.server.clock import TICK_HZ
@@ -55,7 +56,6 @@ def _recorded_return_to(service: Any, session: Any, home: Any) -> None:
 
 accept_s10_netbbs.return_to = _recorded_return_to
 _probes: list['PresentationProbe'] = []
-FRAME_END = (b'\x1b[?25l', b'\x1b[?25h')  # door.chrome.cursor(): the last bytes of every rendered frame.
 WALK_KEYS = ['\x1b[A', '\x1b[B', '\x1b[C', '\x1b[D']
 # Technical lead (c2): a loop-driven step is compared as loops. Each step
 # is stored as segments: fixed `keys` (byte-identical on a rerun), and
@@ -149,16 +149,14 @@ async def accept(root: Path, door_python: Path, show: bool,
                 captures = []
 
                 async def settled() -> None:
-                    await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
-                    # The ack reaches the server before the frame's bytes reach
-                    # this caller through NetBBS: wait until the last frame has
-                    # arrived whole (every render ends with the cursor
-                    # sequence), or a capture can be torn mid-frame (c2-p5-5's
-                    # contracts-80x24-256, diagnosed from the runner's bytes).
-                    await wait(lambda: caller.caller.output.endswith(FRAME_END))
+                    # Acknowledged AND the last frame whole (#252, #255): the
+                    # ack reaches the server before the frame's bytes reach
+                    # this caller through NetBBS (c2-p5-5's contracts-80x24-256).
+                    await settle(caller.session, caller.caller)
 
-                def save(step: str) -> None:
+                async def save(step: str) -> None:
                     label = f'{step}-{width}x{height}-{tier}'
+                    await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
                     probe.save(caller, label)
                     captures.append(label)
 
@@ -177,7 +175,7 @@ async def accept(root: Path, door_python: Path, show: bool,
                 await caller.caller.write(b'f')
                 await wait(lambda: caller.session.ack_revision > revision
                            and display.screen_text().count('Training drone') >= 2)
-                save('training-drone')
+                await save('training-drone')
                 start = len(caller.caller.inputs)
                 async with asyncio.timeout(45):
                     while probe.game.players[caller.session.player_id].progress.get('wake_combat') != 'done':
@@ -186,7 +184,7 @@ async def accept(root: Path, door_python: Path, show: bool,
                 probe.loop(caller.caller, start, {'loop': 'press_until',
                     'goal': {'progress': {'wake_combat': 'done'}}, 'may_press': ['f']})
                 await settled()
-                save('training-complete')
+                await save('training-complete')
                 await probe.create(caller, width, height, label, 0, tier == '16', capture_wake=True)
                 captures.append(f'wake-record-{width}x{height}-{tier}')
                 player = probe.game.players[caller.session.player_id]
@@ -212,7 +210,7 @@ async def accept(root: Path, door_python: Path, show: bool,
                     await wait(lambda: needle in display.screen_text())
                 await settled()
                 assert display.cell(0, 0) == '╔'
-                save('wake-hall')
+                await save('wake-hall')
                 await probe.travel(caller, 'vatside-clinics')
                 await probe.travel(caller, 'core-plaza')
                 # Walk beside the shipped patrol route, rather than capture
@@ -240,14 +238,14 @@ async def accept(root: Path, door_python: Path, show: bool,
                         'original_distance': light_distance(original, paint.bands.ground),
                         'paint_distance': light_distance(lifted, paint.bands.ground),
                         'people_floor': paint.bands.people, 'terminal_cells': lifted_people()}
-                save('meridian-plaza')
+                await save('meridian-plaza')
                 for key, title, step in ((b'i', 'INVENTORY', 'inventory'),
                                          (b'q', 'CONTRACTS', 'contracts'),
                                          (b'?', 'HELP', 'help')):
                     await caller.caller.write(key)
                     await wait(lambda: title in display.screen_text())
                     await settled()
-                    save(step)
+                    await save(step)
                     await caller.caller.write(b'\x1b')
                     await wait(lambda: 'Meridian Plaza' in display.screen_text().splitlines()[0])
                     await settled()

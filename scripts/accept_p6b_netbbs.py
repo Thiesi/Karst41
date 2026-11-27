@@ -16,6 +16,7 @@ from typing import Any
 
 from accept_p5_netbbs import PresentationProbe
 from accept_s10_netbbs import wait
+from acceptance_settle import settled as settle
 from acceptance_hall import crossed_quietly
 
 
@@ -52,7 +53,7 @@ async def accept(root: Path, door_python: Path, size: tuple[int, int], tier: str
         caller.caller.write = write
 
         async def settled() -> None:
-            await wait(lambda: caller.session.ack_revision == caller.session.view_revision)
+            await settle(caller.session, caller.caller)  # Acknowledged and the last frame whole (#255).
 
         async def save(step: str) -> None:
             await settled()
