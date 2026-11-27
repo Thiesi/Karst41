@@ -175,9 +175,26 @@ async def _profile(probe: NativeProbe, width: int, height: int,
                 rows.append(current)
                 current = None
 
+    # #288: spawn ground lookups and walks per tick (a walk is a cache miss), so the first
+    # profiled tick, where every zone wakes, shows what start-up's pre-warm left warm.
+    # Counted only while a spawn is placed; no cost on ticks without spawns.
+    from karst41.server.npcs.spawn import Spawners
+    original_ground, original_walk = Spawners._ground, Spawners.__dict__['_walk']
+
+    def counted_ground(self: Spawners, zone: Any, spawner: Any) -> Any:
+        if current is not None:
+            current.setdefault('spawn_ground', {'lookups': 0, 'walks': 0})['lookups'] += 1
+        return original_ground(self, zone, spawner)
+
+    def counted_walk(zone: Any, spawner: Any) -> Any:
+        if current is not None:
+            current.setdefault('spawn_ground', {'lookups': 0, 'walks': 0})['walks'] += 1
+        return original_walk.__func__(zone, spawner)
+
     loop.subsystems = [TimedSubsystem(system, f'{index}:{type(system).__name__}')
                        for index, system in enumerate(original_subsystems)]
     loop.step = step
+    Spawners._ground, Spawners._walk = counted_ground, staticmethod(counted_walk)
     probe.service._character_writes = writes
     gc.callbacks.append(gc_trace)
     for zone in probe.service.world.zones.values():
@@ -198,6 +215,7 @@ async def _profile(probe: NativeProbe, width: int, height: int,
         return status["tick_p99_ms"]
     finally:
         loop.subsystems, loop.step = original_subsystems, original_step
+        Spawners._ground, Spawners._walk = original_ground, original_walk
         probe.service._character_writes = original_writes
         if gc_trace in gc.callbacks:
             gc.callbacks.remove(gc_trace)
@@ -213,6 +231,12 @@ async def _profile(probe: NativeProbe, width: int, height: int,
                                                                for key, value in forced_gc.items()}))
         writer_figures = writer_window(io, marks if sampling_tick >= 0 else {}, counters if sampling_tick >= 0 else {})
         probe.report(f"S47 WRITER {width}x{height}: " + json.dumps(writer_figures['summary']))
+        grounds = [row.get('spawn_ground', {'lookups': 0, 'walks': 0}) for row in rows]
+        probe.report(f"S11 SPAWN GROUND {width}x{height}: " + json.dumps({
+            'first_tick': rows[0]['tick'] if rows else None,
+            'first_tick_lookups': grounds[0]['lookups'] if grounds else 0,
+            'first_tick_walks': grounds[0]['walks'] if grounds else 0,
+            'window_lookups': sum(g['lookups'] for g in grounds), 'window_walks': sum(g['walks'] for g in grounds)}))
         number = len(list(probe.root.glob(f'npc-profile-{width}x{height}-*.json')))+1
         (probe.root/f'npc-profile-{width}x{height}-{number}.json').write_text(json.dumps({
             'status': status, 'sampling_started_tick': sampling_tick,

@@ -1,6 +1,6 @@
 """#277 pricing: a deterministic headless replay, probes off (technical lead, 2026-11-26).
 
-Three scenarios on the production Core with every hub zone active, writes
+Four scenarios on the production Core with every hub zone active, writes
 through S47's IO and a ManualWriter (the same Executor and SQL as the live
 writer, completed after each tick and outside every timed section):
 
@@ -11,6 +11,9 @@ writer, completed after each tick and outside every timed section):
   the next NPC tick refills the zone at once (the S11 early-tick spike).
 - focus (#277 D4): `Core.interaction_views`, the publishers' E/J focus
   lookup, timed on its own for one caller on sampled tiles of every hub zone.
+- wake (#288): a fresh world runs with the other zones dormant, then every
+  zone wakes at once, as S11's profiler does; the wake tick's Npcs.tick and
+  step are timed, in a new world each round.
 
 The same content, seed and inputs give the same world on every repeat;
 the script checks that each repeat ends in the same actor and RNG state,
@@ -21,7 +24,7 @@ Timings are wall clock around Npcs.tick, the whole step, and the writes
 
     PYTHONPATH="<tree>/src;<tree>" python scripts/bench_277.py --repeats 5
 
-`--only npcs` runs pursuit and refill; `--only focus` runs focus.
+`--only npcs` runs pursuit and refill; `--only focus` and `--only wake` run one scenario.
 """
 
 from __future__ import annotations
@@ -188,13 +191,50 @@ def focus(content: Any, stride: int) -> tuple[list[float], str]:
         return timings, seen.hexdigest()
 
 
+def wake(content: Any, rounds: int) -> tuple[list[dict[str, float]], str]:
+    """#288: the first refill of every zone, as when S11's profiler wakes them all.
+
+    Each round builds a new world (so its spawn ground starts as the tree's
+    Core leaves it), runs 30 ticks with only the caller's zone awake, then
+    activates every zone and times the next tick: Npcs.tick and the whole
+    step. Twenty more ticks follow, and the last round's world is the digest.
+    """
+    rows, result = [], ''
+    for _ in range(rounds):
+        with tempfile.TemporaryDirectory() as tmp:
+            from tests.server.test_s47_writer import Rig
+            rig = Rig(Path(tmp), content)
+            game = rig.game
+            for _ in range(30):
+                game.step()
+                cycle(rig)
+            for zone in game.core.world.zones.values():
+                zone.activate('bench-288', game.clock.now_tick())
+            timer = Timed()
+            try:
+                began = time.perf_counter()
+                game.step()
+                step = (time.perf_counter() - began) * 1000
+                rows.append({'npcs': timer.last, 'step': step})
+            finally:
+                timer.close()
+            cycle(rig)
+            for _ in range(20):
+                game.step()
+                cycle(rig)
+            result = fingerprint(game)
+            rig.store.db.close()
+    return rows, result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--repeats', type=int, default=5)
     parser.add_argument('--ticks', type=int, default=600)
     parser.add_argument('--rounds', type=int, default=10)
     parser.add_argument('--stride', type=int, default=7, help='focus: every n-th passable tile')
-    parser.add_argument('--only', choices=('npcs', 'focus'), help='run one part: pursuit and refill, or focus')
+    parser.add_argument('--wakes', type=int, default=3, help='wake: fresh worlds per repeat')
+    parser.add_argument('--only', choices=('npcs', 'focus', 'wake'), help='run one part: pursuit and refill, focus, or wake')
     parser.add_argument('--json', type=Path)
     args = parser.parse_args()
     import karst41
@@ -207,15 +247,19 @@ def main() -> int:
     quiet_all: dict[str, list[float]] = {'npcs': [], 'writes': [], 'total': []}
     spikes_all: list[float] = []
     focus_all: list[float] = []
+    wake_all: list[dict[str, float]] = []
     for repeat in range(args.repeats):
-        if args.only == 'focus':
-            rows, pursuit_state, spikes, refill_state = [], '', [], ''
-        else:
+        if args.only in (None, 'npcs'):
             rows, pursuit_state = pursuit(content, args.ticks)
             spikes, refill_state = refill(content, args.rounds)
-        timings, focus_state = focus(content, args.stride) if args.only != 'npcs' else ([], '')
+        else:
+            rows, pursuit_state, spikes, refill_state = [], '', [], ''
+        timings, focus_state = focus(content, args.stride) if args.only in (None, 'focus') else ([], '')
         focus_all += timings
-        fingerprints.add((pursuit_state, refill_state, focus_state))
+        woken, wake_state = wake(content, args.wakes) if args.only in (None, 'wake') else ([], '')
+        wake_all += woken
+        # The wake digest joins only when it ran, so the other scenarios' fingerprints stay comparable.
+        fingerprints.add((pursuit_state, refill_state, focus_state) + ((wake_state,) if woken else ()))
         hits = [r for r in rows if r['hit']]
         quiet = [r for r in rows if not r['hit']]
         for key in hits_all:
@@ -231,6 +275,8 @@ def main() -> int:
         if timings:
             line.update({'focus_calls': len(timings), 'focus_median': round(statistics.median(timings), 4),
                          'focus_p99': round(quantile(timings, .99), 4), 'focus_mean': round(statistics.fmean(timings), 4)})
+        if woken:
+            line.update({'wake_npcs': [round(r['npcs'], 3) for r in woken], 'wake_step': [round(r['step'], 3) for r in woken]})
         report['repeats'].append(line)
         print(json.dumps(line), flush=True)
     report['deterministic'] = len(fingerprints) == 1
@@ -247,6 +293,10 @@ def main() -> int:
     if focus_all:
         report['summary']['focus'] = {'median': round(statistics.median(focus_all), 4), 'p99': round(quantile(focus_all, .99), 4),
                                       'mean': round(statistics.fmean(focus_all), 4), 'calls_per_repeat': len(focus_all) // args.repeats}
+    if wake_all:
+        report['summary']['wake'] = {f'{key}_{stat}': round(fn([r[key] for r in wake_all]), 3) for key in ('npcs', 'step')
+                                     for stat, fn in (('median', statistics.median), ('max', max))}
+        report['summary']['wake']['worlds'] = len(wake_all)
     print(json.dumps({'deterministic': report['deterministic'], 'fingerprint': report['fingerprint'],
                       **report['summary']}, indent=1))
     if args.json:
