@@ -1,6 +1,6 @@
 """#277 pricing: a deterministic headless replay, probes off (technical lead, 2026-11-26).
 
-Four scenarios on the production Core with every hub zone active, writes
+Five scenarios on the production Core with every hub zone active, writes
 through S47's IO and a ManualWriter (the same Executor and SQL as the live
 writer, completed after each tick and outside every timed section):
 
@@ -14,6 +14,9 @@ writer, completed after each tick and outside every timed section):
 - wake (#288): a fresh world runs with the other zones dormant, then every
   zone wakes at once, as S11's profiler does; the wake tick's Npcs.tick and
   step are timed, in a new world each round.
+- patrol (#284, `--only patrol` alone): every zone active and no fight, so
+  patrols walk their loops among wandering residents; Npcs.tick, the step
+  and the patrols' route searches per tick are recorded.
 
 The same content, seed and inputs give the same world on every repeat;
 the script checks that each repeat ends in the same actor and RNG state,
@@ -24,7 +27,7 @@ Timings are wall clock around Npcs.tick, the whole step, and the writes
 
     PYTHONPATH="<tree>/src;<tree>" python scripts/bench_277.py --repeats 5
 
-`--only npcs` runs pursuit and refill; `--only focus` and `--only wake` run one scenario.
+`--only npcs` runs pursuit and refill; `--only focus`, `--only wake` and `--only patrol` run one scenario.
 """
 
 from __future__ import annotations
@@ -227,6 +230,33 @@ def wake(content: Any, rounds: int) -> tuple[list[dict[str, float]], str]:
     return rows, result
 
 
+def patrols(content: Any, ticks: int) -> tuple[list[dict[str, float]], str]:
+    """#284: every zone active and no fight, so patrols walk their loops among
+    wandering residents (Clinic Row's Warden patrol and its patients included).
+    Times Npcs.tick and the step, and counts patrol route searches per tick
+    (trees before #284 have no patrol routes and report 0)."""
+    with tempfile.TemporaryDirectory() as tmp:
+        rig, _ = world(Path(tmp), content)
+        game = rig.game
+        routes = getattr(game.core.npcs, 'patrol_routes', None)
+        timer, rows = Timed(), []
+        try:
+            for _ in range(ticks):
+                before = {aid: route.searches for aid, route in routes.items()} if routes is not None else {}
+                began = time.perf_counter()
+                game.step()
+                step = (time.perf_counter() - began) * 1000
+                searches = (sum(route.searches - before.get(aid, 0) for aid, route in routes.items())
+                            if routes is not None else 0)
+                cycle(rig)
+                rows.append({'npcs': timer.last, 'step': step, 'searches': searches})
+        finally:
+            timer.close()
+        result = fingerprint(game)
+        rig.store.db.close()
+        return rows, result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--repeats', type=int, default=5)
@@ -234,7 +264,9 @@ def main() -> int:
     parser.add_argument('--rounds', type=int, default=10)
     parser.add_argument('--stride', type=int, default=7, help='focus: every n-th passable tile')
     parser.add_argument('--wakes', type=int, default=3, help='wake: fresh worlds per repeat')
-    parser.add_argument('--only', choices=('npcs', 'focus', 'wake'), help='run one part: pursuit and refill, focus, or wake')
+    parser.add_argument('--only', choices=('npcs', 'focus', 'wake', 'patrol'),
+                        help='run one part: pursuit and refill, focus, wake, or patrol')
+    parser.add_argument('--patrol-ticks', type=int, default=1200, help='patrol: ticks per repeat')
     parser.add_argument('--json', type=Path)
     args = parser.parse_args()
     import karst41
@@ -248,6 +280,7 @@ def main() -> int:
     spikes_all: list[float] = []
     focus_all: list[float] = []
     wake_all: list[dict[str, float]] = []
+    patrol_all: list[dict[str, float]] = []
     for repeat in range(args.repeats):
         if args.only in (None, 'npcs'):
             rows, pursuit_state = pursuit(content, args.ticks)
@@ -258,8 +291,11 @@ def main() -> int:
         focus_all += timings
         woken, wake_state = wake(content, args.wakes) if args.only in (None, 'wake') else ([], '')
         wake_all += woken
-        # The wake digest joins only when it ran, so the other scenarios' fingerprints stay comparable.
-        fingerprints.add((pursuit_state, refill_state, focus_state) + ((wake_state,) if woken else ()))
+        walked, patrol_state = patrols(content, args.patrol_ticks) if args.only == 'patrol' else ([], '')
+        patrol_all += walked
+        # The wake and patrol digests join only when they ran, so the other scenarios' fingerprints stay comparable.
+        fingerprints.add((pursuit_state, refill_state, focus_state) + ((wake_state,) if woken else ())
+                         + ((patrol_state,) if walked else ()))
         hits = [r for r in rows if r['hit']]
         quiet = [r for r in rows if not r['hit']]
         for key in hits_all:
@@ -277,6 +313,12 @@ def main() -> int:
                          'focus_p99': round(quantile(timings, .99), 4), 'focus_mean': round(statistics.fmean(timings), 4)})
         if woken:
             line.update({'wake_npcs': [round(r['npcs'], 3) for r in woken], 'wake_step': [round(r['step'], 3) for r in woken]})
+        if walked:
+            line.update({f'patrol_{k}_{stat}': round(fn([r[k] for r in walked]), 3) for k in ('npcs', 'step')
+                         for stat, fn in (('median', statistics.median), ('p99', lambda v: quantile(v, .99)))})
+            line.update({'patrol_searches': sum(r['searches'] for r in walked),
+                         'patrol_search_ticks': sum(1 for r in walked if r['searches']),
+                         'patrol_searches_max_per_tick': max(r['searches'] for r in walked)})
         report['repeats'].append(line)
         print(json.dumps(line), flush=True)
     report['deterministic'] = len(fingerprints) == 1
@@ -297,6 +339,13 @@ def main() -> int:
         report['summary']['wake'] = {f'{key}_{stat}': round(fn([r[key] for r in wake_all]), 3) for key in ('npcs', 'step')
                                      for stat, fn in (('median', statistics.median), ('max', max))}
         report['summary']['wake']['worlds'] = len(wake_all)
+    if patrol_all:
+        report['summary']['patrol'] = {
+            **{f'{key}_{stat}': round(fn([r[key] for r in patrol_all]), 3) for key in ('npcs', 'step')
+               for stat, fn in (('median', statistics.median), ('p99', lambda v: quantile(v, .99)), ('max', max))},
+            'ticks': len(patrol_all), 'searches': sum(r['searches'] for r in patrol_all),
+            'search_ticks': sum(1 for r in patrol_all if r['searches']),
+            'searches_max_per_tick': max(r['searches'] for r in patrol_all)}
     print(json.dumps({'deterministic': report['deterministic'], 'fingerprint': report['fingerprint'],
                       **report['summary']}, indent=1))
     if args.json:

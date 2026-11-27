@@ -141,8 +141,17 @@ def test_design_5_5_tick_keeps_wander_and_patrol_off_exit(city, monkeypatch, kin
     monkeypatch.setattr(zone.rng, "choice", lambda candidates: next(values))
     before = actor.position
     game.step()
-    assert actor.position != before
     assert actor.position != blocked
+    if kind == "wander":
+        assert actor.position != before
+        return
+    # #284: a patrol routes to its waypoints. Beside a reserved waypoint (this
+    # exit) it has arrived, so with no other waypoint it waits there, never on it.
+    monkeypatch.undo()
+    for _ in range(20):
+        game.step()
+        assert actor.position != blocked
+    assert abs(actor.x-blocked[0]) + abs(actor.y-blocked[1]) == 1
 
 
 @pytest.mark.parametrize("key, exit_id, start", [

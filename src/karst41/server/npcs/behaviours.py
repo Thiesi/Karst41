@@ -42,18 +42,69 @@ def step_toward(actor: Actor, zone: ZoneInstance, target: Tile, tick: int,
     return False
 
 
+def body_on(zone: ZoneInstance, actor: Actor, tile: Tile) -> bool:
+    """Another body the actor cannot step through stands on tile."""
+    return any(other.id != actor.id and other.position == tile and mission_pair(actor, other)
+               and not (other.behaviour.get("training") and other.owner != actor.id)
+               for other in zone.actors.values())
+
+
 def patrol(actor: Actor, zone: ZoneInstance, waypoints: list[Tile], tick: int,
-           bounce: bool = False, avoid: set[Tile] | None = None) -> None:
+           bounce: bool = False, avoid: set[Tile] | None = None, route: "Route | None" = None) -> None:
+    """Loop or bounce through the waypoints (game design 5.5).
+
+    #284: the old greedy step slid sideways (and away) with an 8-tile memory,
+    so a body briefly on a waypoint could lure the patrol into a permanent
+    orbit around a building. Now a patrol only takes a free step that brings
+    it closer to the waypoint; when none is free (a wall or a body in the
+    way), it follows the bounded shortest path hunts use, until it arrives.
+    Open ground costs no search. A body parked on the next waypoint must not
+    hold the patrol either: arriving beside a held waypoint counts as
+    reaching it. A reserved waypoint (an exit, object or spawn tile in
+    `avoid`) is never stepped on; arriving beside it counts as reaching it.
+    """
     if not waypoints:
         return
+    avoid = avoid or set()
     index = int(actor.behaviour.get("waypoint", 0)) % len(waypoints)
-    if actor.position == waypoints[index]:
+    goal = waypoints[index]
+    beside = abs(actor.x-goal[0]) + abs(actor.y-goal[1]) == 1
+    if actor.position == goal or (beside and (goal in avoid or body_on(zone, actor, goal))):
         direction = int(actor.behaviour.get("patrol_direction", 1))
         if bounce and not 0 <= index + direction < len(waypoints):
             direction = -direction
         index = (index + direction) % len(waypoints)
         actor.behaviour.update(waypoint=index, patrol_direction=direction)
-    step_toward(actor, zone, waypoints[index], tick, avoid=avoid)
+        goal = waypoints[index]
+    if goal in avoid and abs(actor.x-goal[0]) + abs(actor.y-goal[1]) == 1:
+        return  # route_toward may step onto its goal; a reserved one, never.
+    if actor.position == goal or tick < actor.cooldowns.get("move", 0):
+        return
+    route = route if route is not None else Route()
+    # Keep to a path already found for this waypoint; otherwise take a free
+    # step that brings the patrol closer (never one that leads away, so it
+    # cannot orbit), and search only when no such step is free.
+    if not (route.path and route.key[:1] == (goal,) and actor.position in route.path[:-1]):
+        if closer_step(actor, zone, goal, tick, avoid):
+            return
+    route_toward(actor, zone, goal, tick, route, avoid)
+
+
+def closer_step(actor: Actor, zone: ZoneInstance, goal: Tile, tick: int, avoid: set[Tile]) -> bool:
+    """One ordinary move that shortens the 4-way distance to goal, if one is free."""
+    dx, dy = goal[0] - actor.x, goal[1] - actor.y
+    names = [("right" if dx > 0 else "left", dx), ("down" if dy > 0 else "up", dy)]
+    names.sort(key=lambda item: -abs(item[1]))
+    for name, delta in names:
+        if not delta:
+            continue
+        vx, vy = dict(STEPS)[name]
+        tile = actor.x + vx, actor.y + vy
+        if tile in avoid or body_on(zone, actor, tile):
+            continue
+        if move(actor, zone, name, tick):
+            return True
+    return False
 
 
 # S44 (#187): hunt routing. A breadth-first search over the zone's passable
@@ -151,9 +202,7 @@ def route_toward(actor: Actor, zone: ZoneInstance, target: Tile, tick: int, rout
             route.retry -= moved
             return moved
         nxt = route.path[route.path.index(actor.position) + 1]
-        if any(other.id != actor.id and other.position == nxt and mission_pair(actor, other)
-               and not (other.behaviour.get("training") and other.owner != actor.id)
-               for other in zone.actors.values()):
+        if body_on(zone, actor, nxt):
             if nxt == target:
                 return False  # The goal is held; wait beside it.
             route.blocked = route.blocked | {nxt}

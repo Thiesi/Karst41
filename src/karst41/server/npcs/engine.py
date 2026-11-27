@@ -51,6 +51,7 @@ class Npcs:
         # while it is live takes it up; `hunted` reads only the record.
         self.answers: dict[str, dict[str, float]] = {}
         self.routes: dict[str, Route] = {}  # S44: hunt routes by actor id.
+        self.patrol_routes: dict[str, Route] = {}  # #284: waypoint routes by actor id.
         self.answer_saved_at: dict[str, float] = {}
         self.menus: set[str] = set()
         self.talking: Callable[[str, str], bool] = lambda sid, aid: False
@@ -707,7 +708,8 @@ class Npcs:
                 return
             if behaviour.kind == "patrol":
                 points = params.get("waypoints", [])
-                patrol(actor, zone, [tuple(p) for p in points], tick, bool(params.get("bounce")), avoid)
+                patrol(actor, zone, [tuple(p) for p in points], tick, bool(params.get("bounce")), avoid,
+                       self.patrol_routes.setdefault(actor.id, Route()))
                 return
             if behaviour.kind in ("guard", "warden"):
                 step_toward(actor, zone, tuple(actor.behaviour["home"]), tick, avoid=avoid)
@@ -767,6 +769,7 @@ class Npcs:
         if ctx.tick % EVALUATION_TICKS == 0:
             self.routes = {aid: route for aid, route in self.routes.items()
                            if (actor := self.world.actors.get(aid)) and actor.behaviour.get("state") == "hunt"}
+            self.patrol_routes = {aid: route for aid, route in self.patrol_routes.items() if aid in self.world.actors}
             self.combat.warnings = {pair: tick for pair, tick in self.combat.warnings.items()
                 if pair[0] in self.world.actors and pair[1] in self.world.actors}
         for source_id, channel in tuple(self.restraints.items()):
