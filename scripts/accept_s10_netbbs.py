@@ -23,6 +23,7 @@ from typing import Any
 
 from accept_s04_netbbs import Database, DatabaseLane, DoorProfile, REPO, TelnetServer, browse_doors, create_door, create_user
 from accept_s06_netbbs import ZoneCaller
+from acceptance_duel import Borders, DuelLedger, border_failure, fighter
 from acceptance_hall import return_to
 from acceptance_renderer import stamp as stamp_renderer
 import karst41
@@ -43,12 +44,23 @@ async def wait(condition: Any, timeout: float = 10) -> None:
 
 
 class CombatCaller(ZoneCaller):
-    hit_border_seen = False
+    # #290: borders are counted (each time one appears), so the duel can say
+    # how many fell before, during and after it. Seen means any at all.
+    @property
+    def borders(self) -> Borders:
+        return self.__dict__.setdefault("_borders", Borders())
+
+    @property
+    def hit_borders(self) -> int:
+        return self.borders.count
+
+    @property
+    def hit_border_seen(self) -> bool:
+        return self.borders.count > 0
 
     def replay(self) -> None:
         super().replay()
-        if self.screen.grid[0][:5] == ["-"]*5:
-            self.hit_border_seen = True
+        self.borders.see(self.screen.grid[0])
 
 
 @dataclass
@@ -520,15 +532,20 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
             await asyncio.sleep(2.2)
             await a.caller.write(b"2")
             await wait(lambda:any(e.get("weapon_multiplier")==1.5 for e in b.avatar.actor.effects))
-            jam=True;shock_seen=False;both_hurt=False;started=time.monotonic()
+            # #290: the duel keeps a ledger, so a failed check names the flag it missed.
+            jam=True;duel=DuelLedger(("A","B"),a.caller.hit_borders);started=time.monotonic()
             async with asyncio.timeout(100):
                 while all(c.avatar.actor.stance!="down" for c in (a,b)):
                     for connection in (a,b): await connection.caller.write(b"f")
-                    shock_seen|=any(c.avatar.actor.shock>=80 for c in (a,b))
-                    both_hurt|=all(c.avatar.actor.health<c.avatar.actor.health_max for c in (a,b))
+                    duel.sample(time.monotonic()-started,(fighter(a.avatar.actor),fighter(b.avatar.actor)),a.caller.hit_borders)
                     await asyncio.sleep(.2)
             loser=next(c for c in (a,b) if c.avatar.actor.stance=="down")
             duel_seconds=round(time.monotonic()-started,1)
+            borders_after_duel=a.caller.hit_borders
+            duel_summary=duel.summary(duel_seconds,"A" if loser is a else "B")
+            shock_seen,both_hurt=duel.shock_seen,duel.both_hurt
+            probe.report(f"DUEL {width}x{height}: {json.dumps(duel_summary,sort_keys=True)}")
+            assert not duel.missed(),duel.failure(f"{width}x{height}",duel_seconds,duel_summary["loser"])
             winner=b if loser is a else a
             player=probe.game.players[loser.session.player_id]
             await wait(lambda:loser.avatar.actor.stance=="dead",7)
@@ -569,7 +586,9 @@ async def accept(root: Path, door_python: Path, show: bool) -> None:
             await a.caller.write(b"f");await asyncio.sleep(.3)
             assert b.avatar.actor.health==before
             assert any("Protected" in row["text"] for row in a.session.log_ring)
-            assert both_hurt and shock_seen and a.caller.hit_border_seen
+            # both_hurt and shock_seen were checked when the duel ended (#290).
+            assert a.caller.hit_border_seen,border_failure(f"{width}x{height}",duel.borders_before,
+                borders_after_duel-duel.borders_before,a.caller.hit_borders-borders_after_duel,duel_summary)
             saved=next(p for p in (await storage_reader.committed_state(probe.service))["players"] if p["id"]==player.id)
             assert saved["chits_hand"]==900 and saved["chits_bank"]==500
             probe.report(f"PASS combat {width}x{height}: both HP fall, shock slow, Jam, down/dead/decant, clone charge 100, loot, loan kit, plaza safety, 16-colour border")
