@@ -111,9 +111,22 @@ seller net disclosure and queued-death coverage. Unsupported expiry
 exceptions, a new bounty tax and future-only effect composition were
 rejected with practical-impact rationale in the PR.
 
-The driver fixtures set grade/full pools and banked funds. There is no
-item, placement, reward, clock or future-map fixture. The bounty kill
-uses existing Vatside contested geography. Actual Sink routes and
+The driver fixtures set grade/full pools and banked funds, and, since
+#279, the buyer's health for the bounty fight. There is no item,
+placement, reward, clock or future-map fixture. The bounty kill uses
+existing Vatside contested geography.
+
+The health fixture is there because the hunter's first hit Marks them on
+contested ground, and Clinic Row's Warden patrol hunts a Marked player.
+From the buyer's full health, the patrol sometimes killed the hunter
+first, and the step timed out (#279: one CI failure in 105 runs). The
+driver now sets the buyer's health just before the fight to twice an
+upper bound on one of the hunter's hits, plus one. So the kill takes at
+least three real hits, and the driver asserts that it did. The log
+carries a `FIXTURE S23` line with the value and an `S23 FIGHT` line with
+presses, hits, misses and duration. Targeted F fire, damage, the death,
+the bounty payout and the victim's cache rights all stay real, and so do
+the Marked rule and the patrol. Actual Sink routes and
 normal earning, commerce, clinic affordability and human pacing remain
 S25/S26 obligations carried from PR #38. This acceptance does not prove
 those experiences or long-term economy balance.
