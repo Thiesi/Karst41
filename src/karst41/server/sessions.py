@@ -23,6 +23,13 @@ RECONNECT_SECONDS = 60  # Architecture §8.2.
 LOG_RING_LINES = 500  # Game design §11.
 LOG_REPLAY_LINES = 50
 CHOICE_HISTORY = 16  # S48e: published revisions whose menu choices are remembered.
+# #301 (presentation lead 7226785737, technical lead 7226798416): what a refused
+# stale menu choice tells the caller. Toast only, never the log.
+# Which menu each revision showed is kept longer than its choice (at most one
+# view a tick, so 6.4 s): a link slower than CHOICE_HISTORY's 1.6 s still
+# learns why its Enter was refused. It never lets a choice through.
+MENU_HISTORY = 64
+STALE_CHOICE_TOAST = 'The menu changed, so nothing was chosen. Choose again.'
 
 # S48e (technical lead): what a choice means is everything its menu shows as
 # its terms - every row's cells, the labels, the detail text with its prices,
@@ -50,20 +57,37 @@ CHOICE_COUNTDOWNS = tuple(re.compile(pattern, re.MULTILINE) for pattern in (
 ))
 
 
-def choice_state(frame: Frame) -> str | None:
-    """S48e: a digest of what a caller chooses from in a published view, or
-    None for a view that offers no choice (no menu rows). Two revisions with
-    the same digest offer the same choice on the same terms."""
+def _menu(frame: Frame) -> tuple[Any, dict[str, Any]] | None:
+    """A published view's kind and the menu it offers, or None for a view
+    that offers no choice (no menu rows)."""
     data = frame.data if frame.type == 'view' else {}
     body = data.get('body') if isinstance(data.get('body'), dict) else {}
     if data.get('kind') == 'wake' and isinstance(body.get('body'), dict):
         body = body['body']  # The Wake's record wraps its menu.
     if not isinstance(body.get('rows'), list):
         return None
+    return data.get('kind'), body
+
+
+def choice_state(frame: Frame) -> str | None:
+    """S48e: a digest of what a caller chooses from in a published view, or
+    None for a view that offers no choice (no menu rows). Two revisions with
+    the same digest offer the same choice on the same terms."""
+    menu = _menu(frame)
+    if menu is None:
+        return None
+    kind, body = menu
     shown = {key: value for key, value in body.items() if key not in CHOICE_EXCLUDED_KEYS}
-    text = json.dumps([data.get('kind'), _without_countdowns(shown)], sort_keys=True, ensure_ascii=False,
+    text = json.dumps([kind, _without_countdowns(shown)], sort_keys=True, ensure_ascii=False,
                       default=str)
     return blake2b(text.encode('utf-8'), digest_size=16).hexdigest()
+
+
+def menu_identity(frame: Frame) -> tuple[Any, Any] | None:
+    """#301: which menu a published view shows, its kind and title, or None
+    for a view that offers no choice. A menu that changed in place keeps it."""
+    menu = _menu(frame)
+    return None if menu is None else (menu[0], menu[1].get('title'))
 
 
 def _blank(countdown: re.Pattern[str]) -> Callable[[re.Match[str]], str]:
@@ -132,6 +156,14 @@ class Session:
     """S48d: wall lines heard this evening (one login), carried across a reconnect."""
     choices: dict[int, str | None] = field(default_factory=dict)
     """S48e: each recent published revision's choice_state, newest CHOICE_HISTORY."""
+    menus: dict[int, tuple[Any, Any] | None] = field(default_factory=dict)
+    """#301: each recent published revision's menu_identity, newest MENU_HISTORY."""
+    handling: Frame | None = field(default=None, repr=False)
+    """#301: the input frame the tick loop is dispatching for this session."""
+    toasted: Frame | None = field(default=None, repr=False)
+    """#301: the newest refused menu_select told about, so one Enter toasts once."""
+    chosen_from: int = -1
+    """#301: the newest revision a menu_select was let through from."""
     notify: Callable[[], None] = field(default=lambda: None, repr=False)
 
     @property
@@ -259,16 +291,41 @@ class Session:
         on the very same terms (choice_state). A view that moved only in the
         caller's status or a named countdown no longer drops the caller's key;
         a menu whose rows, prices, totals or text changed still refuses it."""
-        if expected == self.view_revision:
-            return True
         state = self.choices.get(expected) if type(expected) is int else None
-        if state is not None and state == self.choices.get(self.view_revision):
+        if expected == self.view_revision or (state is not None and state == self.choices.get(self.view_revision)):
+            if self.choosing() and type(expected) is int:
+                self.chosen_from = max(self.chosen_from, expected)
             return True
         # Architecture (02-architecture.md): a stale selection returns the current detail view
         # without spending or selecting a different row. The guard refuses it;
         # the whole current view goes out again on the next tick.
         self.needs_full_view = True
+        self.tell_refused(expected)
         return False
+
+    def tell_refused(self, expected: Any) -> None:
+        """#301: a refused Enter says so, once, as a toast that goes out with
+        the re-sent view. Only a `menu_select`, and only while the menu it was
+        chosen from is still the menu on screen (the same kind and title,
+        changed in place). A refusal against a menu that an accepted choice
+        has since replaced, such as a double-pressed Enter, stays silent: it
+        would say "nothing was chosen" right after something was. So does a
+        refusal made from a view some accepted choice was already made from
+        (a doubled Enter on a menu that stays open, such as a purchase that
+        changes its totals), and one whose revision is too old to compare."""
+        frame = self.handling
+        if not self.choosing() or frame is self.toasted or type(expected) is not int or expected <= self.chosen_from:
+            return
+        shown = self.menus.get(expected)
+        if shown is None or shown != self.menus.get(self.view_revision):
+            return
+        self.toasted = frame
+        self.send(Frame('toast', {'text': STALE_CHOICE_TOAST, 'role': 'ui_text', 'seconds': 4}))
+
+    def choosing(self) -> bool:
+        """#301: the frame being dispatched is a menu choice (an Enter)."""
+        frame = self.handling
+        return frame is not None and frame.type == 'intent' and frame.data.get('name') == 'menu_select'
 
     def acknowledge(self, revision: int) -> None:
         if self.ack_revision <= revision <= self.view_revision:
@@ -290,8 +347,11 @@ class Session:
             self.last_view_tick = tick
             self.view_revision = chosen.data["rev"]
             self.choices[self.view_revision] = choice_state(full)
+            self.menus[self.view_revision] = menu_identity(full)
             while len(self.choices) > CHOICE_HISTORY:
                 self.choices.pop(min(self.choices))
+            while len(self.menus) > MENU_HISTORY:
+                self.menus.pop(min(self.menus))
             self.needs_full_view = False
             return True
         return False
