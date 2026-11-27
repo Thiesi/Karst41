@@ -178,6 +178,10 @@ class Core:
             self.dialogue.ambience.walls = self.walls
             self.characters.sim.voice_input = self.walls.input
             self.characters.voice_event = self.walls.event
+        # #288: every template spawner's ground is walked here, at start-up and
+        # before the heap freeze, not on the tick its zone first wakes.
+        if self.npcs is not None:
+            self.npcs.spawners.prewarm(self.world.zones.values())
 
     def _disconnect_character(self, session: Session) -> None:
         if self.commerce:

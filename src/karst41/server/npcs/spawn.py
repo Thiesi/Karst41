@@ -1,7 +1,7 @@
 """Bounded spawners. UTC deadlines permit lazy wake and durable death receipts."""
 
 from typing import Any
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 from karst41.content.schema import Spawner, Tile
 from karst41.server.npcs.templates import EVALUATION_TICKS, make_actor
@@ -71,6 +71,21 @@ class Spawners:
         if len(states) > GROUND_STATES:
             del states[0]
         return ground
+
+    def prewarm(self, zones: Iterable[ZoneInstance]) -> None:
+        """#288: walk each template spawner's ground for the zone's current map state.
+
+        Called once when the Core is built, so a zone's first wake reuses the
+        walk instead of doing it on the wake tick. It only fills `_ground`'s
+        cache: no RNG draw, no slot, serial or actor changes. One entry per
+        spawner, made while its list is still empty, so it evicts nothing; a
+        map state that changes before the wake simply misses, as today.
+        Event spawners (`extra`) and per-player ones are left to their first use.
+        """
+        for zone in zones:
+            for spawner in zone.template.meta.spawners:
+                if spawner.condition != "per_player":
+                    self._ground(zone, spawner)
 
     def location(self, zone: ZoneInstance, spawner: Spawner,
                  memo: dict[str, tuple[Any, ...]] | None = None) -> Tile | None:
