@@ -83,6 +83,48 @@ def test_a_patrol_caught_in_the_old_orbit_finds_its_way_back(content) -> None:
         assert on_street(patrol), patrol.position
 
 
+def unreachable(game: HeadlessServer, zone: Any, patrol: Any, start: tuple[int, int],
+                monkeypatch: pytest.MonkeyPatch) -> tuple[Any, Any]:
+    """The patrol at start, its next waypoint a wall tile no search can reach."""
+    wall = (38, 8)  # The east clinic block's west wall.
+    assert not zone.passable(wall)
+    place(game, patrol, zone, start)
+    content = game.core.loop.content
+    template = content.npcs[patrol.behaviour["template"]]
+    from dataclasses import replace
+    from karst41.content.schema import Behaviour
+    monkeypatch.setitem(content.npcs, template.id,
+                        replace(template, behaviours=(Behaviour("patrol", {"waypoints": [list(wall)]}),)))
+    patrol.behaviour.update(waypoint=0)
+    return wall, content.npcs[template.id]
+
+
+def test_a_failed_search_backs_off_instead_of_running_every_tick(content, monkeypatch) -> None:
+    """No path (or past the bound): the miss is cached for ROUTE_RETRY_MOVES greedy moves, keyed on the goal."""
+    from karst41.server.npcs.behaviours import ROUTE_RETRY_MOVES
+    game, zone, patrol = clinic_row(content)
+    unreachable(game, zone, patrol, (30, 3), monkeypatch)
+    moves, previous = 0, patrol.position
+    for _ in range(200):
+        game.step()
+        moves += patrol.position != previous
+        previous = patrol.position
+    searches = game.core.npcs.patrol_routes[patrol.id].searches
+    assert 1 <= searches <= 1 + moves // ROUTE_RETRY_MOVES + 1, (searches, moves)
+
+
+def test_a_boxed_in_patrol_with_no_path_searches_once(content, monkeypatch) -> None:
+    """Nowhere to go and no path: one search, then nothing until the goal or blockers change."""
+    game, zone, patrol = clinic_row(content)
+    unreachable(game, zone, patrol, (1, 1), monkeypatch)  # The street's north-west corner.
+    for tile in ((2, 1), (1, 2)):
+        park(game, zone, tile)
+    for _ in range(100):
+        game.step()
+        assert patrol.position == (1, 1)
+    assert game.core.npcs.patrol_routes[patrol.id].searches == 1
+
+
 def test_the_route_is_reused_while_nothing_on_it_changes(content) -> None:
     """No re-route storm: in a still crowd the patrol searches about once per leg, not once per tick."""
     game, zone, patrol = clinic_row(content)
