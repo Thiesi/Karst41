@@ -15,7 +15,7 @@ the menu, stays silent.
 """
 
 from karst41.server.protocol import Frame
-from karst41.server.sessions import CHOICE_HISTORY, MENU_HISTORY, STALE_CHOICE_TOAST, Session
+from karst41.server.sessions import CHOICE_HISTORY, MENU_HISTORY, QUEUE_LIMIT, STALE_CHOICE_TOAST, Session
 from tests.lattice.test_encounters import enter
 from tests.lattice.test_engine import intent, runners  # noqa: F401  (fixture)
 from tests.lattice.test_interlock import control_room, flip
@@ -59,10 +59,28 @@ def test_a_menu_that_changed_in_place_refuses_the_enter_and_says_so_once():
     assert toasts(session.send_queue) == [TOAST]
     assert not session.fresh(1)  # A second route checking the same Enter.
     assert toasts(session.send_queue) == [TOAST]
+    session.send_queue.clear()  # The writer sent it.
     session.handling = select(1)  # A new Enter, still stale, is told again.
     assert enter_frame is not session.handling
     assert not session.fresh(1)
-    assert toasts(session.send_queue) == [TOAST, TOAST]
+    assert toasts(session.send_queue) == [TOAST]
+
+
+def test_a_burst_of_stale_enters_is_told_once_and_never_drops_the_caller():
+    # Review 7229989222: a stalled link delivers a full input queue of held
+    # Enters in one tick. One toast is queued, not one per Enter.
+    session = session_with(menu_view(1, 'ROOM', 'warning'), menu_view(2, 'ROOM', 'attacking'))
+    for _ in range(8):  # Lines already waiting for the writer.
+        session.send(Frame('pong', {'t': 0}))
+    for _ in range(QUEUE_LIMIT):
+        session.handling = select(1)
+        assert not session.fresh(1)
+    assert toasts(session.send_queue) == [TOAST]
+    assert not session.closed, 'One toast per Enter would have filled the queue: bye slow_consumer'
+    session.send_queue.clear()  # The writer sent it; a later stale Enter is told again.
+    session.handling = select(1)
+    assert not session.fresh(1)
+    assert toasts(session.send_queue) == [TOAST]
 
 
 def test_a_refusal_after_an_accepted_choice_replaced_the_menu_is_silent():

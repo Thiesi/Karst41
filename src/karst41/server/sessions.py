@@ -320,7 +320,13 @@ class Session:
         if shown is None or shown != self.menus.get(self.view_revision):
             return
         self.toasted = frame
-        self.send(Frame('toast', {'text': STALE_CHOICE_TOAST, 'role': 'ui_text', 'seconds': 4}))
+        # A burst of stale Enters (a stalled link delivering held keys at once)
+        # is told once: never queue a second copy before the first has gone,
+        # so the toasts can't fill the send queue and drop the caller (review
+        # 7229989222).
+        if not any(queued.type == 'toast' and queued.data.get('text') == STALE_CHOICE_TOAST
+                   for queued in self.send_queue):
+            self.send(Frame('toast', {'text': STALE_CHOICE_TOAST, 'role': 'ui_text', 'seconds': 4}))
 
     def choosing(self) -> bool:
         """#301: the frame being dispatched is a menu choice (an Enter)."""
