@@ -24,6 +24,71 @@ from karst41 import content as content_package
 from karst41.server.rules import character
 from tests import storage_reader
 
+# #246 diagnostics. A menu choice the server refuses as stale (Session.fresh)
+# leaves no trace of its own, so gate-duo's choose() used to time out with
+# nothing to go on. The probe hosts the service in process: record every
+# refusal with the revision the Enter carried, the session's current one,
+# and which menu cells differ between those two published documents.
+REFUSALS: list[dict[str, Any]] = []
+ENTER_DELAY = 0.0  # --enter-delay: seconds a menu choice spends in flight.
+CHOICE_SECONDS = 10  # How long menu() keeps offering one choice.
+DOCUMENTS: dict[str, dict[int, Any]] = {}
+
+
+def differences(before: Any, after: Any, path: str = '') -> list[list[Any]]:
+    if isinstance(before, dict) and isinstance(after, dict):
+        return [d for key in sorted(set(before) | set(after)) if key != 'me'  # The status block is never a term.
+                for d in differences(before.get(key), after.get(key), f'{path}.{key}')]
+    if isinstance(before, list) and isinstance(after, list) and len(before) == len(after):
+        return [d for index, pair in enumerate(zip(before, after)) for d in differences(*pair, f'{path}[{index}]')]
+    return [] if before == after else [[path, str(before)[:200], str(after)[:200]]]
+
+
+def trace_refusals() -> None:
+    from karst41.server.sessions import Session
+    if getattr(Session, 's246_traced', False):
+        return
+    fresh, publish = Session.fresh, Session.publish_view
+
+    def published(self, full, delta, tick):
+        shown = publish(self, full, delta, tick)
+        if shown:
+            ring = DOCUMENTS.setdefault(self.id, {})
+            ring[self.view_revision] = full.data.get('body') if full.type == 'view' else None
+            while len(ring) > 64:
+                ring.pop(min(ring))
+        return shown
+
+    def checked(self, expected):
+        accepted = fresh(self, expected)
+        if not accepted:
+            ring = DOCUMENTS.get(self.id, {})
+            before, after = ring.get(expected), ring.get(self.view_revision)
+            REFUSALS.append({'session': self.id, 'sent': expected, 'current': self.view_revision,
+                             'monotonic': round(time.monotonic(), 3),
+                             'differs': differences(before, after)[:20] if before is not None and after is not None
+                             else 'document not kept'})
+        return accepted
+
+    Session.fresh, Session.publish_view, Session.s246_traced = checked, published, True
+
+
+def delay_choices(core: Any, seconds: float) -> None:
+    """#246: a slow link, in process. Every menu choice reaches the server
+    `seconds` after the door sent it, carrying the revision it was made on."""
+    receive, loop = core.receive, asyncio.get_running_loop()
+
+    def delayed(session, frame):
+        if frame.type == 'intent' and frame.data.get('name') == 'menu_select':
+            loop.call_later(seconds, receive, session, frame)
+        else:
+            receive(session, frame)
+    core.receive = delayed
+
+
+def refusals(connection: Connection) -> str:
+    return json.dumps([r for r in REFUSALS if r['session'] == connection.session.id][-8:], ensure_ascii=False)
+
 
 async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, changes: bool = True) -> None:
     encounters = probe.service.core.lattice.encounters
@@ -38,18 +103,36 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
         await connection.caller.write(b'\x1b[B' if desired > old else b'\x1b[A')
         await wait(lambda: screen.cursor != old)
     state = screen.kind, screen.slot, screen.target
-    for _ in range(6):
-        await wait(lambda: connection.session.ack_revision == connection.session.view_revision)
-        if encounters.menus.get(connection.session.id) is not screen or (screen.kind, screen.slot, screen.target) != state:
+
+    def taken() -> bool:
+        return encounters.menus.get(session.id) is not screen or (screen.kind, screen.slot, screen.target) != state
+
+    # #246: Enter again only once the last Enter is known to be refused (the
+    # guard records it in REFUSALS), never on a timer, and fail loudly with
+    # the refusal trace at the deadline. A refusal arriving late for an
+    # earlier Enter can still cause one resend while an accepted Enter is in
+    # flight; that duplicate is safe only because the server guard refuses it
+    # once the accepted choice has changed the menu.
+    session = connection.session
+    deadline = time.monotonic()+CHOICE_SECONDS
+    while True:
+        await wait(lambda: session.ack_revision == session.view_revision)
+        if taken():
             return  # A queued choice completed while its new view was acknowledged.
+        mark = sum(r['session'] == session.id for r in REFUSALS)
         await connection.caller.write(b'\r')
         if not changes:
             return
-        # Timed warnings may publish a newer revision while Enter travels.
-        # Retry the same visible choice if the server rejected that revision.
-        await asyncio.sleep(.2)
-        if encounters.menus.get(connection.session.id) is not screen or (screen.kind, screen.slot, screen.target) != state:
+        try:
+            await wait(lambda: taken() or sum(r['session'] == session.id for r in REFUSALS) > mark,
+                       max(.1, deadline-time.monotonic()))
+        except TimeoutError:
+            pass
+        if taken():
             return
+        if time.monotonic() >= deadline:
+            raise AssertionError(f'#246: choice {row_id!r} not taken in {CHOICE_SECONDS} s; '
+                                 f'refusals: {refusals(connection)}')
 
 
 async def program(probe: NativeProbe, connection: Connection, slot: int,
@@ -148,7 +231,10 @@ async def choose(probe: NativeProbe, connection: Connection, row: str, *, closes
     await wait(lambda: connection.session.id in encounters.menus)
     await menu(probe, connection, row, changes=closes)
     if closes:
-        await wait(lambda: connection.session.id not in encounters.menus)
+        try:
+            await wait(lambda: connection.session.id not in encounters.menus)
+        except TimeoutError:
+            raise AssertionError(f'#246: menu after {row!r} never closed; refusals: {refusals(connection)}') from None
 
 
 async def room_walk(probe: NativeProbe, connection: Connection, target: str) -> None:
@@ -598,6 +684,10 @@ async def accept(root: Path, door_python: Path, show: bool,
     probe = NativeProbe(root, door_python, show)
     scenario_content(probe, stage)
     await probe.start()
+    trace_refusals()
+    if ENTER_DELAY:
+        delay_choices(probe.service.core, ENTER_DELAY)
+    REFUSALS.clear()
     results = []
     try:
         for width, height in sizes:
@@ -621,6 +711,9 @@ async def accept(root: Path, door_python: Path, show: bool,
             probe.save(connection, f's14-failed-{index}')
         raise
     finally:
+        # #246: every stale refusal, including those a retry got past.
+        (probe.root/f's14-{stage}-refusals.json').write_text(json.dumps(REFUSALS, indent=2, ensure_ascii=False)+'\n',
+                                                              encoding='utf-8')
         await probe.close()
 
 
@@ -631,7 +724,10 @@ if __name__ == '__main__':
     parser.add_argument('--show', action='store_true')
     parser.add_argument('--stage', choices=('training', 'silt', 'danger', 'gate-solo', 'gate-duo', 'burn'), default='training')
     parser.add_argument('--size', choices=('both', '80', '132'), default='both')
+    parser.add_argument('--enter-delay', type=float, default=0.0,
+                        help='#246: hold every menu choice this many seconds before the server sees it')
     args = parser.parse_args()
+    ENTER_DELAY = args.enter_delay
     sizes = ((80, 24), (132, 50)) if args.size == 'both' else ((80, 24),) if args.size == '80' else ((132, 50),)
     if args.stage != 'training':
         # Separate worlds preserve nonce 1 in both profiles; never rewind a ledger.
