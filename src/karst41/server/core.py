@@ -332,7 +332,11 @@ class Core:
             return choice.focus.record()
         e = Frame('key', {'k': 'e'})
         jack = Frame('key', {'k': 'ctrl-o' if session.keymap_id == 'vi' else 'j'})
-        return disclose(self.resolve_interaction(session, e)), disclose(self.resolve_interaction(session, jack))
+        # #277 (D4): one route list for both resolutions. Queries are pure
+        # (architecture 5.5.2), so E's can't change what J's route list would be.
+        routes = self.routes_for(session)
+        return (disclose(self.resolve_interaction(session, e, routes)),
+                disclose(self.resolve_interaction(session, jack, routes)))
 
     def _echo(self, event: Event) -> None:
         session = event.data["session"]

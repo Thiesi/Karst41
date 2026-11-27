@@ -1,6 +1,6 @@
 """#277 pricing: a deterministic headless replay, probes off (technical lead, 2026-11-26).
 
-Two scenarios on the production Core with every hub zone active, writes
+Three scenarios on the production Core with every hub zone active, writes
 through S47's IO and a ManualWriter (the same Executor and SQL as the live
 writer, completed after each tick and outside every timed section):
 
@@ -9,6 +9,8 @@ writer, completed after each tick and outside every timed section):
   Hit ticks are the ticks whose character outbox received effects.
 - refill: every Sodium Row spawner slot is emptied with a due deadline, so
   the next NPC tick refills the zone at once (the S11 early-tick spike).
+- focus (#277 D4): `Core.interaction_views`, the publishers' E/J focus
+  lookup, timed on its own for one caller on sampled tiles of every hub zone.
 
 The same content, seed and inputs give the same world on every repeat;
 the script checks that each repeat ends in the same actor and RNG state,
@@ -18,6 +20,8 @@ Timings are wall clock around Npcs.tick, the whole step, and the writes
 (IO.settle plus IO.pump). Run it on two trees for a before/after:
 
     PYTHONPATH="<tree>/src;<tree>" python scripts/bench_277.py --repeats 5
+
+`--only npcs` runs pursuit and refill; `--only focus` runs focus.
 """
 
 from __future__ import annotations
@@ -147,11 +151,50 @@ def refill(content: Any, rounds: int) -> tuple[list[float], str]:
         return spikes, result
 
 
+def focus(content: Any, stride: int) -> tuple[list[float], str]:
+    """#277 (D4): the publishers' interaction lookup, `Core.interaction_views`, on its own.
+
+    One caller stands on every `stride`-th passable tile of every hub zone, in
+    sorted order, skipping occupied tiles. Each tile's first call warms the
+    caller's sight cache, as on a tick where the caller hasn't moved, and only
+    the second call is timed. The returned digest covers every (E, J) focus
+    pair, so equal digests on two trees mean the same disclosed focus.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        rig, caller = world(Path(tmp), content)
+        game = rig.game
+        for _ in range(40):
+            game.step()
+            cycle(rig)
+        core, session = game.core, caller.session
+        avatar = core.characters.sim.avatars[session.user_id]
+        timings, seen = [], hashlib.sha256()
+        for zid in sorted(core.world.zones):
+            zone = core.world.zones[zid]
+            tiles = [(x, y) for y in range(zone.template.height) for x in range(zone.template.width)
+                     if zone.passable((x, y))]
+            for tile in tiles[::stride]:
+                try:
+                    core.world.enter(avatar.actor, zid, tile)
+                except ValueError:  # Occupied.
+                    continue
+                avatar.zone = session.subscribed = zid
+                core.interaction_views(session)
+                began = time.perf_counter()
+                views = core.interaction_views(session)
+                timings.append((time.perf_counter() - began) * 1000)
+                seen.update(json.dumps([zid, tile, views], sort_keys=True).encode())
+        rig.store.db.close()
+        return timings, seen.hexdigest()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('--repeats', type=int, default=5)
     parser.add_argument('--ticks', type=int, default=600)
     parser.add_argument('--rounds', type=int, default=10)
+    parser.add_argument('--stride', type=int, default=7, help='focus: every n-th passable tile')
+    parser.add_argument('--only', choices=('npcs', 'focus'), help='run one part: pursuit and refill, or focus')
     parser.add_argument('--json', type=Path)
     args = parser.parse_args()
     import karst41
@@ -163,31 +206,47 @@ def main() -> int:
     hits_all: dict[str, list[float]] = {'npcs': [], 'writes': [], 'total': []}
     quiet_all: dict[str, list[float]] = {'npcs': [], 'writes': [], 'total': []}
     spikes_all: list[float] = []
+    focus_all: list[float] = []
     for repeat in range(args.repeats):
-        rows, pursuit_state = pursuit(content, args.ticks)
-        spikes, refill_state = refill(content, args.rounds)
-        fingerprints.add((pursuit_state, refill_state))
+        if args.only == 'focus':
+            rows, pursuit_state, spikes, refill_state = [], '', [], ''
+        else:
+            rows, pursuit_state = pursuit(content, args.ticks)
+            spikes, refill_state = refill(content, args.rounds)
+        timings, focus_state = focus(content, args.stride) if args.only != 'npcs' else ([], '')
+        focus_all += timings
+        fingerprints.add((pursuit_state, refill_state, focus_state))
         hits = [r for r in rows if r['hit']]
         quiet = [r for r in rows if not r['hit']]
         for key in hits_all:
             hits_all[key] += [r[key] for r in hits]
             quiet_all[key] += [r[key] for r in quiet]
         spikes_all += spikes
-        line = {'repeat': repeat, 'hit_ticks': len(hits),
-                **{f'hit_{k}_median': round(statistics.median(r[k] for r in hits), 3) for k in hits_all},
-                **{f'hit_{k}_p99': round(quantile([r[k] for r in hits], .99), 3) for k in hits_all},
-                'refill_npcs_median': round(statistics.median(spikes), 3)}
+        line: dict[str, Any] = {'repeat': repeat}
+        if rows:
+            line.update({'hit_ticks': len(hits),
+                         **{f'hit_{k}_median': round(statistics.median(r[k] for r in hits), 3) for k in hits_all},
+                         **{f'hit_{k}_p99': round(quantile([r[k] for r in hits], .99), 3) for k in hits_all},
+                         'refill_npcs_median': round(statistics.median(spikes), 3)})
+        if timings:
+            line.update({'focus_calls': len(timings), 'focus_median': round(statistics.median(timings), 4),
+                         'focus_p99': round(quantile(timings, .99), 4), 'focus_mean': round(statistics.fmean(timings), 4)})
         report['repeats'].append(line)
         print(json.dumps(line), flush=True)
     report['deterministic'] = len(fingerprints) == 1
     # The final world of both scenarios (actors, positions, health, states, targets and every
     # zone's RNG). Equal across trees means the cuts changed no simulation outcome.
     report['fingerprint'] = hashlib.sha256(json.dumps(sorted(fingerprints)).encode()).hexdigest()
-    report['summary'] = {
-        **{f'hit_{k}': {'median': round(statistics.median(v), 3), 'p99': round(quantile(v, .99), 3)} for k, v in hits_all.items()},
-        **{f'quiet_{k}': {'median': round(statistics.median(v), 3), 'p99': round(quantile(v, .99), 3)} for k, v in quiet_all.items()},
-        'refill_npcs': {'median': round(statistics.median(spikes_all), 3), 'p99': round(quantile(spikes_all, .99), 3)},
-        'hit_ticks_per_repeat': report['repeats'][0]['hit_ticks']}
+    report['summary'] = {}
+    if spikes_all:
+        report['summary'].update({
+            **{f'hit_{k}': {'median': round(statistics.median(v), 3), 'p99': round(quantile(v, .99), 3)} for k, v in hits_all.items()},
+            **{f'quiet_{k}': {'median': round(statistics.median(v), 3), 'p99': round(quantile(v, .99), 3)} for k, v in quiet_all.items()},
+            'refill_npcs': {'median': round(statistics.median(spikes_all), 3), 'p99': round(quantile(spikes_all, .99), 3)},
+            'hit_ticks_per_repeat': report['repeats'][0]['hit_ticks']})
+    if focus_all:
+        report['summary']['focus'] = {'median': round(statistics.median(focus_all), 4), 'p99': round(quantile(focus_all, .99), 4),
+                                      'mean': round(statistics.fmean(focus_all), 4), 'calls_per_repeat': len(focus_all) // args.repeats}
     print(json.dumps({'deterministic': report['deterministic'], 'fingerprint': report['fingerprint'],
                       **report['summary']}, indent=1))
     if args.json:

@@ -111,15 +111,31 @@ class ContentTree:
     sources: dict[tuple[str, str], str] = field(default_factory=dict)
     texts: dict[str, str] = field(default_factory=dict)
     load_problems: list[Problem] = field(default_factory=list)
+    _inactive: tuple[tuple[int, ...], tuple[s.Bundle, ...], frozenset[tuple[str, str]]] | None = field(
+        default=None, init=False, repr=False, compare=False)
+    """#277 (D4): the (kind, id) pairs of every non-active bundle, keyed by the bundles' identities."""
 
     def source(self, kind: str, record_id: str) -> str:
         """The relative path a record came from, or a placeholder."""
         return self.sources.get((kind, record_id), f"<{kind}:{record_id}>")
 
     def active(self, kind: str, record_id: str) -> bool:
-        """Authoring records remain data; they never activate a live service."""
-        return not any(bundle.status != "active" and record_id in bundle.members.get(kind, ())
-                       for bundle in self.bundles.values())
+        """Authoring records remain data; they never activate a live service.
+
+        A record is inactive when any bundle that isn't `active` lists it.
+        The set of such records is built once and rebuilt whenever a bundle
+        object is added, removed or replaced (Bundle is frozen; tests that
+        change a bundle replace it). The cache holds the bundles it was built
+        from, so their ids can't be reused while it's current.
+        """
+        key = tuple(map(id, self.bundles.values()))
+        cached = self._inactive
+        if cached is None or cached[0] != key:
+            bundles = tuple(self.bundles.values())
+            cached = self._inactive = (key, bundles, frozenset(
+                (member_kind, member) for bundle in bundles if bundle.status != "active"
+                for member_kind, members in bundle.members.items() for member in members))
+        return (kind, record_id) not in cached[2]
 
 
 def content_files(root: Path) -> list[Path]:
