@@ -16,6 +16,8 @@ from accept_s10_netbbs import Connection, wait
 from accept_s16_netbbs import commit_key, key, select
 from accept_s19_netbbs import ContractProbe
 from karst41.admin.client import request
+from karst41.server.quality import damage_multiplier
+from karst41.server.rules import combat as combat_rules
 from karst41.server.rules.character import grade_threshold
 
 
@@ -139,6 +141,53 @@ def fixture(probe: ContractProbe, caller: Connection, grade: int, bank: int) -> 
     probe.service._character_writes()
 
 
+def bounty_fight_health(probe: ContractProbe, hunter: Any) -> int:
+    """#279: health that two of the hunter's hits can never take: twice an upper
+    bound on one hit (armour 0, kinetic skill 20 points above today's), plus one."""
+    item, weapon = probe.combat.weapon(hunter)
+    skill = hunter.skills.get('melee' if weapon.melee else 'energy' if weapon.damage_type == 'energy' else 'kinetic', 0)
+    largest = combat_rules.damage(weapon.damage*damage_multiplier(probe.game.content.items[item.template], item.quality),
+                                  skill+20, 0, weapon.melee)
+    return 2*largest*weapon.hits+1
+
+
+def shots(caller: Connection, seen: set[Any]) -> tuple[int, int]:
+    """The hunter's own Hit/Miss lines since the fight began."""
+    lines = [line.get('text', '') for line in caller.session.log_ring if line.get('id') not in seen]
+    return sum(text.startswith('Hit: ') for text in lines), sum(text.startswith('Miss: ') for text in lines)
+
+
+def bounty_fight_problem(probe: ContractProbe, hunter: Connection, buyer: Connection, zone: str) -> str | None:
+    """A state the bounty fight cannot recover from (#279): fail at once, not after 100 s."""
+    if hunter.session.closed or buyer.session.closed:
+        return 'a caller disconnected'
+    if hunter.avatar.actor.stance in ('down', 'dead'):
+        return f'the hunter is {hunter.avatar.actor.stance}'
+    if hunter.avatar.zone != zone:
+        return f'the hunter left {zone} (now {hunter.avatar.zone})'
+    if buyer.avatar.zone != zone and buyer.avatar.actor.stance not in ('down', 'dead'):
+        return f'the buyer left {zone} (now {buyer.avatar.zone})'
+    return None
+
+
+def bounty_fight_report(probe: ContractProbe, hunter: Connection, buyer: Connection, zone: str,
+                        problem: str, presses: int, seen: set[Any]) -> str:
+    def body(name: str, caller: Connection) -> str:
+        actor = caller.avatar.actor
+        return (f'{name}: {actor.health}/{actor.health_max} HP, {actor.stance}, {caller.avatar.zone} {actor.position}, '
+                f'marked {actor.marked}, target {actor.target}')
+    wardens = [f'{a.id} {a.position} target {a.target} state {a.behaviour.get("state")}'
+               for a in probe.service.world.zones[zone].actors.values() if a.faction == 'wardens']
+    hits, misses = shots(hunter, seen)
+    lines = [f'S23 bounty fight: {problem} before the bounty was claimed (#279).',
+             f'  after {presses} F presses: {hits} hits, {misses} misses',
+             '  '+body('hunter', hunter), '  '+body('buyer', buyer),
+             f'  wardens in {zone}: {wardens or "none"}']
+    for name, caller in (('hunter', hunter), ('buyer', buyer)):
+        lines.append(f'  {name} log: ' + ' | '.join(line.get('text', '') for line in list(caller.session.log_ring)[-5:]))
+    return '\n'.join(lines)
+
+
 async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, Any]:
     callers = []
     for label, grade, bank in (('S23Seller', 5, 1000), ('S23Buyer', 5, 100),
@@ -232,11 +281,32 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     zone = probe.service.world.zones[buyer.avatar.zone]
     assert zone.template.meta.safety == 'contested' and zone.allows_hostile(buyer.avatar.actor.position)
     await probe.target(hunter, pb.id)
+    # #279: the hunter's first hit Marks them (contested ground), and Clinic
+    # Row's Warden patrol hunts a Marked player. With the buyer's full 138 HP
+    # the fight lasts long enough for the patrol to kill the hunter first now
+    # and then. Disclosed fixture: the buyer starts the fight with health that
+    # two hits can never take (two of the largest hits this weapon could deal,
+    # plus one), so the kill still takes at least three real hits. Fire,
+    # damage, death, the payout and the cache stay real.
+    target_health = min(bounty_fight_health(probe, pc), buyer.avatar.actor.health_max)
+    pb.health = buyer.avatar.actor.health = target_health
+    probe.report(f'FIXTURE S23 {width}x{height}: buyer health {target_health} of '
+                 f'{buyer.avatar.actor.health_max} for the bounty fight (#279; at least three hits)')
+    seen = {line.get('id') for line in hunter.session.log_ring}
+    presses, started = 0, asyncio.get_running_loop().time()
     async with asyncio.timeout(100):
         while owner.bounties.rows[bounty.id].status == 'active':
+            if problem := bounty_fight_problem(probe, hunter, buyer, zone.id):
+                raise AssertionError(bounty_fight_report(probe, hunter, buyer, zone.id, problem, presses, seen))
             # F attacks using the normal carried-ammo rules. R opens rigs.
             await key(hunter, b'f')
+            presses += 1
             await asyncio.sleep(.2)
+    fight_seconds = asyncio.get_running_loop().time()-started
+    hits, misses = shots(hunter, seen)
+    assert hits >= 3, (hits, target_health)
+    probe.report(f'S23 FIGHT {width}x{height}: {presses} F presses, {hits} hits, {misses} misses, '
+                 f'{fight_seconds:.1f}s, buyer health {target_health}')
     await wait(lambda: not probe.commerce.pending)
     bounty = owner.bounties.rows[bounty.id]
     assert bounty.status == 'claimed' and bounty.claimed_by == pc.id
