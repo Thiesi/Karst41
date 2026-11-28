@@ -127,7 +127,11 @@ async def cursor_to(probe: NativeProbe, connection: Connection, row_id: str) -> 
     return screen
 
 
-async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, changes: bool = True) -> None:
+async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, changes: bool = True) -> int:
+    """Choose `row_id` in the open menu. Returns a settled stream mark taken
+    right before the last Enter (#295, review 7234317930): the menu's own
+    frames (open, cursor moves) lie before it, so `capture(since=...)` waits
+    for a frame after the choice, not the menu."""
     encounters = probe.service.core.lattice.encounters
     screen = await cursor_to(probe, connection, row_id)
     state = screen.kind, screen.slot, screen.target
@@ -156,22 +160,26 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
         stamp['wait'] = round(accepted-first, 3) if accepted >= first else None
         stamp['refusals'] = sum(r['session'] == session.id for r in REFUSALS)-before
 
+    entered = len(connection.caller.output)
     while True:
         await wait(lambda: session.ack_revision == session.view_revision)
         if taken():
-            return stamped()  # A queued choice completed while its new view was acknowledged.
+            stamped()  # A queued choice completed while its new view was acknowledged.
+            return entered
         mark = sum(r['session'] == session.id for r in REFUSALS)
+        entered = await probe.mark(connection)
         stamp['enters'] += 1
         await connection.caller.write(b'\r')
         if not changes:
-            return
+            return entered
         try:
             await wait(lambda: taken() or sum(r['session'] == session.id for r in REFUSALS) > mark,
                        max(.1, deadline-time.monotonic()))
         except TimeoutError:
             pass
         if taken():
-            return stamped()
+            stamped()
+            return entered
         if time.monotonic() >= deadline:
             stamped()
             raise AssertionError(f'#246: choice {row_id!r} not taken in {CHOICE_SECONDS} s; '
@@ -266,18 +274,20 @@ async def training(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     return result
 
 
-async def choose(probe: NativeProbe, connection: Connection, row: str, *, closes: bool = True) -> None:
+async def choose(probe: NativeProbe, connection: Connection, row: str, *, closes: bool = True) -> int:
+    """Open the menu and choose `row`; returns menu()'s mark from before the Enter."""
     encounters = probe.service.core.lattice.encounters
     await wait(lambda: connection.session.id not in encounters.menus)
     await wait(lambda: any(label in connection.caller.screen.screen_text().splitlines()[0] for label in ('SILT /', '/ CORE', '/ LATTICE')))
     await connection.caller.write(b'e')
     await wait(lambda: connection.session.id in encounters.menus)
-    await menu(probe, connection, row, changes=closes)
+    entered = await menu(probe, connection, row, changes=closes)
     if closes:
         try:
             await wait(lambda: connection.session.id not in encounters.menus)
         except TimeoutError:
             raise AssertionError(f'#246: menu after {row!r} never closed; {why(probe, connection)}') from None
+    return entered
 
 
 async def room_walk(probe: NativeProbe, connection: Connection, target: str) -> None:
@@ -364,8 +374,7 @@ async def silt(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     assert signal.id in presence.survey_records
     await wait(lambda: signal.signal_phase(probe.service.clock.now_tick())[0] == 'sampling'
         and signal.signal_phase(probe.service.clock.now_tick())[1] >= 38, 25)
-    mark = await probe.mark(connection)  # #295: a frame after the sample, not the old one.
-    await choose(probe, connection, 'sample')
+    mark = await choose(probe, connection, 'sample')  # #295: a frame after the sample's Enter.
     await wait(lambda: signal.id in presence.sampled)
     assert presence.mapping_until > probe.service.clock.now_tick() and player.xp == authored_xp
     await probe.capture(connection, f's14-silt-sample-{width}x{height}', since=mark)
@@ -678,8 +687,7 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
         await wait(lambda: presence.procedure is None and 'lat-gatehouse-east:gate-nine-service-latch' in lattice.interlock.state['effects'])
         source = encounters.core(presence).graph.room(presence.room).data[0]
         generation = lattice.sources.refresh(encounters.source(presence,source),source,probe.service.clock.now_tick()).generation
-        mark = await probe.mark(connection)  # #295: a frame after the lift, not the old one.
-        await choose(probe,connection,f'lift:{source.id}:{generation}')
+        mark = await choose(probe,connection,f'lift:{source.id}:{generation}')  # #295: a frame after the lift's Enter.
         await wait(lambda:any(unit.get('mission')==missions[presence.player_id]
             for unit in probe.game.players[presence.player_id].progress.get('lattice_units',{}).values()))
         await probe.capture(connection,f's14-gate-latch-{connection.session.user_id}-{width}x{height}',since=mark)
@@ -714,15 +722,17 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
     source = next(d for d in encounters.core(first).graph.room(first.room).data if d.kind == 'chits')
     key = encounters.source(first,source)
     generation = lattice.sources.refresh(key,source,probe.service.clock.now_tick()).generation
-    marks = {c.session.id: await probe.mark(c) for c in connections}  # #295: frames after the credit.
+    # #295: frames after each caller's lift Enter (review 7234317930).
+    marks = {c.session.id: await probe.mark(c) for c in connections}
     if duo:
         # Both inspect the same generation before either attempt starts.
         for connection in connections:
             await connection.caller.write(b'e')
             await wait(lambda: connection.session.id in encounters.menus)
-        await asyncio.gather(*(menu(probe,c,f'lift:{source.id}:{generation}') for c in connections))
+        entered = await asyncio.gather(*(menu(probe,c,f'lift:{source.id}:{generation}') for c in connections))
+        marks.update(zip((c.session.id for c in connections), entered))
     else:
-        await choose(probe,connections[0],f'lift:{source.id}:{generation}')
+        marks[connections[0].session.id] = await choose(probe,connections[0],f'lift:{source.id}:{generation}')
     await wait(lambda: lattice.sources.sources[key].generation == generation+1)
     await wait(lambda: all(lattice.presences[c.session.player_id].procedure is None for c in connections))
     after = sum(probe.game.players[c.session.player_id].chits_hand for c in connections)
