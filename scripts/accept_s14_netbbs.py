@@ -364,7 +364,7 @@ async def silt(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     assert signal.id in presence.survey_records
     await wait(lambda: signal.signal_phase(probe.service.clock.now_tick())[0] == 'sampling'
         and signal.signal_phase(probe.service.clock.now_tick())[1] >= 38, 25)
-    mark = len(connection.caller.output)  # #295: a frame after the sample, not the old one.
+    mark = await probe.mark(connection)  # #295: a frame after the sample, not the old one.
     await choose(probe, connection, 'sample')
     await wait(lambda: signal.id in presence.sampled)
     assert presence.mapping_until > probe.service.clock.now_tick() and player.xp == authored_xp
@@ -525,7 +525,7 @@ async def danger(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
         await room_walk(probe,runner,'r-foyer')
         # Explicit threshold fixture: the actual next passive trace tick
         # crosses 100. Do not claim a real hundred-second accumulation.
-        mark = len(runner.caller.output)  # #295: a frame after the hound, not the old one.
+        mark = await probe.mark(runner)  # #295: a frame after the hound, not the old one.
         presence.trace = 99
         started = time.monotonic()
         await wait(lambda: any(i.target == player.id for i in encounters.hunters.values()),4)
@@ -678,7 +678,7 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
         await wait(lambda: presence.procedure is None and 'lat-gatehouse-east:gate-nine-service-latch' in lattice.interlock.state['effects'])
         source = encounters.core(presence).graph.room(presence.room).data[0]
         generation = lattice.sources.refresh(encounters.source(presence,source),source,probe.service.clock.now_tick()).generation
-        mark = len(connection.caller.output)  # #295: a frame after the lift, not the old one.
+        mark = await probe.mark(connection)  # #295: a frame after the lift, not the old one.
         await choose(probe,connection,f'lift:{source.id}:{generation}')
         await wait(lambda:any(unit.get('mission')==missions[presence.player_id]
             for unit in probe.game.players[presence.player_id].progress.get('lattice_units',{}).values()))
@@ -714,7 +714,7 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
     source = next(d for d in encounters.core(first).graph.room(first.room).data if d.kind == 'chits')
     key = encounters.source(first,source)
     generation = lattice.sources.refresh(key,source,probe.service.clock.now_tick()).generation
-    marks = {c.session.id: len(c.caller.output) for c in connections}  # #295: frames after the credit.
+    marks = {c.session.id: await probe.mark(c) for c in connections}  # #295: frames after the credit.
     if duo:
         # Both inspect the same generation before either attempt starts.
         for connection in connections:
@@ -787,7 +787,7 @@ async def burn(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     await a.caller.write(b'\t')
     await wait(lambda: first.target == second.player_id)
     await wait(lambda: 'PROTECTED' in a.caller.screen.screen_text())
-    mark = len(a.caller.output)  # #295: the frame with the refusal, not the old one.
+    mark = await probe.mark(a)  # #295: the frame with the refusal, not the old one.
     await a.caller.write(b'3')
     await wait(lambda: any('Both runners and physical bodies must permit burning here' in row['text'] for row in a.session.log_ring))
     assert first.cast is None and second.integrity == 100 and first.trace == 0
@@ -800,7 +800,7 @@ async def burn(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     await a.caller.write(b'\t')
     await wait(lambda: first.target == second.player_id)
     await wait(lambda: '100%' in a.caller.screen.screen_text())
-    marks = {c.session.id: len(c.caller.output) for c in (a,b)}  # #295: frames after the burn.
+    marks = {c.session.id: await probe.mark(c) for c in (a,b)}  # #295: frames after the burn.
     await a.caller.write(b'3')
     await wait(lambda: second.integrity == 82)
     assert probe.game.players[first.player_id].marked_until

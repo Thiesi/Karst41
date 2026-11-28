@@ -17,7 +17,7 @@ from karst41.door import chrome
 from karst41.door.layout import compute
 
 sys.path.insert(0, str(Path(__file__).parents[1] / 'scripts'))
-from acceptance_settle import FRAME_END, frame_whole, new_frame, settled, settled_now, unsettled  # noqa: E402
+from acceptance_settle import FRAME_END, frame_whole, marked, new_frame, settled, settled_now, unsettled  # noqa: E402
 
 BODY = '\x1b[1;1H╔══ SODIUM ROW ══╗\x1b[24;1HZone rows\x1b[0m'.encode()
 
@@ -115,3 +115,23 @@ def test_since_mark_returns_once_the_new_frame_is_whole():
         await asyncio.wait_for(waiting, 1)
     asyncio.run(run())
 
+
+
+def test_a_mark_waits_for_the_frame_in_flight():
+    """#304 review 7233899866: a mark taken mid-frame would let the old
+    frame's tail pass as new. marked() returns only once that frame is
+    whole, so the old frame's tail lies before the mark."""
+    old_head, old_tail = BODY, b'\x1b[?25l'
+    session, caller = caller_with(old_head, 3, 3)
+    naive = len(caller.output)
+    assert new_frame(old_head + old_tail, naive), 'The hazard: a raw len() mark mid-frame accepts the old frame'
+
+    async def run() -> int:
+        marking = asyncio.create_task(marked(session, caller, timeout=2))
+        await asyncio.sleep(.05)
+        assert not marking.done()
+        caller.output.extend(old_tail)
+        return await asyncio.wait_for(marking, 1)
+    mark = asyncio.run(run())
+    assert mark == len(old_head + old_tail)
+    assert not settled_now(session, caller, since=mark)  # The old frame no longer counts.
