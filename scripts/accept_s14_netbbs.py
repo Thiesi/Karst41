@@ -103,6 +103,15 @@ def refusals(connection: Connection) -> str:
     return json.dumps([r for r in REFUSALS if r['session'] == connection.session.id][-8:], ensure_ascii=False)
 
 
+def why(probe: NativeProbe, connection: Connection) -> str:
+    """#303: why a choice wasn't taken. The guard's refusals for this caller,
+    and every caller's last log lines, where the game says why it declined
+    an accepted choice (such as "Finish or cancel the current action first.")."""
+    logs = {':'.join(c.session.player_id.split(':')[-2:]): [row['text'] for row in list(c.session.log_ring)[-4:]]
+            for c in probe.connections if c.session.player_id}
+    return f'refusals: {refusals(connection)}; last log lines: {json.dumps(logs, ensure_ascii=False)}'
+
+
 async def cursor_to(probe: NativeProbe, connection: Connection, row_id: str) -> Any:
     """Real arrow keys until `row_id` is under the cursor; the open menu."""
     encounters = probe.service.core.lattice.encounters
@@ -167,7 +176,7 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
         if time.monotonic() >= deadline:
             stamped()
             raise AssertionError(f'#246: choice {row_id!r} not taken in {CHOICE_SECONDS} s; '
-                                 f'refusals: {refusals(connection)}')
+                                 f'{why(probe, connection)}')
 
 
 async def program(probe: NativeProbe, connection: Connection, slot: int,
@@ -269,7 +278,7 @@ async def choose(probe: NativeProbe, connection: Connection, row: str, *, closes
         try:
             await wait(lambda: connection.session.id not in encounters.menus)
         except TimeoutError:
-            raise AssertionError(f'#246: menu after {row!r} never closed; refusals: {refusals(connection)}') from None
+            raise AssertionError(f'#246: menu after {row!r} never closed; {why(probe, connection)}') from None
 
 
 async def room_walk(probe: NativeProbe, connection: Connection, target: str) -> None:
@@ -685,6 +694,17 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
         assert hornets.alive, 'The captures used up the Hornets'
     await asyncio.gather(*(program(probe,c,1,lambda: not hornets.alive) for c in connections))
     assert not hornets.alive
+    # #303: the gather returns when the Hornets fall, not when each caller's
+    # last cast ends. A cast still in flight makes start_lift decline the
+    # lift ("Finish or cancel the current action first."), so the lift
+    # starts only from idle callers, and the wait never hangs.
+    presences = [lattice.presences[c.session.player_id] for c in connections]
+    try:
+        await wait(lambda: all(p.cast is None and p.procedure is None for p in presences), 10)
+    except TimeoutError:
+        raise AssertionError('#303: callers not idle before the lift: '+json.dumps(
+            [{'player': p.player_id, 'cast': str(p.cast)[:160], 'procedure': str(p.procedure)[:160]}
+             for p in presences], ensure_ascii=False)) from None
     before = sum(probe.game.players[c.session.player_id].chits_hand for c in connections)
     source = next(d for d in encounters.core(first).graph.room(first.room).data if d.kind == 'chits')
     key = encounters.source(first,source)
