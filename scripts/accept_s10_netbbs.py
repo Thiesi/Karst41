@@ -383,6 +383,15 @@ class NativeProbe:
         (self.root/(label+".ans")).write_bytes(connection.caller.output)
         (self.root/(label+".txt")).write_text(connection.caller.screen.screen_text(),encoding="utf-8")
 
+    async def capture(self, connection: Connection, label: str, *, since: int | None = None) -> None:
+        """#295: an in-game capture waits for a settled screen first, the view
+        acknowledged and the last frame whole (acceptance_settle). With
+        `since=mark`, taken as `len(connection.caller.output)` before an action
+        known to redraw, it also waits for a whole frame after the mark, so it
+        can't capture the old screen. Leave and failure saves keep `save()`."""
+        await settle(connection.session, connection.caller, since=since)
+        self.save(connection, label)
+
     async def close(self) -> None:
         for index,connection in enumerate(self.connections):
             self.save(connection,f"unfinished-{index}")

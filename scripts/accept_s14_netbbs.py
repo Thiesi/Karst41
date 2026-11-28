@@ -19,7 +19,6 @@ from collections.abc import Callable
 from accept_s10_netbbs import Connection, NativeProbe, wait
 from acceptance_hall import crossed_quietly
 from accept_s13_netbbs import lat_walk
-from acceptance_settle import settled as settle
 from karst41.server.lattice.silt import generate
 from karst41 import content as content_package
 from karst41.server.rules import character
@@ -224,7 +223,7 @@ async def training(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     await wait(lambda: 'Tripwire' in connection.caller.screen.screen_text())
     defender = encounters.defenders(presence)[0]
     assert defender.integrity == 10 and defender.attack == 5
-    probe.save(connection, f's14-training-warning-{width}x{height}')
+    await probe.capture(connection, f's14-training-warning-{width}x{height}')
     await connection.caller.write(b'e')
     await wait(lambda: connection.session.id in encounters.menus)
     await menu(probe, connection, 'ice:'+defender.id)
@@ -243,7 +242,7 @@ async def training(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     await menu(probe, connection, 'read:lattice-training-record')
     await wait(lambda: 'YOUR DECANT RECORD' in connection.caller.screen.screen_text())
     assert 'lease' in connection.caller.screen.screen_text()
-    probe.save(connection, f's14-training-record-{width}x{height}')
+    await probe.capture(connection, f's14-training-record-{width}x{height}')
     assert presence.trace == 0 and body.health == health and body.position == original
     assert player.chits_hand == 200 and player.xp == 0 and player.clone_debt == 0
     await connection.caller.write(b'b')
@@ -345,7 +344,7 @@ async def silt(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     await wait(lambda: presence.procedure is None)
     assert hidden.id not in presence.found_silt[presence.instance]
     await wait(lambda: 'Hidden signal directions:' in connection.caller.screen.screen_text())
-    probe.save(connection, f's14-silt-survey-{width}x{height}')
+    await probe.capture(connection, f's14-silt-survey-{width}x{height}')
     probe.report(f'PASS S14 Silt survey {width}x{height}: fresh Cantor, public loan rig, real public route, low Listening gives hidden branch direction without leaking its cell')
     # The visible continuation is chosen without opening optional danger rooms.
     for depth in range(2):
@@ -365,10 +364,11 @@ async def silt(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     assert signal.id in presence.survey_records
     await wait(lambda: signal.signal_phase(probe.service.clock.now_tick())[0] == 'sampling'
         and signal.signal_phase(probe.service.clock.now_tick())[1] >= 38, 25)
+    mark = len(connection.caller.output)  # #295: a frame after the sample, not the old one.
     await choose(probe, connection, 'sample')
     await wait(lambda: signal.id in presence.sampled)
     assert presence.mapping_until > probe.service.clock.now_tick() and player.xp == authored_xp
-    probe.save(connection, f's14-silt-sample-{width}x{height}')
+    await probe.capture(connection, f's14-silt-sample-{width}x{height}', since=mark)
     probe.report(f'PASS S14 Chorister {width}x{height}: visible listening -> survey -> sampling -> hold, no answer, no XP payout')
     sink = next(cid for cid in graph.band.sinks if graph.band.route(presence.room, cid))
     await room_walk(probe, connection, sink)
@@ -390,7 +390,7 @@ async def silt(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
                         and sweeper.next_move-probe.service.clock.now_tick() >= 25):
                     await room_walk(probe, connection, next_cell)
                     assert 'SWEEP' in connection.caller.screen.screen_text()
-                    probe.save(connection, f's14-silt-sweep-warning-{width}x{height}')
+                    await probe.capture(connection, f's14-silt-sweep-warning-{width}x{height}')
                     await room_walk(probe, connection, side)
                     await wait(lambda: sweeper.location[1] == next_cell, 15)
                     assert presence.room == side and presence.integrity > 0
@@ -520,18 +520,19 @@ async def danger(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
         assert body.stance == 'jacked' and body.position == original and hp-after == 10
         await wait(lambda: 'Kiln hits you for 10' in runner.caller.screen.screen_text())
         await wait(lambda: f'{ceil(100*after/body.health_max)}%' in observer.caller.screen.screen_text())
-        probe.save(runner,f's14-black-body-{suffix}-{width}x{height}')
-        probe.save(observer,f's14-black-witness-{suffix}-{width}x{height}')
+        await probe.capture(runner,f's14-black-body-{suffix}-{width}x{height}')
+        await probe.capture(observer,f's14-black-witness-{suffix}-{width}x{height}')
         await room_walk(probe,runner,'r-foyer')
         # Explicit threshold fixture: the actual next passive trace tick
         # crosses 100. Do not claim a real hundred-second accumulation.
+        mark = len(runner.caller.output)  # #295: a frame after the hound, not the old one.
         presence.trace = 99
         started = time.monotonic()
         await wait(lambda: any(i.target == player.id for i in encounters.hunters.values()),4)
         elapsed = round(time.monotonic()-started,2)
         hunter = next(i for i in encounters.hunters.values() if i.target == player.id)
         assert hunter.maximum == 80 and hunter.meat_damage == 0
-        probe.save(runner,f's14-corporate-hound-{suffix}-{width}x{height}')
+        await probe.capture(runner,f's14-corporate-hound-{suffix}-{width}x{height}',since=mark)
         await runner.caller.write(b'b')
         await wait(lambda: presence.room == 'r-entry')
         await wait(lambda: '/ CORE' in runner.caller.screen.screen_text().splitlines()[0])
@@ -599,9 +600,12 @@ async def refused(probe: NativeProbe, victim: Connection, hitter: Connection, ho
         await wait(lambda: not flashed() and STALE_CHOICE_TOAST in victim.caller.screen.screen_text(), 3)
     except TimeoutError:
         pass
-    await settle(session, victim.caller)
     label = f's301-refused-{session.user_id}-{width}x{height}-{tier}'
-    probe.save(victim, label)
+    await probe.capture(victim, label)
+    # #295: read at the capture, with no await since, so it matches the
+    # screen. #303 read it after the menu closed, when the hitter's last
+    # cast could already have landed.
+    shown_integrity = hornets.integrity
     (probe.root/(label+'.json')).write_text(json.dumps(snapshot(victim.caller.screen), ensure_ascii=False,
                                                        indent=2)+'\n', encoding='utf-8')
     rows = victim.caller.screen.screen_text().splitlines()
@@ -612,7 +616,7 @@ async def refused(probe: NativeProbe, victim: Connection, hitter: Connection, ho
     await victim.caller.write(b'b')
     await wait(lambda: session.id not in encounters.menus)
     return {'capture': label, 'tier': tier, 'sent': sent, 'current': refusal['current'],
-            'hornets_integrity': [before, hornets.integrity], 'differs': refusal['differs'],
+            'hornets_integrity': [before, shown_integrity], 'differs': refusal['differs'],
             'toast_row': hint, 'damage_flash': flash, 'menu_stayed_open': True}
 
 
@@ -674,10 +678,11 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
         await wait(lambda: presence.procedure is None and 'lat-gatehouse-east:gate-nine-service-latch' in lattice.interlock.state['effects'])
         source = encounters.core(presence).graph.room(presence.room).data[0]
         generation = lattice.sources.refresh(encounters.source(presence,source),source,probe.service.clock.now_tick()).generation
+        mark = len(connection.caller.output)  # #295: a frame after the lift, not the old one.
         await choose(probe,connection,f'lift:{source.id}:{generation}')
         await wait(lambda:any(unit.get('mission')==missions[presence.player_id]
             for unit in probe.game.players[presence.player_id].progress.get('lattice_units',{}).values()))
-        probe.save(connection,f's14-gate-latch-{connection.session.user_id}-{width}x{height}')
+        await probe.capture(connection,f's14-gate-latch-{connection.session.user_id}-{width}x{height}',since=mark)
     # Stage the crew at the quiet latch before entering the Hornets room.
     for connection in connections:
         await room_walk(probe,connection,'tools-archive')
@@ -709,6 +714,7 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
     source = next(d for d in encounters.core(first).graph.room(first.room).data if d.kind == 'chits')
     key = encounters.source(first,source)
     generation = lattice.sources.refresh(key,source,probe.service.clock.now_tick()).generation
+    marks = {c.session.id: len(c.caller.output) for c in connections}  # #295: frames after the credit.
     if duo:
         # Both inspect the same generation before either attempt starts.
         for connection in connections:
@@ -727,7 +733,8 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
     for connection in connections:
         presence = lattice.presences[connection.session.player_id]
         assert presence.core == 'lat-gatehouse-east' and connection.avatar.actor.stance == 'jacked'
-        probe.save(connection,f's14-gate-shared-credit-{connection.session.user_id}-{width}x{height}')
+        await probe.capture(connection,f's14-gate-shared-credit-{connection.session.user_id}-{width}x{height}',
+                            since=marks[connection.session.id])
         await connection.caller.write(b'j')
         await wait(lambda: connection.session.player_id not in lattice.presences,12)
         await probe.leave(connection,f's14-gate-return-{connection.session.user_id}-{width}x{height}')
@@ -780,11 +787,12 @@ async def burn(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     await a.caller.write(b'\t')
     await wait(lambda: first.target == second.player_id)
     await wait(lambda: 'PROTECTED' in a.caller.screen.screen_text())
+    mark = len(a.caller.output)  # #295: the frame with the refusal, not the old one.
     await a.caller.write(b'3')
     await wait(lambda: any('Both runners and physical bodies must permit burning here' in row['text'] for row in a.session.log_ring))
     assert first.cast is None and second.integrity == 100 and first.trace == 0
     assert not probe.game.players[first.player_id].progress.get('lattice_cooldowns',{}).get('prg_burn')
-    probe.save(a,f's14-burn-public-refusal-{width}x{height}')
+    await probe.capture(a,f's14-burn-public-refusal-{width}x{height}',since=mark)
     for connection in (a,b):
         await choose(probe,connection,'enter:lat-civic-ledger')
         await wait(lambda: lattice.presences[connection.session.player_id].core == 'lat-civic-ledger')
@@ -792,12 +800,13 @@ async def burn(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     await a.caller.write(b'\t')
     await wait(lambda: first.target == second.player_id)
     await wait(lambda: '100%' in a.caller.screen.screen_text())
+    marks = {c.session.id: len(c.caller.output) for c in (a,b)}  # #295: frames after the burn.
     await a.caller.write(b'3')
     await wait(lambda: second.integrity == 82)
     assert probe.game.players[first.player_id].marked_until
     assert all(connection.avatar.actor.stance == 'jacked' for connection in (a,b))
-    probe.save(a,f's14-burn-selected-runner-{width}x{height}')
-    probe.save(b,f's14-burn-received-{width}x{height}')
+    await probe.capture(a,f's14-burn-selected-runner-{width}x{height}',since=marks[a.session.id])
+    await probe.capture(b,f's14-burn-received-{width}x{height}',since=marks[b.session.id])
     for connection in (a,b):
         await connection.caller.write(b'j')
         await wait(lambda: connection.session.player_id not in lattice.presences,12)
