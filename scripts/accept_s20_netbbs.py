@@ -19,6 +19,19 @@ from karst41.server.rules.character import grade_threshold
 from karst41.server.wake import card_rows
 
 
+def target_rows(probe: NativeProbe, connection: Connection) -> list[str] | None:
+    """#295: the side panel's rows under TARGET, when the caller's latest
+    view has a target and the screen names it there; else None."""
+    view = probe.game.sim.views[connection.session.id].previous or {}
+    target = view.get('body', {}).get('target')
+    rows = [line.split('│')[-2].strip() for line in connection.caller.screen.screen_text().splitlines()
+            if line.count('│') >= 3]
+    if not target or 'TARGET' not in rows:
+        return None
+    below = rows[rows.index('TARGET')+1:]
+    return below if below and below[0] == target['name'] else None
+
+
 async def recruiters(probe: NativeProbe, connection: Connection) -> None:
     """E at the Wake Hall table, then the recruiter menu.
 
@@ -52,7 +65,9 @@ async def admission(probe: NativeProbe, connection: Connection, faction: str, ca
         assert p.faction is None
         return
     await commit_key(probe, connection, b'y', lambda: p.faction == faction)
-    probe.save(connection, f's20-joined-{faction}-{connection.session.caps["width"]}')
+    # #295: the join's own line (main captured the "Y confirms" screen).
+    await wait(lambda: 'The faction channel is open' in connection.caller.screen.screen_text())
+    await probe.capture(connection, f's20-joined-{faction}-{connection.session.caps["width"]}')
     await key(connection, b'\x1b')
     await wait(lambda: connection.session.id not in f.menus)
 
@@ -103,7 +118,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await faction_line(c, token)
     await wait(lambda: token in d.caller.screen.screen_text())
     assert token.encode() not in b.caller.output[outsider_mark:]
-    probe.save(d, f's20-faction-chat-{width}')
+    await probe.capture(d, f's20-faction-chat-{width}')
     f = probe.service.core.factions
     await recruiters(probe, d)
     screen = f.menus[d.session.id]
@@ -113,7 +128,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await wait(lambda: 'Join after' in d.caller.screen.screen_text())
     assert pd.standing['halvard'] == -20
     assert pd.progress['faction_cooldown_until'] > probe.service.clock.now_utc().timestamp()+6*86400
-    probe.save(d, f's20-leave-cooldown-{width}')
+    await probe.capture(d, f's20-leave-cooldown-{width}')
     await key(d, b'\x1b'); await wait(lambda: d.session.id not in f.menus)
     mark = len(d.caller.output)
     await faction_line(c, f'CHANNEL CLOSED {width}')
@@ -140,11 +155,13 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
             await asyncio.sleep(.4)
     await wait(lambda: ward.target == pa.id)
     await probe.target(b, pa.id)
-    probe.save(b, f's20-marked-red-target-{width}')
+    # #295: the TARGET panel names the Marked caller (main showed None).
+    await wait(lambda: target_rows(probe, b) is not None)
+    await probe.capture(b, f's20-marked-red-target-{width}')
     await key(b, b'W')
     await wait(lambda: b.session.id in probe.service.core.chat.sitreps)
     await wait(lambda: 'Marked ' in b.caller.screen.screen_text())
-    probe.save(b, f's20-marked-sitrep-{width}')
+    await probe.capture(b, f's20-marked-sitrep-{width}')
     await key(b, b'\x1b')
     await wait(lambda: b.session.id not in probe.service.core.chat.sitreps)
     await probe.target(c, pa.id)
@@ -158,7 +175,9 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
             await asyncio.sleep(.5)
     await wait(lambda: pc.standing.get('wardens', 0) == 5, 10)
     assert not pc.marked_until and pa.progress['combat']['stage'] == 'dead'
-    probe.save(c, f's20-marked-kill-receipt-{width}')
+    # #295: the TARGET panel shows the kill at 0%.
+    await wait(lambda: (rows := target_rows(probe, c)) is not None and len(rows) > 1 and rows[1].endswith(' 0%'))
+    await probe.capture(c, f's20-marked-kill-receipt-{width}')
     result = {'size': [width, height], 'wide_names': True, 'cancelled_join_unchanged': True,
               'member_chat_only': True, 'leave_standing': -20, 'cooldown_days': 7,
               'marked_red_target': True, 'warden_targeted_marked_neutral': True,
@@ -194,15 +213,17 @@ async def hardware_size(probe: NativeProbe, width: int, height: int) -> dict:
     body = probe.game.sim.external_views[connection.session.id][1]
     assert {action["key"] for action in body["actions"]} == {"x"}
     assert "C manual" not in body["hint"]
-    probe.save(connection, f"s20-range-two-hardware-{width}")
+    # #295: the menu itself (main captured the street behind it).
+    await wait(lambda: body["title"] in connection.caller.screen.screen_text())
+    await probe.capture(connection, f"s20-range-two-hardware-{width}")
     await commit_key(probe, connection, b"x", lambda: interlock.menus[connection.session.id][2] == "charge")
     await wait(lambda: "service fee 150 chits" in connection.caller.screen.screen_text())
-    probe.save(connection, f"s20-paid-quote-{width}")
+    await probe.capture(connection, f"s20-paid-quote-{width}")
     await key(connection, b"y")
     await wait(lambda: connection.session.id not in interlock.menus)
     await wait(lambda: "service fee is 150 chits" in connection.caller.screen.screen_text())
     assert p.id not in interlock.cuts and iid in p.inventory
-    probe.save(connection, f"s20-unaffordable-no-channel-{width}")
+    await probe.capture(connection, f"s20-unaffordable-no-channel-{width}")
     # Disclosed +90 membership fixture isolates the read-only waiver quote.
     # Admission itself is exercised with actual keys in the ordinary stage.
     p.faction, p.standing["halvard"] = "halvard", 90
@@ -213,13 +234,15 @@ async def hardware_size(probe: NativeProbe, width: int, height: int) -> dict:
     await wait(lambda: "service fee 0 chits" in connection.caller.screen.screen_text())
     identity = probe.game.identities[p.bbs_user_id]
     assert "halvard-service" not in identity.get("receipts", {}).get("faction_perks", {})
-    probe.save(connection, f"s20-free-quote-unspent-{width}")
+    await probe.capture(connection, f"s20-free-quote-unspent-{width}")
     await commit_key(probe, connection, b"y", lambda: p.id in interlock.cuts)
     assert iid in p.inventory and not interlock.offline(core)
     await wait(lambda: iid not in p.inventory, 10)
     assert p.chits_hand == 0 and interlock.offline(core) > 590
     assert probe.game.identities[p.bbs_user_id]["receipts"]["faction_perks"]["halvard-service"] == probe.service.clock.now_utc().date().isoformat()
-    probe.save(connection, f"s20-free-cut-committed-{width}")
+    # #295: the cut's result line (main captured only its start).
+    await wait(lambda: "The hardware goes dark" in connection.caller.screen.screen_text())
+    await probe.capture(connection, f"s20-free-cut-committed-{width}")
     await probe.leave(connection, f"s20-hardware-return-{width}")
     # The next size reuses the fixture core without waiting ten real minutes.
     # This removes only the prior fixture's cooldown, never rewinds a clock.

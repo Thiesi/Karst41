@@ -74,7 +74,8 @@ async def bed(probe: NativeProbe, connection: Connection, unit, label: str) -> N
     await key(connection, b"e")
     await wait(lambda: connection.session.id in housing.menus)
     await choose(probe, connection, "logout")
-    probe.save(connection, label+"-menu")
+    await wait(lambda: "Log out on the bed" in connection.caller.screen.screen_text())  # #295: the menu shows.
+    await probe.capture(connection, label+"-menu")
     await commit_key(probe, connection, b"\r", lambda: connection.session.closed)
     await finish_bed_logout(probe, connection, label)
 
@@ -99,7 +100,9 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(connection, b"e")
     await wait(lambda: connection.session.id in housing.menus)
     await choose(probe, connection, unit.id)
-    probe.save(connection, f"s18-letting-{width}")
+    # #295: the letting menu itself (main captured the street behind it).
+    await wait(lambda: "TERRACES / LETTING" in connection.caller.screen.screen_text())
+    await probe.capture(connection, f"s18-letting-{width}")
     await commit_key(probe, connection, b"\r", lambda: p.apartment_id is not None)
     assert p.chits_bank == 0 and housing.lease(p)["tier"] == 1
     aid = p.apartment_id
@@ -115,7 +118,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(connection, b"t")
     await wait(lambda: not housing.menus[connection.session.id].deposit)
     await wait(lambda: "Quality 109%" in connection.caller.screen.screen_text())
-    probe.save(connection, f"s18-storage-{width}")
+    await probe.capture(connection, f"s18-storage-{width}")
     await key(connection, b"\x1b")
     await wait(lambda: connection.session.id not in housing.menus)
 
@@ -124,20 +127,20 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(second, b"e")
     await wait(lambda: "Locked. Tier 1." in second.caller.screen.screen_text())
     assert not unit.region.contains(second.avatar.actor.position)
-    probe.save(second, f"s18-locked-{width}")
+    await probe.capture(second, f"s18-locked-{width}")
     await probe.leave(second, f"s18-visitor-return-{width}")
 
     await bed(probe, connection, unit, f"s18-bed-{width}")
     connection = await reconnect(probe, connection, width, height)
     assert unit.region.contains(connection.avatar.actor.position) and p.apartment_id == aid
-    probe.save(connection, f"s18-reconnect-home-{width}")
+    await probe.capture(connection, f"s18-reconnect-home-{width}")
     await bed(probe, connection, unit, f"s18-bed-before-eviction-{width}")
     clock.epoch += timedelta(days=22)
     connection = await reconnect(probe, connection, width, height)
     await wait(lambda: p.apartment_id is None)
     await wait(lambda: "impound" in connection.caller.screen.screen_text())
     assert not unit.region.contains(connection.avatar.actor.position)
-    probe.save(connection, f"s18-eviction-{width}")
+    await probe.capture(connection, f"s18-eviction-{width}")
     assert housing.private.core_id({"id": aid}) not in housing.content.cores
     await probe.walk(connection, (9, 8))
     await key(connection, b"e")
@@ -148,13 +151,17 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await wait(lambda: connection.session.id in housing.menus)
     await choose(probe, connection, rifle)
     await wait(lambda: "Fee 34" in connection.caller.screen.screen_text())
-    probe.save(connection, f"s18-impound-{width}")
+    await probe.capture(connection, f"s18-impound-{width}")
     p.chits_bank = 34  # Disclosed funding fixture; the actual fee is charged.
     await commit_key(probe, connection, b"\r", lambda: rifle in p.inventory)
     assert p.chits_bank == 0 and probe.commerce.items[rifle].quality == 1.09
     assert probe.commerce.items[rifle].owner == p.id
+    # #295: the impound after the reclaim, with its receipt line (main
+    # captured the carbine still listed at Fee 34).
+    await wait(lambda: "KESTREL / IMPOUND" in connection.caller.screen.screen_text()
+               and "Reclaimed for 34 chits" in connection.caller.screen.screen_text())
+    await probe.capture(connection, f"s18-reclaimed-{width}")
     assert connection.caller.screen.cell(width-1, height-1) == " "
-    probe.save(connection, f"s18-reclaimed-{width}")
     await key(connection, b"\x1b")
     await wait(lambda: connection.session.id not in housing.menus)
     await probe.leave(connection, f"s18-return-{width}")

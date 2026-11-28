@@ -54,10 +54,13 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(connection, b'e')
     await wait(lambda: connection.session.player_id in fab.channels)
     await wait(lambda: 'Harvest' in connection.caller.screen.screen_text())
-    probe.save(connection, f's17-harvest-channel-{width}')
+    await probe.capture(connection, f's17-harvest-channel-{width}')
     await wait(lambda: fab.amounts(player).get('hull', 0) == 3, 12)
     assert Inventory(probe.commerce.items, probe.game.content.items).weight(player) >= 12
-    probe.save(connection, f's17-harvest-complete-{width}')
+    # #295: the emptied node's line, not the channel's last second (main
+    # captured "Harvest 0.1s" before the third unit showed).
+    await wait(lambda: 'node is empty' in connection.caller.screen.screen_text())
+    await probe.capture(connection, f's17-harvest-complete-{width}')
 
     await probe.walk(connection, (14, 8))
     await key(connection, b'e')
@@ -78,7 +81,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(connection, b'e')
     await wait(lambda: connection.session.id in fab.menus)
     await wait(lambda: 'hull 3/2' in connection.caller.screen.screen_text())
-    probe.save(connection, f's17-workshop-menu-{width}')
+    await probe.capture(connection, f's17-workshop-menu-{width}')
     old = set(probe.commerce.items)
     await commit_key(probe, connection, b'f', lambda: player.id in fab.channels)
     await wait(lambda: 'Fabricate' in connection.caller.screen.screen_text())
@@ -93,7 +96,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await wait(lambda: f'Damage {26*made.quality:g}' in connection.caller.screen.screen_text())
     body = probe.commerce.body(connection.session, screen)
     assert f'Damage {26*made.quality:g}' in body['detail']
-    probe.save(connection, f's17-crafted-detail-{width}')
+    await probe.capture(connection, f's17-crafted-detail-{width}')
     await key(connection, b'\x1b')
     await wait(lambda: connection.session.id not in probe.commerce.menus)
     await probe.walk(connection, (14, 8))
@@ -108,7 +111,14 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await commit_key(probe, connection, b'\r', lambda: player.chits_hand == before+18)
     await key(connection, b'\x1b')
     await wait(lambda: connection.session.id not in probe.commerce.menus)
-    probe.save(connection, f's17-sale-18-{width}')
+    # #295: the street with the sale line and the new hand (main captured
+    # the SELL menu still open).
+    def sold() -> bool:
+        text = connection.caller.screen.screen_text()
+        return ('Wake Hall' in text.splitlines()[0] and 'Sold Hull salvage for 18 chits' in text
+                and f'Chits {player.chits_hand} ' in text)
+    await wait(sold)
+    await probe.capture(connection, f's17-sale-18-{width}')
 
     second = await probe.open(width, height, "S17B", 1, sixteen=True)
     second_player = probe.game.players[second.session.player_id]
@@ -121,7 +131,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(second, b'f')
     await wait(lambda: 'rigs and programs only' in second.caller.screen.screen_text())
     assert second_player.id not in fab.channels and fab.amounts(second_player)['hull'] == 2
-    probe.save(second, f's17-oldworks-refusal-{width}')
+    await probe.capture(second, f's17-oldworks-refusal-{width}')
     await key(second, b'\x1b')
     await wait(lambda: second.session.id not in fab.menus)
     assert connection.caller.screen.cell(width-1, height-1) == ' '
