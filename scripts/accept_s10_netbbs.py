@@ -25,7 +25,7 @@ from accept_s04_netbbs import Database, DatabaseLane, DoorProfile, REPO, TelnetS
 from accept_s06_netbbs import ZoneCaller
 from acceptance_duel import Borders, DuelLedger, border_failure, fighter
 from acceptance_hall import return_to
-from acceptance_settle import settled as settle, settled_now
+from acceptance_settle import marked, settled as settle, settled_now
 from acceptance_renderer import stamp as stamp_renderer
 import karst41
 from karst41.content.loader import ContentTree
@@ -382,6 +382,20 @@ class NativeProbe:
     def save(self, connection: Connection, label: str) -> None:
         (self.root/(label+".ans")).write_bytes(connection.caller.output)
         (self.root/(label+".txt")).write_text(connection.caller.screen.screen_text(),encoding="utf-8")
+
+    async def capture(self, connection: Connection, label: str, *, since: int | None = None) -> None:
+        """#295: an in-game capture waits for a settled screen first, the view
+        acknowledged and the last frame whole (acceptance_settle). With
+        `since=mark`, from `await probe.mark(connection)` before an action
+        known to redraw, it also waits for a whole frame after the mark, so it
+        can't capture the old screen. Leave and failure saves keep `save()`."""
+        await settle(connection.session, connection.caller, since=since)
+        self.save(connection, label)
+
+    async def mark(self, connection: Connection) -> int:
+        """#295: a mark for `capture(since=...)`, taken on a settled stream so
+        an old frame still in flight can't pass for the new one."""
+        return await marked(connection.session, connection.caller)
 
     async def close(self) -> None:
         for index,connection in enumerate(self.connections):
