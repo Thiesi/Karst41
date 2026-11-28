@@ -167,7 +167,13 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
             stamped()  # A queued choice completed while its new view was acknowledged.
             return entered
         mark = sum(r['session'] == session.id for r in REFUSALS)
-        entered = await probe.mark(connection)
+        before_mark, entered = entered, await probe.mark(connection)
+        if taken():
+            # The choice landed while mark() settled (review 7234934823): no
+            # extra Enter, and the mark from before it, since the result
+            # frame may already lie before the new one.
+            stamped()
+            return before_mark
         stamp['enters'] += 1
         await connection.caller.write(b'\r')
         if not changes:
