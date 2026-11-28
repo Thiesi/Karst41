@@ -160,7 +160,7 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
         stamp['wait'] = round(accepted-first, 3) if accepted >= first else None
         stamp['refusals'] = sum(r['session'] == session.id for r in REFUSALS)-before
 
-    entered = len(connection.caller.output)
+    entered = await probe.mark(connection)  # #295: settled, like the marks in the loop.
     while True:
         await wait(lambda: session.ack_revision == session.view_revision)
         if taken():
