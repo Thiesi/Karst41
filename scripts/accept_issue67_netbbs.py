@@ -12,7 +12,7 @@ from math import isclose
 from pathlib import Path
 
 from accept_s10_netbbs import NativeProbe, wait
-from acceptance_settle import settled as settle, settled_now
+from acceptance_settle import settled_now
 from acceptance_hall import crossed_quietly
 from accept_s14_netbbs import choose, program
 
@@ -58,8 +58,7 @@ async def accept(root: Path, door_python: Path, tier: str, show: bool = False) -
                 await wait(lambda: '19.99/40' in caller.caller.screen.screen_text()
                     and '10.01. Integrity 19.99.' in caller.caller.screen.screen_text())
                 assert isclose(defender.integrity, 19.9925)
-                await settle(caller.session, caller.caller)  # #255: acknowledged and the last frame whole.
-                probe.save(caller, f'issue67-fractional-ice-{width}x{height}')
+                await probe.capture(caller, f'issue67-fractional-ice-{width}x{height}')  # #295: settles, then saves.
                 results.append({'size': [width, height], 'tier': tier, 'all_recruiters': True,
                     'ice_integrity': defender.integrity, 'display': '19.99/40', 'damage_text': '10.01'})
             finally:

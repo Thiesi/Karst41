@@ -59,7 +59,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     frozen=claim.elapsed
     await asyncio.sleep(1)
     assert claim.elapsed==frozen
-    probe.save(a,f's21-contested-{width}')
+    await probe.capture(a,f's21-contested-{width}')
     await key(c,b'b')
     await wait(lambda:len(owner.claims.active)==1)
     curfew=owner.curfew
@@ -90,7 +90,9 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     # action. Select its actual control instead of waiting for no menu.
     await encounter_row(probe,b,'control:relay_open')
     await wait(lambda:b.session.player_id in claim.hacked and not probe.commerce.pending)
-    probe.save(b,f's21-named-control-{width}')
+    # #295: main's capture showed the channel starting, not the commit.
+    await wait(lambda:'Core opening committed' in b.caller.screen.screen_text())
+    await probe.capture(b,f's21-named-control-{width}')
     await wait(lambda:lattice.encounters.idle(presence))
     await room_walk(probe,b,lattice.encounters.core(presence).graph.spec.entry)
     await key(b,b'b')
@@ -113,20 +115,23 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     fact=saved['relays']['captures'][-1]
     assert fact['relay']=='cold-chain' and len(fact['participants'])==2
     assert saved['interlock']['cores']['lat-relay-cold-chain']['owner_faction']=='halvard'
-    probe.save(a,f's21-capture-{width}')
+    await wait(lambda:'belongs to Halvard' in a.caller.screen.screen_text())  # #295: positive marker.
+    await probe.capture(a,f's21-capture-{width}')
     await key(a,b'b')
     await wait(lambda:not owner.claims.active)
     await card(probe,a)
     await commit_key(probe,a,b'v',lambda:a.session.id in probe.commerce.menus)
     await wait(lambda:'counter' in a.caller.screen.screen_text().lower())
-    probe.save(a,f's21-member-counter-{width}')
+    await probe.capture(a,f's21-member-counter-{width}')
     await key(a,b'\x1b')
     await wait(lambda:a.session.id not in probe.commerce.menus)
     await card(probe,c)
     await key(c,b'v')
     await wait(lambda:any('current holder' in row['text'] for row in c.session.log_ring))
     assert c.session.id not in probe.commerce.menus
-    probe.save(c,f's21-outsider-refused-{width}')
+    # #295: main's capture showed the card without the refusal.
+    await wait(lambda:'current holder' in c.caller.screen.screen_text())
+    await probe.capture(c,f's21-outsider-refused-{width}')
     await key(c,b'\x1b')
     # Only the influence acceptance advances UTC. Native capture used the
     # ordinary injected real clock for the full three-minute hold above.
@@ -141,7 +146,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(a,b'\x1b[19~')  # F8, preserving P for the character card.
     await wait(lambda:a.session.id in owner.views.menus)
     await wait(lambda:'Your faction influence:' in a.caller.screen.screen_text())
-    probe.save(a,f's21-influence-{width}')
+    await probe.capture(a,f's21-influence-{width}')
     await key(a,b'\x1b')
     for conn in callers:
         await probe.leave(conn,f's21-return-{conn.session.player_id.replace(":","-")}-{width}')

@@ -68,6 +68,18 @@ def fixture(probe: NativeProbe, stage: str) -> dict[str, Any]:
     return record
 
 
+def self_cell(connection: Connection) -> tuple[int,int] | None:
+    """The caller's own @ on screen as (row, column), if exactly one shows."""
+    found = [(row, col) for row, line in enumerate(connection.caller.screen.screen_text().splitlines())
+             for col, glyph in enumerate(line) if glyph == '@']
+    return found[0] if len(found) == 1 else None
+
+
+def viewport(probe: NativeProbe, connection: Connection) -> dict[str, int]:
+    """The zone viewport of the caller's latest server view."""
+    return probe.game.sim.views[connection.session.id].previous['body']['viewport']
+
+
 async def controls(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     a = await probe.open(width,height,'S15Meat',1,True)
     b = await probe.open(width,height,'S15Wire',1)
@@ -91,15 +103,26 @@ async def controls(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     room = next(r.id for r in encounters.core(presence).graph.rooms.values() if any(c.id == 'hall-doors' for c in r.controls))
     await room_walk(probe,b,room)
     assert not obj.open
-    probe.save(a,f's15-locked-{width}x{height}')
+    await probe.capture(a,f's15-locked-{width}x{height}')
+    before_cell, before_view = self_cell(a), viewport(probe,a)
+    assert before_cell, 'S15: no @ on the locked-door screen'
     started = time.monotonic()
     await choose(probe,b,'control:hall-doors')
     await wait(lambda:obj.open and not probe.commerce.pending)
     elapsed = time.monotonic()-started
     await wait(lambda:any(o['id'] == obj.spec.id and o['state']['open'] for o in (probe.game.sim.views[a.session.id].previous or {}).get('body',{}).get('objects',[])))
     assert any('Nobody touches' in line['text'] for line in a.session.log_ring)
+    mark = await probe.mark(a)  # #295: a frame after the step, not the old one.
     await probe.walk(a,obj.spec.tile)
-    probe.save(a,f's15-open-walked-{width}x{height}')
+    step = obj.spec.tile[0]-before_tile[0], obj.spec.tile[1]-before_tile[1]
+    def on_door() -> bool:
+        # #295: the @ stands where the door was, so the frame shows the step
+        # (main's capture showed the @ still beside the open door).
+        now = viewport(probe,a)
+        return self_cell(a) == (before_cell[0]+step[1]-(now['y']-before_view['y']),
+                                before_cell[1]+step[0]-(now['x']-before_view['x']))
+    await wait(on_door)
+    await probe.capture(a,f's15-open-walked-{width}x{height}',since=mark)
     (zid, oid), _ = next((key,core) for key,core in interlock.hardware.items() if core == 'lat-civic-ledger')
     probe.report(f"S15 {width}x{height}: flip and physical walking passed; approaching hardware")
     await probe.walk(a,zone.objects[oid].spec.tile)
@@ -128,7 +151,7 @@ async def controls(probe: NativeProbe, width: int, height: int) -> dict[str, Any
     cut_elapsed = time.monotonic()-cut_started
     assert b.avatar.actor.shock == 100 and interlock.offline('lat-civic-ledger') > 598
     await wait(lambda:'The floor goes dark' in b.caller.screen.screen_text())
-    probe.save(b,f's15-cut-shock-{width}x{height}')
+    await probe.capture(b,f's15-cut-shock-{width}x{height}')
     saved = (await storage_reader.committed_state(probe.service))
     assert next(p for p in saved['players'] if p['id'] == b.session.player_id)['shock'] == 100
     assert saved['interlock']['cores']['lat-civic-ledger']['offline_until'] > interlock.now()
@@ -223,6 +246,11 @@ async def private(probe: NativeProbe, width: int, height: int, record: dict[str,
     await wait(lambda:any('24 hours' in line['text'] for line in b.session.log_ring))
     assert probe.commerce.items[record['storage'][1]].stack == 3
     assert probe.commerce.items[record['storage'][2]].stack == 3
+    # #295: capture the refusal while it shows, before B closes the menu;
+    # later lines (ambient zone text reaches a runner too) can scroll it
+    # out of the log rows (review 7240013041).
+    await wait(lambda:'24 hours' in b.caller.screen.screen_text())
+    await probe.capture(b,f's15-unit-limit-{width}x{height}')
     await b.caller.write(b'b')
     await wait(lambda:b.session.id not in encounters.menus)
     zone = probe.service.world.zones[record['zone']]
@@ -230,9 +258,8 @@ async def private(probe: NativeProbe, width: int, height: int, record: dict[str,
     await probe.walk(a,resident_menu.spec.tile)
     await a.caller.write(b'e')
     await wait(lambda:'APARTMENT / CORE LOG' in a.caller.screen.screen_text())
+    await probe.capture(a,f's15-owner-log-{width}x{height}')
     assert 'Someone was in your core' in a.caller.screen.screen_text()
-    probe.save(a,f's15-owner-log-{width}x{height}')
-    probe.save(b,f's15-unit-limit-{width}x{height}')
     saved = (await storage_reader.committed_state(probe.service))
     assert len(saved['interlock']['apartments'][record['id']]['hack_log']) == 1
     await a.caller.write(b'b')
