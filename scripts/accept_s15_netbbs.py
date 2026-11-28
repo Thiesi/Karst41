@@ -246,6 +246,11 @@ async def private(probe: NativeProbe, width: int, height: int, record: dict[str,
     await wait(lambda:any('24 hours' in line['text'] for line in b.session.log_ring))
     assert probe.commerce.items[record['storage'][1]].stack == 3
     assert probe.commerce.items[record['storage'][2]].stack == 3
+    # #295: capture the refusal while it shows, before B closes the menu;
+    # later lines (ambient zone text reaches a runner too) can scroll it
+    # out of the log rows (review 7240013041).
+    await wait(lambda:'24 hours' in b.caller.screen.screen_text())
+    await probe.capture(b,f's15-unit-limit-{width}x{height}')
     await b.caller.write(b'b')
     await wait(lambda:b.session.id not in encounters.menus)
     zone = probe.service.world.zones[record['zone']]
@@ -255,9 +260,6 @@ async def private(probe: NativeProbe, width: int, height: int, record: dict[str,
     await wait(lambda:'APARTMENT / CORE LOG' in a.caller.screen.screen_text())
     await probe.capture(a,f's15-owner-log-{width}x{height}')
     assert 'Someone was in your core' in a.caller.screen.screen_text()
-    # #295: the refusal's log line is the positive marker for the theft screen.
-    await wait(lambda:'24 hours' in b.caller.screen.screen_text())
-    await probe.capture(b,f's15-unit-limit-{width}x{height}')
     saved = (await storage_reader.committed_state(probe.service))
     assert len(saved['interlock']['apartments'][record['id']]['hack_log']) == 1
     await a.caller.write(b'b')
