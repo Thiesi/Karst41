@@ -1,0 +1,50 @@
+╔═ROOM═SAFE════════════════════════════════════════════════════════════════════════════════════════════════════════════Wide界══════╗
+║          ┌─ ROOM ─────────────────────────────────────────────────────────────────────────────────────────────────────┐          ║
+║          │ Choice                                               HP 130/130  INT 100  TRACE 4.1                        │          ║
+║          │ Flip hall doors  on / 300s remaining  3s / +10 ba... Select ICE to inspect and target. Select data to      │          ║
+║          │                                                      start                                                 │          ║
+║          │                                                      a three-second lift.                                  │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │                                                                                                            │          ║
+║          │ enter select  Esc/B back                                                                                   │          ║
+║          └────────────────────────────────────────────────────────────────────────────────────────────────────────────┘          ║
+╟──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╢
+║+ Your body stays upstairs. Its shelter still matters.                                                                            ║
+║+ Arrows follow links. J brings you back from a public cell.                                                                      ║
+║+ You enter Core. Plaza Exchange resolves.                                                                                        ║
+║· You came down. Most of them stop at the door.                                                                                   ║
+║· Cell log: one visitor. Two entries.                                                                                             ║
+║√ You gain 5 XP.                                                                                                                  ║
+║+ You enter Civic Ledger. B returns along the entry; J starts escape.                                                             ║
+║+ The latch cycles open. Nobody touches it.                                                                                       ║
+║The menu changed. Choose again.  Esc/B returns without acting  Ctrl-X leave                                                       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════

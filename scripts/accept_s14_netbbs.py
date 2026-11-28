@@ -19,10 +19,13 @@ from collections.abc import Callable
 from accept_s10_netbbs import Connection, NativeProbe, wait
 from acceptance_hall import crossed_quietly
 from accept_s13_netbbs import lat_walk
+from acceptance_settle import settled as settle
 from karst41.server.lattice.silt import generate
 from karst41 import content as content_package
 from karst41.server.rules import character
+from karst41.server.sessions import STALE_CHOICE_TOAST
 from tests import storage_reader
+from tests.presentation.snapshots import snapshot
 
 # #246 diagnostics. A menu choice the server refuses as stale (Session.fresh)
 # leaves no trace of its own, so gate-duo's choose() used to time out with
@@ -30,6 +33,11 @@ from tests import storage_reader
 # refusal with the revision the Enter carried, the session's current one,
 # and which menu cells differ between those two published documents.
 REFUSALS: list[dict[str, Any]] = []
+# #301: every menu() choice with its acceptance stamp: when its first Enter
+# left the door, when the server accepted the Enter that took it (the guard
+# let a menu_select through), how many Enters and refusals it took.
+CHOICES: list[dict[str, Any]] = []
+ACCEPTED: dict[str, float] = {}  # Session id: the newest menu_select the guard let through.
 ENTER_DELAY = 0.0  # --enter-delay: seconds a menu choice spends in flight.
 CHOICE_SECONDS = 10  # How long menu() keeps offering one choice.
 DOCUMENTS: dict[str, dict[int, Any]] = {}
@@ -61,11 +69,16 @@ def trace_refusals() -> None:
 
     def checked(self, expected):
         accepted = fresh(self, expected)
+        choice = self.handling is not None and self.handling.data.get('name') == 'menu_select'
+        if accepted and choice:
+            ACCEPTED[self.id] = time.monotonic()
         if not accepted:
             ring = DOCUMENTS.get(self.id, {})
             before, after = ring.get(expected), ring.get(self.view_revision)
             REFUSALS.append({'session': self.id, 'sent': expected, 'current': self.view_revision,
                              'monotonic': round(time.monotonic(), 3),
+                             # #301: whether this refusal told the caller (Session.tell_refused).
+                             'toast': choice and self.toasted is self.handling,
                              'differs': differences(before, after)[:20] if before is not None and after is not None
                              else 'document not kept'})
         return accepted
@@ -90,7 +103,17 @@ def refusals(connection: Connection) -> str:
     return json.dumps([r for r in REFUSALS if r['session'] == connection.session.id][-8:], ensure_ascii=False)
 
 
-async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, changes: bool = True) -> None:
+def why(probe: NativeProbe, connection: Connection) -> str:
+    """#303: why a choice wasn't taken. The guard's refusals for this caller,
+    and every caller's last log lines, where the game says why it declined
+    an accepted choice (such as "Finish or cancel the current action first.")."""
+    logs = {':'.join(c.session.player_id.split(':')[-2:]): [row['text'] for row in list(c.session.log_ring)[-4:]]
+            for c in probe.connections if c.session.player_id}
+    return f'refusals: {refusals(connection)}; last log lines: {json.dumps(logs, ensure_ascii=False)}'
+
+
+async def cursor_to(probe: NativeProbe, connection: Connection, row_id: str) -> Any:
+    """Real arrow keys until `row_id` is under the cursor; the open menu."""
     encounters = probe.service.core.lattice.encounters
     await wait(lambda: 'Choice' in connection.caller.screen.screen_text()
         and connection.session.ack_revision == connection.session.view_revision)
@@ -102,6 +125,12 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
         old = screen.cursor
         await connection.caller.write(b'\x1b[B' if desired > old else b'\x1b[A')
         await wait(lambda: screen.cursor != old)
+    return screen
+
+
+async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, changes: bool = True) -> None:
+    encounters = probe.service.core.lattice.encounters
+    screen = await cursor_to(probe, connection, row_id)
     state = screen.kind, screen.slot, screen.target
 
     def taken() -> bool:
@@ -115,11 +144,25 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
     # once the accepted choice has changed the menu.
     session = connection.session
     deadline = time.monotonic()+CHOICE_SECONDS
+    first = time.monotonic()
+    before = sum(r['session'] == session.id for r in REFUSALS)
+    stamp = {'session': session.id, 'row': row_id, 'first_enter': round(first, 3), 'accepted': None,
+             'wait': None, 'enters': 0, 'refusals': 0}
+    CHOICES.append(stamp)
+
+    def stamped() -> None:
+        # #301: the server's acceptance, not when this loop next looked.
+        accepted = ACCEPTED.get(session.id, 0.0)
+        stamp['accepted'] = round(accepted, 3) if accepted >= first else None
+        stamp['wait'] = round(accepted-first, 3) if accepted >= first else None
+        stamp['refusals'] = sum(r['session'] == session.id for r in REFUSALS)-before
+
     while True:
         await wait(lambda: session.ack_revision == session.view_revision)
         if taken():
-            return  # A queued choice completed while its new view was acknowledged.
+            return stamped()  # A queued choice completed while its new view was acknowledged.
         mark = sum(r['session'] == session.id for r in REFUSALS)
+        stamp['enters'] += 1
         await connection.caller.write(b'\r')
         if not changes:
             return
@@ -129,10 +172,11 @@ async def menu(probe: NativeProbe, connection: Connection, row_id: str, *, chang
         except TimeoutError:
             pass
         if taken():
-            return
+            return stamped()
         if time.monotonic() >= deadline:
+            stamped()
             raise AssertionError(f'#246: choice {row_id!r} not taken in {CHOICE_SECONDS} s; '
-                                 f'refusals: {refusals(connection)}')
+                                 f'{why(probe, connection)}')
 
 
 async def program(probe: NativeProbe, connection: Connection, slot: int,
@@ -234,7 +278,7 @@ async def choose(probe: NativeProbe, connection: Connection, row: str, *, closes
         try:
             await wait(lambda: connection.session.id not in encounters.menus)
         except TimeoutError:
-            raise AssertionError(f'#246: menu after {row!r} never closed; refusals: {refusals(connection)}') from None
+            raise AssertionError(f'#246: menu after {row!r} never closed; {why(probe, connection)}') from None
 
 
 async def room_walk(probe: NativeProbe, connection: Connection, target: str) -> None:
@@ -506,7 +550,74 @@ async def danger(probe: NativeProbe, width: int, height: int) -> dict[str, Any]:
     return {'stage':'danger','size':[width,height],'content_fixture':True,'runs':outcomes,'passed':True}
 
 
-async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False) -> dict[str, Any]:
+async def refused(probe: NativeProbe, victim: Connection, hitter: Connection, hornets: Any,
+                  width: int, height: int, tier: str) -> dict[str, Any]:
+    """#301 captures: a real Enter refused as stale in a Lattice room, and the
+    toast that says so. The victim opens the room menu and presses Enter on
+    the Hornets row. The probe holds that Enter in flight (a slow link) while
+    the hitter's real program hits the Hornets, until a real term of the
+    choice changes: the row's integrity, or the Hornets' own phase if that
+    turns first (warning to attacking). Then the Enter arrives, carrying the
+    revision it was made on: the guard refuses it, the menu stays open on the
+    new terms, and the toast is on the hint row. The capture is taken there."""
+    core = probe.service.core
+    encounters = core.lattice.encounters
+    session = victim.session
+    await victim.caller.write(b'e')
+    await wait(lambda: session.id in encounters.menus)
+    screen = await cursor_to(probe, victim, 'ice:'+hornets.id)
+    held: list[Any] = []
+    receive = core.receive
+
+    def holding(who, frame):
+        if who is session and not held and frame.type == 'intent' and frame.data.get('name') == 'menu_select':
+            held.append(frame)
+        else:
+            receive(who, frame)
+    core.receive = holding
+    try:
+        await victim.caller.write(b'\r')
+        await wait(lambda: bool(held))
+        sent = held[0].data.get('expected_revision')
+        before = hornets.integrity
+        mark = len(REFUSALS)
+        await program(probe, hitter, 1, lambda: session.choices.get(session.view_revision) != session.choices.get(sent))
+    finally:
+        core.receive = receive
+    receive(session, held[0])
+    await wait(lambda: any(r['session'] == session.id for r in REFUSALS[mark:]))
+    refusal = next(r for r in REFUSALS[mark:] if r['session'] == session.id)
+    assert refusal['toast'], refusal
+    assert encounters.menus.get(session.id) is screen, 'The refused Enter left the room menu open'
+    await wait(lambda: STALE_CHOICE_TOAST in victim.caller.screen.screen_text())
+
+    def flashed() -> bool:
+        # The door's damage flash (chrome.render_effects) redraws the frame
+        # edge as "-" and "|" while the Hornets hit this caller.
+        return victim.caller.screen.screen_text().startswith('-')
+    try:  # Prefer a frame between hits, while the 4 s toast still shows.
+        await wait(lambda: not flashed() and STALE_CHOICE_TOAST in victim.caller.screen.screen_text(), 3)
+    except TimeoutError:
+        pass
+    await settle(session, victim.caller)
+    label = f's301-refused-{session.user_id}-{width}x{height}-{tier}'
+    probe.save(victim, label)
+    (probe.root/(label+'.json')).write_text(json.dumps(snapshot(victim.caller.screen), ensure_ascii=False,
+                                                       indent=2)+'\n', encoding='utf-8')
+    rows = victim.caller.screen.screen_text().splitlines()
+    hint = next((row for row in rows if STALE_CHOICE_TOAST in row), '')
+    assert hint, 'The toast was gone before the capture'
+    flash = bool(rows) and rows[0].startswith('-')  # As captured.
+    probe.report(f'  {label}')
+    await victim.caller.write(b'b')
+    await wait(lambda: session.id not in encounters.menus)
+    return {'capture': label, 'tier': tier, 'sent': sent, 'current': refusal['current'],
+            'hornets_integrity': [before, hornets.integrity], 'differs': refusal['differs'],
+            'toast_row': hint, 'damage_flash': flash, 'menu_stayed_open': True}
+
+
+async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False,
+               captures: bool = False) -> dict[str, Any]:
     lattice = probe.service.core.lattice
     encounters = lattice.encounters
     connections = [await probe.open(width,height,'S14GateA',1,True)]
@@ -575,8 +686,25 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False) -
     # Both callers use real target/attack keys against the same defender.
     for connection in connections:
         await choose(probe,connection,'ice:'+hornets.id)
+    refused_captures = []
+    if captures:
+        # #301: each caller is refused once, A in 16 colours, B in 256.
+        for victim, hitter, tier in ((*connections, '16'), (*connections[::-1], '256')):
+            refused_captures.append(await refused(probe, victim, hitter, hornets, width, height, tier))
+        assert hornets.alive, 'The captures used up the Hornets'
     await asyncio.gather(*(program(probe,c,1,lambda: not hornets.alive) for c in connections))
     assert not hornets.alive
+    # #303: the gather returns when the Hornets fall, not when each caller's
+    # last cast ends. A cast still in flight makes start_lift decline the
+    # lift ("Finish or cancel the current action first."), so the lift
+    # starts only from idle callers, and the wait never hangs.
+    presences = [lattice.presences[c.session.player_id] for c in connections]
+    try:
+        await wait(lambda: all(p.cast is None and p.procedure is None for p in presences), 10)
+    except TimeoutError:
+        raise AssertionError('#303: callers not idle before the lift: '+json.dumps(
+            [{'player': p.player_id, 'cast': str(p.cast)[:160], 'procedure': str(p.procedure)[:160]}
+             for p in presences], ensure_ascii=False)) from None
     before = sum(probe.game.players[c.session.player_id].chits_hand for c in connections)
     source = next(d for d in encounters.core(first).graph.room(first.room).data if d.kind == 'chits')
     key = encounters.source(first,source)
@@ -604,7 +732,8 @@ async def gate(probe: NativeProbe, width: int, height: int, duo: bool = False) -
         await wait(lambda: connection.session.player_id not in lattice.presences,12)
         await probe.leave(connection,f's14-gate-return-{connection.session.user_id}-{width}x{height}')
     probe.report(f'PASS S14 Gate Nine {width}x{height} {len(connections)} caller(s): labelled content/loan/contract fixtures, real Skeleton and Hornets, mission receipts, one shared 120-chit generation; committed three-second latch on the labelled physical fixture')
-    return {'stage':'gate-duo' if duo else 'gate-solo','size':[width,height],
+    return {'stage':'gate-refused' if captures else 'gate-duo' if duo else 'gate-solo','size':[width,height],
+        **({'refused_captures':refused_captures} if captures else {}),
         'content_fixture':True,'loan_program_fixture':'Skeleton','active_contract_fixture':True,
         'funding_fixture':False,'placement_fixture':False,'shared_reward':after-before,
         'source_generations_consumed':1,'entry_to_credit_seconds':receipt_seconds,'latch_effect_claimed':False,'passed':True}
@@ -688,11 +817,14 @@ async def accept(root: Path, door_python: Path, show: bool,
     if ENTER_DELAY:
         delay_choices(probe.service.core, ENTER_DELAY)
     REFUSALS.clear()
+    CHOICES.clear()
+    ACCEPTED.clear()
     results = []
     try:
         for width, height in sizes:
             if stage.startswith('gate-'):
-                results.append(await gate(probe,width,height,stage == 'gate-duo'))
+                results.append(await gate(probe,width,height,stage in ('gate-duo','gate-refused'),
+                                          captures=stage == 'gate-refused'))
             else:
                 results.append(await {'training':training,'silt':silt,'danger':danger,'burn':burn}[stage](probe,width,height))
         assert not probe.errors and probe.service.failure is None
@@ -714,6 +846,9 @@ async def accept(root: Path, door_python: Path, show: bool,
         # #246: every stale refusal, including those a retry got past.
         (probe.root/f's14-{stage}-refusals.json').write_text(json.dumps(REFUSALS, indent=2, ensure_ascii=False)+'\n',
                                                               encoding='utf-8')
+        # #301: each menu() choice's acceptance stamp.
+        (probe.root/f's14-{stage}-choices.json').write_text(json.dumps(CHOICES, indent=2, ensure_ascii=False)+'\n',
+                                                             encoding='utf-8')
         await probe.close()
 
 
@@ -722,7 +857,7 @@ if __name__ == '__main__':
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--door-python', type=Path, required=True)
     parser.add_argument('--show', action='store_true')
-    parser.add_argument('--stage', choices=('training', 'silt', 'danger', 'gate-solo', 'gate-duo', 'burn'), default='training')
+    parser.add_argument('--stage', choices=('training', 'silt', 'danger', 'gate-solo', 'gate-duo', 'gate-refused', 'burn'), default='training')
     parser.add_argument('--size', choices=('both', '80', '132'), default='both')
     parser.add_argument('--enter-delay', type=float, default=0.0,
                         help='#246: hold every menu choice this many seconds before the server sees it')

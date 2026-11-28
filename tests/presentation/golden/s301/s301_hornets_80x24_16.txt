@@ -1,0 +1,24 @@
+╔═ROOM═SAFE════════════════════════════════════The menu changed. Choose again.═╗
+║    ┌─ ROOM ─────────────────────────────────────────────────────────────┐    ║
+║    │ Choice                                                             │    ║
+║    │ Hornets  35 integrity  attacking                                   │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │                                                                    │    ║
+║    │ HP 130/130  INT 80  TRACE 2.3                                      │    ║
+║    │ Select ICE to inspect and target. Select data to start a three-    │    ║
+║    │ second lift.                                                       │    ║
+║    │                                                                    │    ║
+║    │ enter select  Esc/B back                                           │    ║
+║    └────────────────────────────────────────────────────────────────────┘    ║
+╟──────────────────────────────────────────────────────────────────────────────╢
+║‼ Hornets: feedback, 2s warning. area attack (Mallet); Umbrella absorbs 15 of ║
+║  the volley.                                                                 ║
+║* Hornets: 4 integrity, 0 body damage. (x5)                                   ║
+║? help  J escape  Esc/B returns without acting                                ║
+╚══════════════════════════════════════════════════════════════════════════════

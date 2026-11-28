@@ -1,0 +1,24 @@
+┌─ Karst · Wide界 ─────────────────────────────────────────────────────────────┐
+│    ┌─ ROOM ─────────────────────────────────────────────────────────────┐    │
+│    │ Choice                                                             │    │
+│    │ Flip hall doors  on / 300s remaining  3s / +10 base trace          │    │
+│    │                                                                    │    │
+│    │                                                                    │    │
+│    │                                                                    │    │
+│    │                                                                    │    │
+│    │                                                                    │    │
+│    │                                                                    │    │
+│    │                                                                    │    │
+│    │                                                                    │    │
+│    │ HP 130/130  INT 100  TRACE 4.1                                     │    │
+│    │ Select ICE to inspect and target. Select data to start a three-    │    │
+│    │ second lift.                                                       │    │
+│    │                                                                    │    │
+│    │ enter select  Esc/B back                                           │    │
+│    └────────────────────────────────────────────────────────────────────┘    │
+├The menu changed. Choose again.───────────────────────────────────────────────┤
+│[sys] You gain 5 XP.                                                          │
+│[lat] You enter Civic Ledger. B returns along the entry; J starts escape.     │
+│[zone] The latch cycles open. Nobody touches it.                              │
+│J escape  Esc/B returns without acting                                        │
+└──────────────────────────────────────────────────────────────────────────────

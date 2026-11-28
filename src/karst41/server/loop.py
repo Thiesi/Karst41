@@ -49,7 +49,11 @@ class TickLoop:
         for session in sessions:
             while session.input_queue:
                 frame = session.input_queue.popleft()
-                self.bus.publish(Event("input", {"session": session, "frame": frame, "tick": tick}))
+                session.handling = frame  # #301: Session.fresh tells a refused menu_select.
+                try:
+                    self.bus.publish(Event("input", {"session": session, "frame": frame, "tick": tick}))
+                finally:
+                    session.handling = None
                 if frame.type.startswith("admin."):
                     # Operator replies are views too: at most one per tick.
                     break
