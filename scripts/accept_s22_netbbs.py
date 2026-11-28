@@ -46,6 +46,18 @@ async def close_menu(probe: NativeProbe, caller: Connection) -> None:
     await wait(lambda: caller.session.id not in probe.service.core.crews.menus)
 
 
+def beacon_shown(probe: NativeProbe, caller: Connection) -> bool:
+    """#295: the caller's street, with the side panel's crew row for the
+    beacon member, named as the caller's latest view names it."""
+    view = probe.game.sim.views[caller.session.id].previous or {}
+    beacon = next((m for m in view.get('body', {}).get('crew', []) if m.get('beacon')), None)
+    lines = caller.caller.screen.screen_text().splitlines()
+    zone = probe.service.world.zones[caller.avatar.zone].template.meta.name
+    rows = [line.split('│')[-2].strip() for line in lines if line.count('│') >= 3]
+    return (beacon is not None and bool(lines) and zone in lines[0]
+            and any(row.startswith('>'+beacon['name']) for row in rows))
+
+
 async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     a = await probe.open(width, height, 'CrewA', 3, True)
     await probe.walk(a, (12, 10))
@@ -68,7 +80,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await commit_key(probe, b, b'a', lambda: crews.crew_id(pb.id) is not None)
     await close_menu(probe, b)
     await wait(lambda: pb.name in a.caller.screen.screen_text())
-    probe.save(a, f's22-consenting-crew-{width}')
+    await probe.capture(a, f's22-consenting-crew-{width}')
     probe.report(f'S22 {width}x{height}: actual invite/accept and live roster passed')
 
     await key(a, b't')
@@ -77,7 +89,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await wait(lambda: 'Crew:' in a.caller.screen.screen_text())
     await a.caller.write(token.encode()+b'\r')
     await wait(lambda: token in b.caller.screen.screen_text())
-    probe.save(b, f's22-crew-chat-{width}')
+    await probe.capture(b, f's22-crew-chat-{width}')
 
     await probe.travel(b, 'vatside-clinics')
     await probe.travel(b, 'core-plaza')
@@ -86,19 +98,21 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await crew_menu(probe, a, pb.id)
     await commit_key(probe, a, b'o', lambda: crews.registry.crew_of(pa.id).beacon == (pa.id, pb.id))
     await close_menu(probe, a)
-    probe.save(a, f's22-cross-zone-beacon-{width}')
+    # #295: the street with the beacon row (main captured the CREW menu).
+    await wait(lambda: beacon_shown(probe, a))
+    await probe.capture(a, f's22-cross-zone-beacon-{width}')
     lattice = probe.service.core.lattice
     await key(b, b'e')
     await wait(lambda: pb.id in lattice.presences)
     await wait(lambda: 'jack /' in a.caller.screen.screen_text())
     assert next(r for r in crews.roster(pa.id) if r['id'] == pb.id)['hp_pct'] == 100
-    probe.save(a, f's22-jacked-roster-{width}')
+    await probe.capture(a, f's22-jacked-roster-{width}')
     await probe.travel(a, 'vatside-clinics')
     await probe.travel(a, 'core-plaza')
     await probe.walk(a, (31, 6))
     await wait(lambda: any(o.get('id') == 'crew-beacon' for o in
         probe.game.sim.views[a.session.id].previous['body'].get('objects', [])))
-    probe.save(a, f's22-local-beacon-{width}')
+    await probe.capture(a, f's22-local-beacon-{width}')
     await key(b, b'j')
     await wait(lambda: pb.id not in lattice.presences, 10)
     for caller, tile in ((a, (25, 3)), (b, (26, 3))):
@@ -121,7 +135,7 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await key(b, b'e')
     await wait(lambda: a.avatar.actor.stance == 'normal', 4)
     assert a.avatar.actor.health > 0 and 'combat' not in pa.progress
-    probe.save(b, f's22-five-second-pickup-{width}')
+    await probe.capture(b, f's22-five-second-pickup-{width}')
     await asyncio.sleep(10.2)
     before_a, before_b = pa.xp, pb.xp
     await probe.target(a, drone.id)
@@ -132,14 +146,14 @@ async def run_size(probe: NativeProbe, width: int, height: int) -> dict:
     await wait(lambda: pb.xp > before_b)
     assert pa.xp-before_a == pb.xp-before_b
     await wait(lambda: '(crew)' in b.caller.screen.screen_text())
-    probe.save(b, f's22-shared-kill-xp-{width}')
+    await probe.capture(b, f's22-shared-kill-xp-{width}')
     await probe.target(a, pb.id)
     await wait(lambda: probe.service.clock.now_tick() >= a.avatar.actor.cooldowns.get('weapon', 0))
     before_health = b.avatar.actor.health
     await key(a, b'f')
     await wait(lambda: "You don't shoot crew." in a.caller.screen.screen_text())
     assert b.avatar.actor.health == before_health and not pa.marked_until
-    probe.save(a, f's22-friendly-fire-refused-{width}')
+    await probe.capture(a, f's22-friendly-fire-refused-{width}')
     await probe.leave(b, f's22-b-return-{width}')
     await wait(lambda: crews.crew_id(pa.id) is None)
     await probe.leave(a, f's22-a-return-{width}')

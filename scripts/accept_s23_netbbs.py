@@ -123,7 +123,15 @@ async def buy_ammunition(probe: ContractProbe, caller: Connection) -> int:
     await wait(lambda: not probe.commerce.pending)
     assert player.chits_hand < hand and player.chits_bank == bank
     await commit_key(probe, caller, b'\x1b', lambda: caller.session.id not in probe.commerce.menus)
-    probe.save(caller, f's23-ammunition-{caller.session.caps["width"]}')
+    # #295: the street with the purchase line and the new hand (main
+    # captured the BUY menu still open).
+    zone = probe.service.world.zones[caller.avatar.zone].template.meta.name
+    def bought() -> bool:
+        text = caller.caller.screen.screen_text()
+        return (zone in text.splitlines()[0] and 'Bought 9x pistol rounds' in text
+                and f'Chits {player.chits_hand} ' in text)
+    await wait(bought)
+    await probe.capture(caller, f's23-ammunition-{caller.session.caps["width"]}')
     return hand-player.chits_hand
 
 
@@ -221,7 +229,7 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     await choose(probe, seller, b'm')
     await wait(lambda: owner.views.menus[seller.session.id].mine)
     await wait(lambda: 'MY LISTINGS' in seller.caller.screen.screen_text())
-    probe.save(seller, f's23-listed-{width}')
+    await probe.capture(seller, f's23-listed-{width}')
     assert probe.commerce.items[iid].owner == 'market'
 
     await probe.route(buyer, 'sodium-tin-halo')
@@ -232,7 +240,9 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     await amount(probe, buyer, 'bid', 'Bid chits', '60')
     await confirm(probe, buyer, lambda: owner.market.highest(lid) is not None)
     assert pb.chits_bank == 40
-    probe.save(buyer, f's23-bid-{width}')
+    # #295: the bid's receipt (main captured the "Y confirms" prompt).
+    await wait(lambda: 'Your bid is held in escrow.' in buyer.caller.screen.screen_text())
+    await probe.capture(buyer, f's23-bid-{width}')
     await choose(probe, seller, b'k', lid)
     await confirm(probe, seller, lambda: 'active bid' in seller.caller.screen.screen_text().lower())
     assert owner.market.listings[lid].status == 'open' and pb.chits_bank == 40
@@ -245,7 +255,8 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     assert status['treasury']['kestrel'] == 5
     assert probe.commerce.items[iid].owner == 'impound:'+pb.id
     assert owner.lat.interlock.state['impounds'][pb.id]['items'][iid] == {'fee': 0, 'source': 'market'}
-    probe.save(buyer, f's23-buyout-{width}')
+    await wait(lambda: 'Your market purchase waits in personal impound' in buyer.caller.screen.screen_text())
+    await probe.capture(buyer, f's23-buyout-{width}')
     await close_market(probe, seller)
     await close_market(probe, buyer)
 
@@ -262,7 +273,8 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     assert pb.chits_bank == 0 and probe.commerce.items[iid].owner == pb.id
     collected = probe.commerce.items[iid].record()
     assert {k: v for k, v in collected.items() if k != 'owner'} == {k: v for k, v in original.items() if k != 'owner'}
-    probe.save(buyer, f's23-collected-{width}')
+    await wait(lambda: 'Market delivery collected' in buyer.caller.screen.screen_text())
+    await probe.capture(buyer, f's23-collected-{width}')
     await close_market(probe, buyer)
     probe.report(f'S23 PASS {width}x{height}: real routes, listing, escrow 60, net buyout 40, 95/5 settlement and exact free bank collection')
 
@@ -276,7 +288,8 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     await confirm(probe, seller, lambda: bool(owner.bounties.rows))
     bounty = next(iter(owner.bounties.rows.values()))
     assert pa.chits_bank == 895 and bounty.target == pb.id and bounty.chits == 200
-    probe.save(seller, f's23-bounty-{width}')
+    await wait(lambda: 'A price has been put on' in seller.caller.screen.screen_text())
+    await probe.capture(seller, f's23-bounty-{width}')
     await close_market(probe, seller)
 
     await probe.route(hunter, 'vatside-clinics')
@@ -319,7 +332,9 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
     assert pc.chits_bank == 1200 and pb.chits_bank == 0
     cache = next(c for c in probe.commerce.caches.values() if iid in c['items'])
     assert cache['victim'] == pb.id and cache['killer'] == pc.id
-    probe.save(hunter, f's23-claimed-{width}')
+    # #295: the claim's receipt; main saved before it reached the hunter.
+    await wait(lambda: 'Bounty claimed' in hunter.caller.screen.screen_text())
+    await probe.capture(hunter, f's23-claimed-{width}')
     probe.report(f'S23 PASS {width}x{height}: actual targeted fire/death pays 200; victim cache rights retained')
 
     await services(probe, seller, terminal)
@@ -332,7 +347,7 @@ async def run_case(probe: ContractProbe, width: int, height: int) -> dict[str, A
                  lambda: 'Nobody pays for a Wake.' in seller.caller.screen.screen_text())
     await wait(lambda: 'Nobody pays for a Wake.' in seller.caller.screen.screen_text())
     assert pa.chits_bank == 895 and len(owner.bounties.rows) == 1
-    probe.save(seller, f's23-wake-refused-{width}')
+    await probe.capture(seller, f's23-wake-refused-{width}')
     await close_market(probe, seller)
     result = {'passed': True, 'size': [width, height], 'listing': lid, 'item': iid,
         'seller': pa.id, 'buyer': pb.id, 'hunter': pc.id, 'bounty': bounty.id,

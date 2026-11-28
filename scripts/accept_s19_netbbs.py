@@ -106,6 +106,12 @@ async def encounter_row(probe: ContractProbe, caller: Connection, row: str) -> N
     await commit_key(probe,caller,b'\r',lambda:encounters.menus.get(caller.session.id) is not screen)
 
 
+def hint_row(caller: Connection) -> str:
+    """#295: the frame's hint row, the last bordered row above the bottom edge."""
+    rows = [line for line in caller.caller.screen.screen_text().splitlines() if line.startswith('│')]
+    return rows[-1].strip('│ ') if rows else ''
+
+
 async def first_job(probe: ContractProbe, width: int, height: int, network: bool) -> dict[str,Any]:
     route = 'network' if network else 'manual'
     caller = await probe.open(width,height,'S19'+route,0 if network else 1,True)
@@ -116,7 +122,9 @@ async def first_job(probe: ContractProbe, width: int, height: int, network: bool
     await probe.near(caller,'vesper')
     panel = await board_row(probe,caller,'vesper-first-thing')
     await commit_key(probe,caller,b'a',lambda:panel.confirmation is not None)
-    probe.save(caller,f's19-first-terms-{route}-{width}')
+    # #295: the terms confirmation (main captured the job list before it).
+    await wait(lambda:'Your chosen terms:' in caller.caller.screen.screen_text())
+    await probe.capture(caller,f's19-first-terms-{route}-{width}')
     await commit_key(probe,caller,b'y',lambda:any(j.template == 'vesper-first-thing'
         and any(p.player == player.id for p in j.roster) for j in owner.state.engine.instances.values()))
     iid = next(j.id for j in owner.state.engine.instances.values() if j.template == 'vesper-first-thing'
@@ -125,8 +133,10 @@ async def first_job(probe: ContractProbe, width: int, height: int, network: bool
     await probe.route(caller,'terraces-blocks')
     await probe.near(caller,'stairwell-c-parcel-hatch')
     await objective_key(probe,caller,lambda:owner.state.engine.instances[iid].index == 1)
-    await wait(lambda:'Next:' in caller.caller.screen.screen_text())
-    probe.save(caller,f's19-first-objective-{route}-{width}')
+    # #295: the survey's own receipt. 'Next:' alone was already on screen
+    # before the survey, and main captured that older frame.
+    await wait(lambda:'Objective recorded.' in caller.caller.screen.screen_text())
+    await probe.capture(caller,f's19-first-objective-{route}-{width}')
     if network:
         await probe.near(caller,'stairwell-c-loan')
         await key(caller,b'j')
@@ -139,14 +149,18 @@ async def first_job(probe: ContractProbe, width: int, height: int, network: bool
         await encounter_row(probe,caller,'control:parcel-release')
         await wait(lambda:owner.state.engine.instances[iid].index == 2)
         assert presence.trace == 0
-        probe.save(caller,f's19-loan-release-{width}')
+        await probe.capture(caller,f's19-loan-release-{width}')
         await key(caller,b'j')
         await wait(lambda:player.id not in owner.lat.presences)
     else:
         start = probe.service.clock.now_tick()
+        mark = await probe.mark(caller)  # #295: frames after the release channel starts.
         await objective_key(probe,caller,lambda:owner.state.engine.instances[iid].index == 2)
         assert probe.service.clock.now_tick()-start >= 50
-        probe.save(caller,f's19-manual-release-{width}')
+        # #295: the objective hint back in place of the 5 s channel row
+        # (main captured "Release the parcel hatch 0.1s  Stay still").
+        await wait(lambda:hint_row(caller).startswith('Next: '))
+        await probe.capture(caller,f's19-manual-release-{width}',since=mark)
     await probe.near(caller,'stairwell-c-parcel')
     await objective_key(probe,caller,lambda:owner.state.engine.instances[iid].index == 3)
     parcel = next(probe.commerce.items[i] for i in player.inventory
@@ -165,7 +179,7 @@ async def first_job(probe: ContractProbe, width: int, height: int, network: bool
     assert 'stairwell-c-latch-record' in owner.state.journal[player.id]
     await commit_key(probe,caller,b'j',lambda:panel.tab == 'journal')
     await wait(lambda:'Observed:' in caller.caller.screen.screen_text())
-    probe.save(caller,f's19-first-journal-{route}-{width}')
+    await probe.capture(caller,f's19-first-journal-{route}-{width}')
     await close_jobs(probe,caller)
     probe.report(f'S19 PASS {width}x{height}: unmodified hub {route} first job, 200 chits / 100 XP / explicit eight-faction +5')
     result = dict(size=[width,height],route=route,chits=200,xp=100,loan_trace=0 if network else None,
