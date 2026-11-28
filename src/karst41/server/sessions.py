@@ -29,7 +29,7 @@ CHOICE_HISTORY = 16  # S48e: published revisions whose menu choices are remember
 # view a tick, so 6.4 s): a link slower than CHOICE_HISTORY's 1.6 s still
 # learns why its Enter was refused. It never lets a choice through.
 MENU_HISTORY = 64
-STALE_CHOICE_TOAST = 'The menu changed, so nothing was chosen. Choose again.'
+STALE_CHOICE_TOAST = 'The menu changed. Choose again.'
 
 # S48e (technical lead): what a choice means is everything its menu shows as
 # its terms - every row's cells, the labels, the detail text with its prices,

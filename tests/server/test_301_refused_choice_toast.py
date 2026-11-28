@@ -3,9 +3,10 @@
 Session.fresh (S48e) refuses a menu_select whose menu changed its terms while
 the Enter was in flight, and re-sends the whole current view. Before #301 the
 player saw nothing else, so a refused Enter looked like a lost key. Now one
-toast goes out with the re-sent view (presentation lead 7226785737):
+toast goes out with the re-sent view (presentation lead 7226785737; the
+wording shortened in 7232688385):
 
-    The menu changed, so nothing was chosen. Choose again.
+    The menu changed. Choose again.
 
 role ui_text, 4 s, never the log, no row flash, and the guard unchanged. The
 technical lead's condition (7226798416): only while the refused choice's menu
@@ -48,7 +49,11 @@ def toasts(frames) -> list[dict]:
 
 
 def test_the_toast_fits_the_80_column_hint_row():
-    assert len(STALE_CHOICE_TOAST) == 54  # Presentation lead: whole in the 78-cell hint row (#261).
+    # Presentation lead 7232688385: whole as the presentation hint row's
+    # primary field at 80x24, beside the room menu's own back and escape
+    # groups: 31 + 2 + 28 ("Esc/B returns without acting") + 2 + 12
+    # ("Ctrl-X leave") = 75 of 78 cells (#261).
+    assert len(STALE_CHOICE_TOAST) == 31
 
 
 def test_a_menu_that_changed_in_place_refuses_the_enter_and_says_so_once():
